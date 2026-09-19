@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Astro / build output
+dist/
+.astro/
+
+# Test / coverage output
+coverage/
+playwright-report/
+test-results/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Local editor / OS noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local caches / temporary files
+.cache/
+.tmp/
+tmp/
+
+# Local-only exports / scratch
+.local/
+scratch/
+
+# Local-only workspace files — never commit
+/_local/

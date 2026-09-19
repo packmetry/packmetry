@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Sans+3:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;font-family:'Source Sans 3',sans-serif;color:#17212B;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}details summary::-webkit-details-marker{display:none;}</style><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{primary:"#18324A",secondary:"#2E5D50",ink:"#17212B","ink-muted":"#5E676A",surface:"#FFFFFF","surface-subtle":"#F7F9FA","surface-neutral":"#F3F6F8","border-subtle":"#E2E8F0","border-dark":"#CBD5E1"},fontFamily:{sans:['"Source Sans 3"','sans-serif'],heading:['Inter','sans-serif']},boxShadow:{card:"0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)",elevated:"0 4px 18px rgba(15, 23, 42, 0.05)"}}}}</script></head><body class="bg-white font-sans text-ink antialiased min-h-screen flex flex-col justify-between selection:bg-secondary/10 selection:text-secondary">
+<!-- HEADER -->
+<header class="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-border-subtle">
+<div class="max-w-6xl mx-auto h-16 px-6 flex items-center justify-between gap-6">
+<div class="flex items-center gap-8">
+<a class="flex items-center gap-2 group" href="#">
+<img alt="CartonLab Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XF3M_L9UgcUvsTKTC1fqinje_HdlEL0a4umFrQen8gQ6Cd1IanPuM69GgkVpY0prM5z25LcNgdCjk7jWAllhWVSWLU-bCqmO7z2qvf6KT8IWQI55e_UTUOt8XD3cK1RRnJxzTwLEeAHOk_pKYNCbjoWr8iXMER00DC2OJ1xZgtJxafNp2ahjoSI04rSetfHNDNlJj6Pjws7XosFdEPTOFF1Vi0fZZroI-mVdJENpGrhNMizYhH3A9wzcg"/>
+</a>
+<nav class="hidden md:flex items-center gap-6 text-sm font-heading font-medium">
+<a aria-current="page" class="text-primary font-semibold border-b-2 border-primary py-1" data-path="workbench" href="#">Tools</a>
+<a class="text-ink-muted hover:text-ink transition-colors py-1" data-path="how-it-works" href="#how-it-works">How It Works</a>
+<a class="text-ink-muted hover:text-ink transition-colors py-1" data-path="packaging-guides" href="#">Guides</a>
+<a class="text-ink-muted hover:text-ink transition-colors py-1" data-path="about" href="#">About</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="inline-flex items-center bg-surface-subtle p-0.5 rounded border border-border-subtle text-xs font-heading font-medium">
+<button class="px-2.5 py-1 rounded bg-white text-primary shadow-xs font-semibold" type="button">CM</button>
+<button class="px-2.5 py-1 rounded text-ink-muted hover:text-ink transition-colors" type="button">IN</button>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-subtle border border-border-subtle flex items-center justify-center text-ink-muted hover:text-ink cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[18px]">person</span>
+</div>
+</div>
+</div>
+</header>
+<!-- MAIN CONTENT -->
+<main class="w-full pt-16 flex-1 bg-white">
+<!-- HERO SECTION -->
+<section class="relative w-full bg-white px-6 pt-16 pb-12 border-b border-border-subtle/50">
+<div class="max-w-4xl mx-auto flex flex-col items-center text-center">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-surface-subtle rounded-full border border-border-subtle text-xs font-heading font-medium text-ink-muted mb-6">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span>Physical Packaging &amp; Bin-Packing Engine</span>
+</div>
+<h1 class="font-heading font-bold text-3xl sm:text-4xl lg:text-5xl text-ink tracking-tight leading-tight max-w-3xl mb-4" style="letter-spacing: -0.025em;">
+        Find the right way to pack it.
+      </h1>
+<p class="font-sans text-base sm:text-lg text-ink-muted max-w-2xl mb-8 leading-relaxed">
+        Tell us what you are packing and we will help you choose the right boxes, use the ones you already have, and pack the space efficiently.
+      </p>
+<div class="inline-flex items-center justify-center gap-2 text-xs font-heading text-ink-muted px-4 py-2 rounded bg-surface-subtle border border-border-subtle">
+<span class="font-medium text-ink">Free</span>
+<span class="text-border-dark">·</span>
+<span class="font-medium text-ink">No signup required</span>
+<span class="text-border-dark">·</span>
+<span class="font-medium text-ink">Runs in your browser</span>
+</div>
+</div>
+</section>
+<!-- TWO PRIMARY ENTRY CARDS -->
+<section class="w-full bg-white px-6 py-12">
+<div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- HOME & PERSONAL CARD -->
+<div class="bg-white rounded-lg p-8 sm:p-10 border border-border-subtle shadow-card hover:shadow-elevated transition-all flex flex-col justify-between group">
+<div>
+<div class="flex items-center justify-between mb-6">
+<div class="w-12 h-12 rounded-lg bg-[#2E5D50]/10 border border-[#2E5D50]/20 flex items-center justify-center text-[#2E5D50]">
+<!-- Lucide-style House + box icon -->
+<svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+<path d="M9 22V12h6v10"></path>
+<path d="M12 12v3"></path>
+</svg>
+</div>
+<span class="text-xs font-heading font-semibold text-[#2E5D50] bg-[#2E5D50]/10 px-2.5 py-1 rounded">Personal Track</span>
+</div>
+<h2 class="font-heading font-bold text-2xl text-ink tracking-tight mb-2">HOME &amp; PERSONAL</h2>
+<p class="font-sans text-ink-muted text-base mb-6 leading-relaxed">
+            Moving, gifts, storage, household items and occasional shipping.
+          </p>
+<ul class="space-y-3 font-sans text-sm text-ink-muted border-t border-border-subtle pt-6">
+<li class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[18px] text-[#2E5D50]">check</span>
+<span>Quick presets for common household and move items</span>
+</li>
+<li class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[18px] text-[#2E5D50]">check</span>
+<span>Fragile item protection buffers and orientation locking</span>
+</li>
+<li class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[18px] text-[#2E5D50]">check</span>
+<span>Standard removalist carton templates ready to deploy</span>
+</li>
+</ul>
+</div>
+<div class="mt-8 pt-6 border-t border-border-subtle">
+<a class="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded font-heading font-semibold text-white transition-colors shadow-xs" href="#" style="background-color: #2E5D50;">
+<span>Pack my items</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- BUSINESS CARD -->
+<div class="bg-white rounded-lg p-8 sm:p-10 border border-border-subtle shadow-card hover:shadow-elevated transition-all flex flex-col justify-between group">
+<div>
+<div class="flex items-center justify-between mb-6">
+<div class="w-12 h-12 rounded-lg bg-[#18324A]/10 border border-[#18324A]/20 flex items-center justify-center text-[#18324A]">
+<!-- Lucide-style stacked cartons / pallet icon -->
+<svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="m7.5 4.27 9 5.15"></path>
+<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+<path d="m3.3 7 8.7 5 8.7-5"></path>
+<path d="M12 22V12"></path>
+</svg>
+</div>
+<span class="text-xs font-heading font-semibold text-[#18324A] bg-[#18324A]/10 px-2.5 py-1 rounded">Commercial Track</span>
+</div>
+<h2 class="font-heading font-bold text-2xl text-ink tracking-tight mb-2">BUSINESS</h2>
+<p class="font-sans text-ink-muted text-base mb-6 leading-relaxed">
+            Ecommerce orders, carton inventory, packaging efficiency and repeat workflows.
+          </p>
+<ul class="space-y-3 font-sans text-sm text-ink-muted border-t border-border-subtle pt-6">
+<li class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[18px] text-[#18324A]">check</span>
+<span>Direct SKU dimension catalog &amp; CSV batch ingestion</span>
+</li>
+<li class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[18px] text-[#18324A]">check</span>
+<span>Carrier DIM divisor comparisons (FedEx, UPS, DHL)</span>
+</li>
+<li class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[18px] text-[#18324A]">check</span>
+<span>Stock box suite constraint to reduce carton SKU counts</span>
+</li>
+</ul>
+</div>
+<div class="mt-8 pt-6 border-t border-border-subtle">
+<a class="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded font-heading font-semibold text-white transition-colors shadow-xs" href="#" style="background-color: #18324A;">
+<span>Optimize my packing</span>
+<span class="material-symbols-outlined text-[18px]">tune</span>
+</a>
+</div>
+</div>
+</div>
+</section>
+<!-- ULTRA-COMPACT "HOW IT WORKS" PROCESS STRIP -->
+<section class="w-full bg-[#F7F9FA] border-y border-border-subtle py-8 px-6" id="how-it-works">
+<div class="max-w-6xl mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+<!-- Step 1 -->
+<div class="flex items-start gap-4">
+<div class="w-7 h-7 rounded bg-white border border-border-subtle flex items-center justify-center text-xs font-heading font-bold text-primary shrink-0 shadow-2xs">
+            01
+          </div>
+<div>
+<div class="text-sm font-heading font-semibold text-ink flex items-center gap-1.5">
+<span>Add items</span>
+</div>
+<p class="text-xs font-sans text-ink-muted mt-0.5 leading-relaxed">
+              Enter dimensions, quantity and optional weight.
+            </p>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="flex items-start gap-4 md:border-l md:border-border-subtle md:pl-6">
+<div class="w-7 h-7 rounded bg-white border border-border-subtle flex items-center justify-center text-xs font-heading font-bold text-primary shrink-0 shadow-2xs">
+            02
+          </div>
+<div>
+<div class="text-sm font-heading font-semibold text-ink flex items-center gap-1.5">
+<span>Choose box situation</span>
+</div>
+<p class="text-xs font-sans text-ink-muted mt-0.5 leading-relaxed">
+              Use your own boxes, ask what size to buy, or combine both.
+            </p>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="flex items-start gap-4 md:border-l md:border-border-subtle md:pl-6">
+<div class="w-7 h-7 rounded bg-white border border-border-subtle flex items-center justify-center text-xs font-heading font-bold text-primary shrink-0 shadow-2xs">
+            03
+          </div>
+<div>
+<div class="text-sm font-heading font-semibold text-ink flex items-center gap-1.5">
+<span>Get packing plan</span>
+</div>
+<p class="text-xs font-sans text-ink-muted mt-0.5 leading-relaxed">
+              See recommended boxes, space efficiency and 3D arrangement.
+            </p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- WORKED PACKING EXAMPLE -->
+<section class="w-full bg-white px-6 py-14">
+<div class="max-w-6xl mx-auto">
+<div class="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+<div>
+<span class="text-xs font-heading font-semibold text-secondary uppercase tracking-wider">Engineered Result Preview</span>
+<h2 class="font-heading font-bold text-2xl text-ink tracking-tight mt-1">Calculated Packing Plan</h2>
+</div>
+<div class="text-xs font-heading text-ink-muted">
+          Actual output from 3D heuristics
+        </div>
+</div>
+<div class="bg-white rounded-lg border border-border-subtle p-6 sm:p-8 shadow-card">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+<!-- Left Spec Column -->
+<div class="lg:col-span-5 space-y-6">
+<div>
+<div class="text-xs font-heading font-medium text-ink-muted uppercase">Recommended Carton</div>
+<div class="font-heading font-bold text-xl text-primary mt-1">1 × Medium Carton (60 × 40 × 35 cm)</div>
+<p class="font-sans text-sm text-ink-muted mt-1 leading-relaxed">
+                Calculated solution for mixed books, small appliances, electronics, and kitchenware.
+              </p>
+</div>
+<div class="grid grid-cols-3 gap-3">
+<div class="bg-[#F7F9FA] p-3 rounded border border-border-subtle">
+<div class="text-[11px] font-heading text-ink-muted">Packed Items</div>
+<div class="text-base font-heading font-bold text-ink mt-0.5">8 items</div>
+</div>
+<div class="bg-[#F7F9FA] p-3 rounded border border-border-subtle">
+<div class="text-[11px] font-heading text-ink-muted">Space Used</div>
+<div class="text-base font-heading font-bold text-secondary mt-0.5">84.2%</div>
+</div>
+<div class="bg-[#F7F9FA] p-3 rounded border border-border-subtle">
+<div class="text-[11px] font-heading text-ink-muted">Net Weight</div>
+<div class="text-base font-heading font-bold text-ink mt-0.5">4.8 kg</div>
+</div>
+</div>
+<div class="space-y-2 border-t border-border-subtle pt-4 text-xs font-sans text-ink-muted">
+<div class="flex justify-between py-0.5">
+<span>Void Fill Required:</span>
+<span class="font-medium text-ink">15.8% (Paper cushion)</span>
+</div>
+<div class="flex justify-between py-0.5">
+<span>Stacking Stability:</span>
+<span class="font-medium text-secondary">High (Base-weighted)</span>
+</div>
+<div class="flex justify-between py-0.5">
+<span>Wall Clearance / Flute:</span>
+<span class="font-medium text-ink">4 mm uniform margin</span>
+</div>
+</div>
+</div>
+<!-- Right Spatial Diagram Column -->
+<div class="lg:col-span-7 bg-[#F7F9FA] rounded-lg border border-border-subtle p-4 sm:p-6 flex flex-col justify-between">
+<div class="flex items-center justify-between text-xs font-heading pb-3 border-b border-border-subtle text-ink-muted">
+<span class="font-medium text-ink flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+                Isometric Layer Arrangement
+              </span>
+<span>Scale 1:12 · Orthographic</span>
+</div>
+<div class="py-4 flex items-center justify-center">
+<!-- Restrained isometric diagram -->
+<svg class="w-full max-w-lg h-52 text-ink" fill="none" stroke="currentColor" viewbox="0 0 460 210">
+<!-- Carton Outer Bounding Box (Muted dashed lines) -->
+<rect fill="none" height="135" stroke="#CBD5E1" stroke-dasharray="4 4" stroke-width="1.5" width="340" x="60" y="35"></rect>
+<path d="M60 35 L110 15 L450 15 L400 35" stroke="#CBD5E1" stroke-dasharray="4 4" stroke-width="1.5"></path>
+<path d="M450 15 L450 150 L400 170" stroke="#CBD5E1" stroke-dasharray="4 4" stroke-width="1.5"></path>
+<!-- Heavy Base Layer: Deep industrial navy #18324A -->
+<rect fill="#18324A" fill-opacity="0.15" height="60" stroke="#18324A" stroke-width="1.5" width="150" x="66" y="105"></rect>
+<text fill="#18324A" font-family="Inter" font-size="11" font-weight="600" text-anchor="middle" x="141" y="140">Book Cluster (4.8 kg)</text>
+<!-- Mid Layer Item: Forest green #2E5D50 -->
+<rect fill="#2E5D50" fill-opacity="0.18" height="60" stroke="#2E5D50" stroke-width="1.5" width="115" x="222" y="105"></rect>
+<text fill="#2E5D50" font-family="Inter" font-size="11" font-weight="600" text-anchor="middle" x="279" y="140">Dinnerware Pack</text>
+<!-- Mid Layer Side: Slate neutral -->
+<rect fill="#64748B" fill-opacity="0.15" height="50" stroke="#64748B" stroke-width="1.5" width="52" x="342" y="115"></rect>
+<text fill="#334155" font-family="Inter" font-size="10" font-weight="500" text-anchor="middle" x="368" y="144">Kettle</text>
+<!-- Top Tier Fragile: Forest green tint -->
+<rect fill="#2E5D50" fill-opacity="0.10" height="50" stroke="#2E5D50" stroke-width="1.5" width="195" x="66" y="50"></rect>
+<text fill="#2E5D50" font-family="Inter" font-size="11" font-weight="600" text-anchor="middle" x="163" y="79">Desk Lamp &amp; Fixtures</text>
+<!-- Top Tier Peripheral: Slate neutral -->
+<rect fill="#64748B" fill-opacity="0.10" height="38" stroke="#64748B" stroke-width="1.5" width="127" x="267" y="62"></rect>
+<text fill="#334155" font-family="Inter" font-size="10" font-weight="500" text-anchor="middle" x="330" y="85">Cables &amp; Peripherals</text>
+<!-- Dimensions markings -->
+<line stroke="#94A3B8" stroke-width="1" x1="50" x2="50" y1="35" y2="170"></line>
+<text fill="#64748B" font-family="Inter" font-size="10" text-anchor="middle" transform="rotate(-90 40 106)" x="40" y="106">35 cm</text>
+<line stroke="#94A3B8" stroke-width="1" x1="60" x2="400" y1="184" y2="184"></line>
+<text fill="#64748B" font-family="Inter" font-size="10" text-anchor="middle" x="230" y="196">60 cm width</text>
+</svg>
+</div>
+<div class="flex items-center justify-between text-xs font-sans text-ink-muted pt-2 border-t border-border-subtle">
+<span>Stack order: Dense base items → Fragile core → Void buffer</span>
+<span class="font-heading font-medium text-secondary">0.0 mm Overhang</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- THE THREE BOX-AVAILABILITY MODES -->
+<section class="w-full bg-[#F7F9FA] px-6 py-14 border-y border-border-subtle">
+<div class="max-w-6xl mx-auto space-y-8">
+<div>
+<span class="text-xs font-heading font-semibold text-secondary uppercase tracking-wider">Operational Flexibility</span>
+<h2 class="font-heading font-bold text-2xl text-ink tracking-tight mt-1">The Three Box-Availability Modes</h2>
+<p class="font-sans text-ink-muted text-base mt-1 max-w-2xl">
+          Packing constraints vary by situation. CartonLab calculates around your inventory realities.
+        </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Mode 1 -->
+<div class="bg-white rounded-lg p-6 border border-border-subtle shadow-card flex flex-col justify-between">
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<span class="text-xs font-heading font-semibold text-ink-muted bg-[#F3F6F8] px-2 py-0.5 rounded border border-border-subtle">Mode 01</span>
+<span class="material-symbols-outlined text-[18px] text-ink-muted">shopping_cart</span>
+</div>
+<h3 class="font-heading font-bold text-lg text-ink">“Tell me what size to buy”</h3>
+<p class="font-sans text-sm text-ink-muted leading-relaxed">
+              Ideal when you have no boxes yet. Synthesizes the optimal bounding container directly from your items to eliminate void waste.
+            </p>
+</div>
+<div class="mt-6 pt-4 border-t border-border-subtle text-xs font-sans text-ink-muted">
+<span class="font-medium text-ink">Best for:</span> New packaging purchases &amp; store runs
+          </div>
+</div>
+<!-- Mode 2 -->
+<div class="bg-white rounded-lg p-6 border border-border-subtle shadow-card flex flex-col justify-between">
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<span class="text-xs font-heading font-semibold text-ink-muted bg-[#F3F6F8] px-2 py-0.5 rounded border border-border-subtle">Mode 02</span>
+<span class="material-symbols-outlined text-[18px] text-ink-muted">inventory_2</span>
+</div>
+<h3 class="font-heading font-bold text-lg text-ink">“Use my boxes”</h3>
+<p class="font-sans text-sm text-ink-muted leading-relaxed">
+              Pack everything strictly inside your current inventory. Calculates the best assignment across cartons already on hand.
+            </p>
+</div>
+<div class="mt-6 pt-4 border-t border-border-subtle text-xs font-sans text-ink-muted">
+<span class="font-medium text-ink">Best for:</span> Moving with saved boxes &amp; stockroom limits
+          </div>
+</div>
+<!-- Mode 3 -->
+<div class="bg-white rounded-lg p-6 border border-border-subtle shadow-card flex flex-col justify-between">
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<span class="text-xs font-heading font-semibold text-secondary bg-secondary/10 px-2 py-0.5 rounded border border-secondary/20">Mode 03 · Hybrid</span>
+<span class="material-symbols-outlined text-[18px] text-secondary">handshake</span>
+</div>
+<h3 class="font-heading font-bold text-lg text-ink">“Use what I have, buy the rest”</h3>
+<p class="font-sans text-sm text-ink-muted leading-relaxed">
+              Hybrid allocation that fills on-hand boxes first to capacity, then calculates supplemental container sizes for leftovers.
+            </p>
+</div>
+<div class="mt-6 pt-4 border-t border-border-subtle text-xs font-sans text-ink-muted">
+<span class="font-medium text-ink">Best for:</span> Multi-room moves &amp; overflow fulfillment
+          </div>
+</div>
+</div>
+</div>
+</section>
+<!-- FACTUAL PRODUCT VALUE / TRUST METRICS -->
+<section class="w-full bg-white px-6 py-14">
+<div class="max-w-6xl mx-auto">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="bg-white p-6 rounded-lg border border-border-subtle shadow-card">
+<div class="w-10 h-10 rounded bg-[#F7F9FA] border border-border-subtle flex items-center justify-center text-primary mb-4">
+<span class="material-symbols-outlined text-[20px]">layers</span>
+</div>
+<h3 class="font-heading font-bold text-base text-ink mb-1">Less Wasted Space</h3>
+<p class="font-sans text-sm text-ink-muted leading-relaxed">
+            Heuristic 3D packing minimizes void volume and unneeded fill material.
+          </p>
+</div>
+<div class="bg-white p-6 rounded-lg border border-border-subtle shadow-card">
+<div class="w-10 h-10 rounded bg-[#F7F9FA] border border-border-subtle flex items-center justify-center text-secondary mb-4">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+</div>
+<h3 class="font-heading font-bold text-base text-ink mb-1">Private Browser-Based</h3>
+<p class="font-sans text-sm text-ink-muted leading-relaxed">
+            Runs 100% client-side; item dimensions and names never leave your browser.
+          </p>
+</div>
+<div class="bg-white p-6 rounded-lg border border-border-subtle shadow-card">
+<div class="w-10 h-10 rounded bg-[#F7F9FA] border border-border-subtle flex items-center justify-center text-primary mb-4">
+<span class="material-symbols-outlined text-[20px]">scale</span>
+</div>
+<h3 class="font-heading font-bold text-base text-ink mb-1">Lower DIM Exposure</h3>
+<p class="font-sans text-sm text-ink-muted leading-relaxed">
+            Calculates dimensional weight side-by-side with actual scale weight.
+          </p>
+</div>
+<div class="bg-white p-6 rounded-lg border border-border-subtle shadow-card">
+<div class="w-10 h-10 rounded bg-[#F7F9FA] border border-border-subtle flex items-center justify-center text-secondary mb-4">
+<span class="material-symbols-outlined text-[20px]">balance</span>
+</div>
+<h3 class="font-heading font-bold text-base text-ink mb-1">Clear Alternatives</h3>
+<p class="font-sans text-sm text-ink-muted leading-relaxed">
+            Provides balanced tradeoffs: fewer cartons versus smaller footprint.
+          </p>
+</div>
+</div>
+</div>
+</section>
+<!-- FAQ (ACCORDION STYLE) -->
+<section class="w-full bg-[#F7F9FA] px-6 py-14 border-t border-border-subtle">
+<div class="max-w-3xl mx-auto space-y-6">
+<div class="text-center">
+<span class="text-xs font-heading font-semibold text-secondary uppercase tracking-wider">Documentation &amp; Answers</span>
+<h2 class="font-heading font-bold text-2xl text-ink tracking-tight mt-1">Frequently Asked Questions</h2>
+</div>
+<div class="space-y-3">
+<!-- Q1 -->
+<details class="group bg-white rounded-lg border border-border-subtle overflow-hidden" open="">
+<summary class="flex items-center justify-between p-5 cursor-pointer select-none font-heading font-semibold text-ink text-base">
+<span>How accurate is the 3D packing engine?</span>
+<span class="material-symbols-outlined text-ink-muted group-open:rotate-180 transition-transform text-[20px]">expand_more</span>
+</summary>
+<div class="px-5 pb-5 pt-1 font-sans text-sm text-ink-muted leading-relaxed border-t border-border-subtle/40">
+            The engine utilizes heuristic 3D cuboid containment algorithms that model rotation constraints, stacking limits, and center-of-gravity balance. It accurately accounts for internal carton thickness (flute wall loss) rather than theoretical zero-thickness outer boundaries.
+          </div>
+</details>
+<!-- Q2 -->
+<details class="group bg-white rounded-lg border border-border-subtle overflow-hidden">
+<summary class="flex items-center justify-between p-5 cursor-pointer select-none font-heading font-semibold text-ink text-base">
+<span>Can I use this for carrier dimensional rules (FedEx, UPS, DHL)?</span>
+<span class="material-symbols-outlined text-ink-muted group-open:rotate-180 transition-transform text-[20px]">expand_more</span>
+</summary>
+<div class="px-5 pb-5 pt-1 font-sans text-sm text-ink-muted leading-relaxed border-t border-border-subtle/40">
+            Yes. The business tool lets you select standard carrier DIM divisors (e.g. 139 for domestic retail, 166, or metric 5000). CartonLab calculates billable dimensional weight alongside actual scale weight so you never encounter oversize surcharges unexpectedly.
+          </div>
+</details>
+<!-- Q3 -->
+<details class="group bg-white rounded-lg border border-border-subtle overflow-hidden">
+<summary class="flex items-center justify-between p-5 cursor-pointer select-none font-heading font-semibold text-ink text-base">
+<span>Can I switch between metric (cm/kg) and imperial (in/lbs)?</span>
+<span class="material-symbols-outlined text-ink-muted group-open:rotate-180 transition-transform text-[20px]">expand_more</span>
+</summary>
+<div class="px-5 pb-5 pt-1 font-sans text-sm text-ink-muted leading-relaxed border-t border-border-subtle/40">
+            Yes. The unit switcher in the navigation bar converts all active dimensions, tare allowances, and packaging tolerances seamlessly without losing calculation state.
+          </div>
+</details>
+</div>
+</div>
+</section>
+<!-- REFINED FINAL CTA -->
+<section class="w-full bg-white px-6 py-12">
+<div class="max-w-4xl mx-auto bg-primary rounded-xl p-8 sm:p-10 text-center text-white border border-primary">
+<h2 class="font-heading font-bold text-2xl sm:text-3xl tracking-tight mb-3">Ready to start packing?</h2>
+<p class="font-sans text-sm sm:text-base text-slate-300 max-w-xl mx-auto mb-6 leading-relaxed">
+        Choose your packing path or launch the blank workbench to start inputting custom item measurements.
+      </p>
+<div class="flex flex-wrap items-center justify-center gap-3">
+<a class="px-5 py-2.5 rounded font-heading font-semibold text-sm text-white transition-colors" href="#" style="background-color: #2E5D50;">
+          Pack my items
+        </a>
+<a class="px-5 py-2.5 rounded font-heading font-semibold text-sm text-primary bg-white hover:bg-slate-100 transition-colors shadow-xs" href="#">
+          Optimize my packing
+        </a>
+</div>
+</div>
+</section>
+</main>
+<!-- FOOTER -->
+<footer class="w-full bg-white border-t border-border-subtle">
+<div class="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-sans text-ink-muted">
+<div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 text-center sm:text-left">
+<span class="font-heading font-bold text-ink">CartonLab</span>
+<span class="hidden sm:inline text-border-dark">·</span>
+<span>© 2025 CartonLab Systems. All rights reserved.</span>
+<span class="hidden sm:inline text-border-dark">·</span>
+<span class="text-secondary font-medium">Free · No signup required · Runs in your browser</span>
+</div>
+<div class="flex items-center gap-6 font-heading">
+<a class="hover:text-ink transition-colors" data-path="privacy" href="#">Privacy</a>
+<a class="hover:text-ink transition-colors" data-path="packaging-guides" href="#">Packaging Guides</a>
+<a class="hover:text-ink transition-colors" data-path="density-specs" href="#">Density Specs</a>
+</div>
+</div>
+</footer>
+</body></html>

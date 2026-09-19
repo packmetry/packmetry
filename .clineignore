@@ -1,0 +1,15 @@
+# Keep Cline context focused after dependencies/build outputs exist.
+node_modules/
+dist/
+.astro/
+coverage/
+playwright-report/
+test-results/
+.git/
+*.log
+
+# Historical visual artifact is not active design authority.
+docs/reference/legacy/cartonlab_latest_code.html
+
+# Local-only scratch workspace
+_local/

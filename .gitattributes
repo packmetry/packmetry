@@ -1,0 +1,13 @@
+
+
+* text=auto
+
+@"
+* text=auto
+*.md text eol=lf
+*.html text eol=lf
+*.txt text eol=lf
+
+# Preserve imported authority documents exactly; do not fail whitespace checks on them
+docs/authority/CARTONLAB_ULTIMATE_PROJECT_SPECIFICATION.md -whitespace
+docs/authority/PACKMETRY_NEW_PROJECT_CHAT_BOOTSTRAP.md -whitespace
