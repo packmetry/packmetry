@@ -38,5 +38,9 @@ tmp/
 .local/
 scratch/
 
-# Local-only workspace files — never commit
+# Local-only workspace files ï¿½ never commit
 /_local/
+
+
+# Vitest
+.vitest/
