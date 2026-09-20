@@ -130,3 +130,55 @@ PKM-CORE-001: Implement canonical units and dimensions system (first dependency-
 
 ### Next Recommended Task
 PKM-CORE-002: Implement Item model with dimensions, weight, and constraints
+
+## 2026-09-20 — PKM-CORE-002: Canonical Item model implemented
+
+### Completed
+- Created canonical Item domain model in `src/core/domain/`:
+  - `item.ts`: Item interface, creation, validation, volume, and weight calculations
+  - `index.ts`: Domain module exports
+- Implemented per specification:
+  - `id`: required non‑empty string (no auto‑generated IDs)
+  - `name?`: optional string
+  - `sku?`: optional string
+  - `dimensions`: CanonicalDimensions (mm), using existing units validation
+  - `quantity`: positive integer ≥ 1
+  - `unitWeightG?`: optional positive finite number; missing means unknown ≠ 0
+- Created functions:
+  - `createItem()`: validates input and returns immutable item
+  - `validateItem()`: validates Item properties
+  - `itemUnitVolumeMm3()`: calculates unit volume in mm³
+  - `itemTotalVolumeMm3()`: calculates total volume (unit × quantity)
+  - `itemTotalWeightG()`: returns total weight or undefined if unknown
+- Preserved axis order without auto‑sorting
+- No external dependencies added
+- No Carton model or UI components
+- Created comprehensive unit tests covering:
+  - Valid minimal item
+  - Valid business item with name/SKU/weight
+  - Invalid blank ID
+  - Invalid quantity: 0, negative, fractional, NaN, Infinity
+  - Invalid dimensions
+  - Invalid supplied weight: ≤ 0, NaN, Infinity
+  - Missing weight returns undefined
+  - Volume × quantity correctness
+  - Weight × quantity correctness
+  - Axis order preservation
+  - Input object immutability
+
+### Files Created
+- `src/core/domain/item.ts`
+- `src/core/domain/index.ts`
+- `src/test/item.test.ts`
+
+### Files Modified
+- `docs/logs/IMPLEMENTATION_LOG.md` (this entry)
+
+### Validation Results
+- ✅ npm run typecheck: Success (0 errors, 0 warnings, 0 hints)
+- ✅ npm test: Success (76 tests passed including 24 new item tests)
+- ✅ npm run build: Success (1 page built in 2.14s)
+- ✅ git diff --check: Clean (no whitespace errors)
+
+### Next Recommended Task
+PKM-CORE-003: Implement constraints model (rotation, fragile, upright, padding) for items
