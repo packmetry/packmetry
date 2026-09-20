@@ -7,12 +7,14 @@
 import type { CanonicalDimensions } from '../units/types.js';
 import { validateCanonicalDimensions } from '../units/dimensions.js';
 import { ValidationError } from '../units/types.js';
+import type { ItemConstraints, ItemConstraintsInput } from './constraints.js';
+import { normalizeItemConstraints, validateItemConstraints } from './constraints.js';
 
 /**
  * A canonical item to be packed.
  *
  * Items have dimensions in canonical millimeters, positive integer quantity,
- * and optional weight in grams.
+ * optional weight in grams, and packing constraints.
  *
  * The caller must supply a non‑empty id; no IDs are auto‑generated.
  */
@@ -33,6 +35,13 @@ export interface Item {
    * When absent, weight is unknown; missing weight is never treated as zero.
    */
   unitWeightG?: number;
+  /**
+   * Item packing constraints.
+   *
+   * Affects rotation, fragile handling, padding, spacing, and stacking.
+   * Always present with normalized defaults applied.
+   */
+  constraints: ItemConstraints;
 }
 
 /**
@@ -55,6 +64,12 @@ export interface CreateItemOptions {
    * When absent, weight is unknown; missing weight is never treated as zero.
    */
   unitWeightG?: number;
+  /**
+   * Optional item packing constraints.
+   *
+   * When absent or partially specified, defaults are applied.
+   */
+  constraints?: ItemConstraintsInput;
 }
 
 /**
@@ -65,8 +80,11 @@ export interface CreateItemOptions {
  * @throws {ValidationError} If any validation fails
  */
 export function createItem(options: CreateItemOptions): Item {
-  // Validate all fields
+  // Validate all fields except constraints (handled separately)
   validateItem(options);
+
+  // Normalize constraints with defaults
+  const constraints = normalizeItemConstraints(options.constraints);
 
   // Return immutable item (no mutation of input)
   return {
@@ -80,6 +98,7 @@ export function createItem(options: CreateItemOptions): Item {
     },
     quantity: options.quantity,
     unitWeightG: options.unitWeightG,
+    constraints,
   };
 }
 
@@ -117,6 +136,14 @@ export function validateItem(item: CreateItemOptions | Item): void {
     if (item.unitWeightG <= 0) {
       throw new ValidationError(`Item unitWeightG must be > 0 when provided, got: ${item.unitWeightG}`);
     }
+  }
+
+  // Constraints validation if present in CreateItemOptions
+  if ('constraints' in item && item.constraints !== undefined) {
+    // validateItemConstraints will throw if constraints are invalid
+    // This handles the case where constraints is explicitly provided
+    // It won't be called for normalized Item objects
+    validateItemConstraints(item.constraints);
   }
 
   // Name and SKU are optional, no validation needed

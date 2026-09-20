@@ -61,7 +61,7 @@ export interface Carton {
   /**
    * Optional external dimensions in canonical millimeters.
    *
-   * When absent, external dimensions equal internal dimensions.
+   * When absent, external dimensions are unknown/not supplied.
    */
   externalDimensions?: CanonicalDimensions;
   /** Optional notes. */
@@ -116,7 +116,7 @@ export interface CreateCartonOptions {
   /**
    * Optional external dimensions in canonical millimeters.
    *
-   * When absent, external dimensions equal internal dimensions.
+   * When absent, external dimensions are unknown/not supplied.
    */
   externalDimensions?: CanonicalDimensions;
   /** Optional notes. */

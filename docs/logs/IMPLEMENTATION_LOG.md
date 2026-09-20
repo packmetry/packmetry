@@ -155,6 +155,30 @@ PKM-CORE-002: Implement Item model with dimensions, weight, and constraints
 - No Carton model or UI components
 - Created comprehensive unit tests covering:
   - Valid minimal item
+  - Valid business item with name/SKU/weight
+  - Invalid blank ID
+  - Invalid quantity: 0, negative, fractional, NaN, Infinity
+  - Invalid dimensions
+  - Invalid supplied weight: ≤ 0, NaN, Infinity
+  - Missing weight returns undefined
+  - Volume × quantity correctness
+  - Weight × quantity correctness
+  - Axis order preservation
+  - Input object immutability
+
+### Files Created
+- `src/core/domain/item.ts`
+- `src/core/domain/index.ts`
+- `src/test/item.test.ts`
+
+### Files Modified
+- `docs/logs/IMPLEMENTATION_LOG.md` (this entry)
+
+### Validation Results
+- ✅ npm run typecheck: Success (0 errors, 0 warnings, 0 hints)
+- ✅ npm test: Success (76 tests passed including 24 new item tests)
+- ✅ npm run build: Success (1 page built in 2.14s)
+- ✅ git diff --check: Clean (no whitespace errors)
 
 ## 2026-09-20 — PKM-CORE-003: Canonical Carton model implemented
 
@@ -213,31 +237,58 @@ PKM-CORE-002: Implement Item model with dimensions, weight, and constraints
 - ✅ git diff --check: PASSED (no whitespace errors)
 
 ### Next Recommended Task
-PKM-CORE-004: Implement constraints model (rotation, fragile, upright, padding) for items
-  - Valid business item with name/SKU/weight
-  - Invalid blank ID
-  - Invalid quantity: 0, negative, fractional, NaN, Infinity
-  - Invalid dimensions
-  - Invalid supplied weight: ≤ 0, NaN, Infinity
-  - Missing weight returns undefined
-  - Volume × quantity correctness
-  - Weight × quantity correctness
-  - Axis order preservation
-  - Input object immutability
+PKM-CORE-005: Implement optimization objectives for solver (cost, weight, volume)
 
-### Files Created
-- `src/core/domain/item.ts`
-- `src/core/domain/index.ts`
-- `src/test/item.test.ts`
+## 2026-09-20 — PKM-CORE-004: Item handling constraints implemented
 
-### Files Modified
-- `docs/logs/IMPLEMENTATION_LOG.md` (this entry)
+### Completed
+- Created canonical constraints module in `src/core/domain/`:
+  - `constraints.ts`: RotationPolicy type, ItemConstraints interface, normalization, and validation
+- Implemented per specification:
+  - `rotationPolicy`: 'any' | 'upright' | 'vertical-axis-only' | 'fixed'
+  - `fragile`: boolean (default false)
+  - `paddingAllowanceMm`: number ≥ 0 (default 0)
+  - `spacingAllowanceMm`: number ≥ 0 (default 0)
+  - `stackable`: boolean (default true)
+- Created functions:
+  - `normalizeItemConstraints()`: applies defaults, normalizes input
+  - `validateItemConstraints()`: validates constraint values
+  - `DEFAULT_ITEM_CONSTRAINTS`: default values object
+- Updated Item domain model:
+  - Added normalized `constraints` field to Item interface
+  - Extended `CreateItemOptions` with optional `constraints?` input
+  - Updated `createItem()` to normalize constraints with defaults
+  - Updated `validateItem()` to validate provided constraints
+- No redundant uprightOnly boolean stored
+- Input objects not mutated
+- No solver, carton constraints, objectives, or UI components
+- Repaired corrupted test file syntax (previous task corruption)
+- Created comprehensive unit tests covering:
+  - Default constraints
+  - Every rotation policy
+  - Invalid policy rejection
+  - fragile true/false
+  - stackable true/false
+  - padding/spacing valid (incl. 0)
+  - negative/NaN/Infinity rejection
+  - Item receives normalized defaults
+  - Custom Item constraints preserved
+  - Input objects not mutated
 
 ### Validation Results
-- ✅ npm run typecheck: Success (0 errors, 0 warnings, 0 hints)
-- ✅ npm test: Success (76 tests passed including 24 new item tests)
-- ✅ npm run build: Success (1 page built in 2.14s)
-- ✅ git diff --check: Clean (no whitespace errors)
+- ✅ npm run typecheck: PASSED (0 errors)
+- ✅ npm test: PASSED (146 total tests, 32 constraint tests)
+- ✅ npm run build: PASSED (builds successfully)
+- ✅ git diff --check: PASSED (no whitespace errors)
+
+### Files Created
+- `src/core/domain/constraints.ts`
+- `src/test/constraints.test.ts`
+
+### Files Modified
+- `src/core/domain/item.ts` (added constraints)
+- `src/core/domain/index.ts` (export constraints)
+- `docs/logs/IMPLEMENTATION_LOG.md` (this entry)
 
 ### Next Recommended Task
-PKM-CORE-003: Canonical Carton model.
+PKM-CORE-005: Optimization Objectives
