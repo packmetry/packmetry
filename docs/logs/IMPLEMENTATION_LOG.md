@@ -237,7 +237,7 @@ PKM-CORE-002: Implement Item model with dimensions, weight, and constraints
 - ✅ git diff --check: PASSED (no whitespace errors)
 
 ### Next Recommended Task
-PKM-CORE-005: Implement optimization objectives for solver (cost, weight, volume)
+PKM-CORE-004: Item handling constraints
 
 ## 2026-09-20 — PKM-CORE-004: Item handling constraints implemented
 
@@ -292,3 +292,62 @@ PKM-CORE-005: Implement optimization objectives for solver (cost, weight, volume
 
 ### Next Recommended Task
 PKM-CORE-005: Optimization Objectives
+
+## 2026-09-20 — PKM-CORE-005: Optimization Objectives model implemented
+
+### Completed
+- Created canonical objectives model in `src/core/domain/`:
+  - `objectives.ts`: ObjectiveKind type, OptimizationObjective interface, validation, and creation functions
+- Implemented per specification:
+  - Canonical `ObjectiveKind` with all listed kinds:
+    - `'balanced'` (default)
+    - `'fewest-cartons'`
+    - `'least-wasted-volume'`
+    - `'easier-to-carry'`
+    - `'existing-inventory-first'`
+    - `'min-dim-weight'`
+    - `'min-carton-cost'`
+  - `OptimizationObjective` interface with single `kind` property
+  - Functions:
+    - `createOptimizationObjective(kind)`: validates and returns objective
+    - `validateOptimizationObjective(objective)`: validates objective kind
+    - `isValidObjectiveKind(candidate)`: type guard for ObjectiveKind
+  - Constants:
+    - `VALID_OBJECTIVE_KINDS`: readonly array of all valid kinds
+    - `DEFAULT_OBJECTIVE_KIND = 'balanced'`
+- Updated domain module exports
+- Housekeeping:
+  - Updated misleading "immutable" comments in `item.ts` and `carton.ts` to clarify returned object clones caller-owned nested data
+  - Corrected next task in CORE-003 log entry from PKM-CORE-005 to PKM-CORE-004
+- Architecture mapping preserved:
+  - Personal "Best overall" → `balanced`
+  - Personal "Use fewest boxes" → `fewest-cartons`
+  - Personal "Use least empty space" → `least-wasted-volume`
+  - Personal "Make boxes easier to carry" → `easier-to-carry`
+  - Personal "Use boxes I already own first" → `existing-inventory-first`
+  - Business uses: all except `easier-to-carry`
+- No custom weighted objectives implemented (future)
+- No numerical scoring
+- No solver integration
+- No DIM calculation
+- No shipping-cost calculation
+- No UI components
+- No external dependencies added
+- Input objects not mutated
+- Created comprehensive unit tests covering:
+  - All valid objective kinds
+  - Invalid kind rejection with descriptive error message
+  - Default objective validation (`balanced`)
+  - Architecture mapping verification
+  - Input/output immutability verification
+  - Type guard functionality
+
+### Files Created
+- `src/core/domain/objectives.ts`
+- `src/test/objectives.test.ts`
+
+### Files Modified
+- `src/core/domain/index.ts` (added objectives export)
+- `src/core/domain/item.ts` (updated misleading comment)
+- `src/core/domain/carton.ts` (updated misleading comment)
+- `docs/logs/IMPLEMENTATION_LOG.md` (this entry and CORE-003 correction)

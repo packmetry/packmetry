@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { createCarton, validateCarton, cartonInternalVolumeMm3 } from '../core/domain/carton.js';
-import { ValidationError } from '../core/units/types.js';
 
 describe('Carton domain model', () => {
   describe('createCarton', () => {

@@ -86,7 +86,7 @@ export function createItem(options: CreateItemOptions): Item {
   // Normalize constraints with defaults
   const constraints = normalizeItemConstraints(options.constraints);
 
-  // Return immutable item (no mutation of input)
+  // Returned object clones caller-owned nested data; does not mutate input
   return {
     id: options.id,
     name: options.name,

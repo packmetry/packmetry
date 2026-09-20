@@ -133,7 +133,7 @@ export function createCarton(options: CreateCartonOptions): Carton {
   // Validate all fields
   validateCarton(options);
 
-  // Return immutable carton (no mutation of input)
+  // Returned object clones caller-owned nested data; does not mutate input
   const carton: Carton = {
     id: options.id,
     name: options.name,
