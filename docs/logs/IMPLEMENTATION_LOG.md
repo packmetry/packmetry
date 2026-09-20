@@ -377,10 +377,10 @@ PKM-CORE-006: Canonical Rotation Contract
 - No solver, verifier, or 3D transforms implemented (as per scope)
 
 ### Validation Results
-- ✅ npm run typecheck: Running...
-- ✅ npm test: Running...
-- ✅ npm run build: Running...
-- ✅ git diff --check: Running...
+- ✅ npm run typecheck: Passed (0 errors)
+- ✅ npm test: Passed (255 tests)
+- ✅ npm run build: Passed
+- ✅ git diff --check: Clean (no whitespace errors)
 
 ### Files Modified
 - `src/core/domain/result.ts`
