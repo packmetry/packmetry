@@ -79,3 +79,54 @@ Review this foundation locally, then create/connect the empty GitHub `packmetry`
 
 ### Next Recommended Task
 PKM-CORE-001: Implement canonical units and dimensions system (first dependency-correct module)
+
+
+## 2026-09-19 — PKM-CORE-001: Canonical units and dimensions implemented
+
+### Completed
+- Created canonical units module in `src/core/units/`:
+  - `types.ts`: Type definitions and validation utilities
+  - `length.ts`: Millimeter-centric length conversions
+  - `mass.ts`: Gram-centric mass conversions
+  - `dimensions.ts`: Dimension normalization, conversion, and validation
+  - `index.ts`: Module exports
+- Implemented exact conversion factors per specification:
+  - 1 in = 25.4 mm
+  - 1 ft = 304.8 mm
+  - 1 lb = 453.59237 g
+  - 1 oz = 28.349523125 g
+- Added comprehensive validation:
+  - Rejects NaN/Infinity values
+  - Rejects zero/negative dimensions
+  - Validates finite numbers only
+- Preserves axis order (length/width/height) without auto-sorting
+- Created comprehensive unit tests covering:
+  - Exact metric conversions
+  - Exact imperial conversions
+  - Metric↔imperial round trips
+  - Invalid input rejection
+  - Dimension validation
+  - Volume calculation (600×400×350 mm = 84,000,000 mm³)
+- Created ADR-001 documenting the canonical units decision
+- No external dependencies added
+
+### Files Created
+- `src/core/units/types.ts`
+- `src/core/units/length.ts`
+- `src/core/units/mass.ts`
+- `src/core/units/dimensions.ts`
+- `src/core/units/index.ts`
+- `src/test/units.test.ts`
+- `docs/decisions/ADR-001-canonical-measurement-units.md`
+
+### Files Modified
+- `docs/logs/IMPLEMENTATION_LOG.md` (this entry)
+
+### Validation Results
+- ✅ npm run typecheck: Success (2 hints, no errors)
+- ✅ npm test: Success (52 tests passed)
+- ✅ npm run build: Success
+- ✅ git diff --check: Clean
+
+### Next Recommended Task
+PKM-CORE-002: Implement Item model with dimensions, weight, and constraints
