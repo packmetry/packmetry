@@ -5,6 +5,8 @@
  */
 
 import { ValidationError } from '../units/types.js';
+import type { CanonicalDimensions } from '../units/types.js';
+import { validateCanonicalDimensions, dimensionsEqual } from '../units/dimensions.js';
 
 /**
  * Plan status indicating feasibility outcome.
@@ -213,4 +215,108 @@ export function createItemPlacement(placement: ItemPlacement): ItemPlacement {
 export function placementVolumeMm3(placement: ItemPlacement): number {
   validateItemPlacement(placement);
   return placement.length * placement.width * placement.height;
+}
+
+/**
+ * Get the dimensions of an item after applying a rotation.
+ *
+ * Maps original dimensions according to the rotation mapping:
+ * - LWH -> X:length, Y:width, Z:height
+ * - WLH -> X:width, Y:length, Z:height
+ * - LHW -> X:length, Y:height, Z:width
+ * - HLW -> X:height, Y:length, Z:width
+ * - WHL -> X:width, Y:height, Z:length
+ * - HWL -> X:height, Y:width, Z:length
+ *
+ * @param original - Original canonical dimensions
+ * @param rotation - Rotation to apply
+ * @returns Rotated canonical dimensions (length=X, width=Y, height=Z)
+ * @throws {ValidationError} If original dimensions or rotation are invalid
+ */
+export function getRotatedDimensions(
+  original: CanonicalDimensions,
+  rotation: PlacementRotation
+): CanonicalDimensions {
+  // Validate inputs
+  validateCanonicalDimensions(original);
+  validatePlacementRotation(rotation);
+
+  // Apply rotation mapping
+  switch (rotation) {
+    case 'LWH':
+      // X:length, Y:width, Z:height
+      return {
+        length: original.length,
+        width: original.width,
+        height: original.height,
+      };
+    case 'WLH':
+      // X:width, Y:length, Z:height
+      return {
+        length: original.width,
+        width: original.length,
+        height: original.height,
+      };
+    case 'LHW':
+      // X:length, Y:height, Z:width
+      return {
+        length: original.length,
+        width: original.height,
+        height: original.width,
+      };
+    case 'HLW':
+      // X:height, Y:length, Z:width
+      return {
+        length: original.height,
+        width: original.length,
+        height: original.width,
+      };
+    case 'WHL':
+      // X:width, Y:height, Z:length
+      return {
+        length: original.width,
+        width: original.height,
+        height: original.length,
+      };
+    case 'HWL':
+      // X:height, Y:width, Z:length
+      return {
+        length: original.height,
+        width: original.width,
+        height: original.length,
+      };
+  }
+}
+
+/**
+ * Check if an item placement's dimensions match the expected rotation
+ * of the original item dimensions.
+ *
+ * @param original - Original item canonical dimensions
+ * @param placement - Item placement with rotation
+ * @param tolerance - Maximum allowable difference (default: 1e-10)
+ * @returns True if placement dimensions match rotated original dimensions
+ * @throws {ValidationError} If original dimensions or placement are invalid
+ */
+export function placementDimensionsMatchRotation(
+  original: CanonicalDimensions,
+  placement: ItemPlacement,
+  tolerance?: number
+): boolean {
+  // Validate inputs
+  validateCanonicalDimensions(original);
+  validateItemPlacement(placement);
+
+  // Calculate expected dimensions after rotation
+  const expectedDimensions = getRotatedDimensions(original, placement.rotation);
+
+  // Create placement dimensions object
+  const placementDimensions: CanonicalDimensions = {
+    length: placement.length,
+    width: placement.width,
+    height: placement.height,
+  };
+
+  // Compare dimensions
+  return dimensionsEqual(expectedDimensions, placementDimensions, tolerance);
 }

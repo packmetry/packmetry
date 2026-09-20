@@ -387,5 +387,33 @@ PKM-CORE-006: Canonical Rotation Contract
 - `src/test/result-placement.test.ts`
 - `docs/logs/IMPLEMENTATION_LOG.md` (this entry and next task update)
 
+## 2026-09-20 — PKM-CORE-006A.2 RECOVERY V2: Rotation Geometry Test File Created
+
+### Completed
+- Created new test file `src/test/rotation-geometry.test.ts` containing all rotation geometry tests
+- Tests include:
+  - Exact mapping for all 6 rotations (LWH, WLH, LHW, HLW, WHL, HWL)
+  - Volume preservation verification for all rotations
+  - Matching placement returns true tests
+  - Mismatched placement returns false tests
+  - Invalid canonical dimensions rejection tests
+  - Original dimensions not mutated tests
+  - Placement input not mutated tests
+  - Tolerance parameter tests
+- Preserved existing `src/test/result-placement.test.ts` unchanged (as required)
+- Used existing functions `getRotatedDimensions` and `placementDimensionsMatchRotation` from `src/core/domain/result.ts`
+- All tests validate proper rotation mapping and geometry correctness
+
+### Validation Results
+- ✅ npm run typecheck: Passed (0 errors, 0 warnings, 0 hints)
+- ✅ npm test -- rotation-geometry.test.ts: 17 tests passed
+- ✅ npm run build: Success (1 page built successfully)
+- ✅ git diff --check: No whitespace errors
+- ✅ git status --short: Shows new rotation-geometry.test.ts file created
+
+### Files Modified/Created
+- `src/test/rotation-geometry.test.ts` (created new test file)
+- `docs/logs/IMPLEMENTATION_LOG.md` (this entry)
+
 ### Next Recommended Task
 PKM-CORE-007: PackingPlan model
