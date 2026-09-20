@@ -155,6 +155,65 @@ PKM-CORE-002: Implement Item model with dimensions, weight, and constraints
 - No Carton model or UI components
 - Created comprehensive unit tests covering:
   - Valid minimal item
+
+## 2026-09-20 — PKM-CORE-003: Canonical Carton model implemented
+
+### Completed
+- Created canonical Carton domain model in `src/core/domain/`:
+  - `carton.ts`: Carton interface, creation, validation, and volume calculations
+  - `index.ts`: Updated domain module exports
+- Implemented per specification:
+  - `id`: required non‑empty string (no auto‑generated IDs)
+  - `name?`: optional string
+  - `internalDimensions`: CanonicalDimensions (mm), using existing units validation
+  - `quantityAvailable?`: non‑negative integer; undefined = unlimited ≠ 0
+  - `cartonCode?`: optional string
+  - `maxGrossWeightG?`: optional positive finite number (grams)
+  - `emptyBoxWeightG?`: optional positive finite number (grams)
+  - `costPerBox?`: optional non‑negative finite number (0 valid)
+  - `stockQuantity?`: optional non‑negative integer
+  - `supplier?`: optional string
+  - `externalDimensions?`: optional CanonicalDimensions
+  - `notes?`: optional string
+- Created functions:
+  - `createCarton()`: validates input and returns immutable carton
+  - `validateCarton()`: validates Carton properties
+  - `cartonInternalVolumeMm3()`: calculates internal volume in mm³
+- Preserved axis order without auto‑sorting
+- Cloned dimension objects to prevent input mutation
+- No external dependencies added
+- No solver, constraints, objectives, or UI components
+- Created comprehensive unit tests covering:
+  - Valid minimal carton
+  - Valid business carton with all optional fields
+  - Blank id rejection
+  - Invalid internal dimensions
+  - quantityAvailable: allow 0; reject negative/fractional/NaN/Infinity
+  - stockQuantity: allow 0; reject negative/fractional/NaN/Infinity
+  - Invalid maxGrossWeightG
+  - Invalid emptyBoxWeightG
+  - costPerBox allows 0; rejects negative/NaN/Infinity
+  - Invalid external dimensions
+  - Internal volume correct (600×400×350 mm = 84,000,000 mm³)
+  - Axis order preserved
+  - Input not mutated
+
+### Files Created
+- `src/core/domain/carton.ts`
+- `src/test/carton.test.ts`
+
+### Files Modified
+- `src/core/domain/index.ts` (added carton export)
+- `docs/logs/IMPLEMENTATION_LOG.md` (this entry)
+
+### Validation Results
+- ✅ npm run typecheck: PASSED (0 errors)
+- ✅ npm test: PASSED (114 tests, 4 test files)
+- ✅ npm run build: PASSED (builds successfully)
+- ✅ git diff --check: PASSED (no whitespace errors)
+
+### Next Recommended Task
+PKM-CORE-004: Implement constraints model (rotation, fragile, upright, padding) for items
   - Valid business item with name/SKU/weight
   - Invalid blank ID
   - Invalid quantity: 0, negative, fractional, NaN, Infinity
@@ -181,4 +240,4 @@ PKM-CORE-002: Implement Item model with dimensions, weight, and constraints
 - ✅ git diff --check: Clean (no whitespace errors)
 
 ### Next Recommended Task
-PKM-CORE-003: Implement constraints model (rotation, fragile, upright, padding) for items
+PKM-CORE-003: Canonical Carton model.
