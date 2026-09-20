@@ -3,8 +3,11 @@ import {
   validateItemPlacement,
   createItemPlacement,
   placementVolumeMm3,
+  validatePlacementRotation,
+  VALID_PLACEMENT_ROTATIONS,
   type ItemPlacement,
   type PlanStatus,
+  type PlacementRotation,
 } from '../core/domain/result.js';
 import { ValidationError } from '../core/units/types.js';
 
@@ -30,6 +33,7 @@ describe('Canonical result placement primitives', () => {
       length: 100,
       width: 50,
       height: 30,
+      rotation: 'LWH',
     };
 
     it('accepts a valid placement', () => {
@@ -175,9 +179,14 @@ describe('Canonical result placement primitives', () => {
       });
     });
 
-    it('does not validate rotation property (optional unknown)', () => {
-      const placementWithRotation = { ...validPlacement, rotation: { axis: 'x', degrees: 90 } };
-      expect(() => validateItemPlacement(placementWithRotation)).not.toThrow();
+    it('rejects invalid rotation in placement', () => {
+      const placementWithInvalidRotation = { ...validPlacement, rotation: 'INVALID' as unknown as PlacementRotation };
+      expect(() => validateItemPlacement(placementWithInvalidRotation)).toThrow(ValidationError);
+    });
+
+    it('rejects non-string rotation in placement', () => {
+      const placementWithInvalidRotation = { ...validPlacement, rotation: 123 as unknown as PlacementRotation };
+      expect(() => validateItemPlacement(placementWithInvalidRotation)).toThrow(ValidationError);
     });
   });
 
@@ -191,6 +200,7 @@ describe('Canonical result placement primitives', () => {
       length: 100,
       width: 50,
       height: 25,
+      rotation: 'LWH',
     };
 
     it('creates a validated placement', () => {
@@ -215,11 +225,11 @@ describe('Canonical result placement primitives', () => {
     });
 
     it('clones rotation property when present', () => {
-      const placementWithRotation = { ...basePlacement, rotation: { axis: 'y', angle: 90 } };
+      const placementWithRotation = { ...basePlacement, rotation: 'WLH' as PlacementRotation };
       const result = createItemPlacement(placementWithRotation);
 
-      expect(result.rotation).toEqual({ axis: 'y', angle: 90 });
-      expect(result.rotation).toBe(placementWithRotation.rotation); // Same reference, rotation is unknown
+      expect(result.rotation).toBe('WLH');
+      expect(result.rotation).toBe(placementWithRotation.rotation); // Same value
     });
   });
 
@@ -234,6 +244,7 @@ describe('Canonical result placement primitives', () => {
         length: 10,
         width: 20,
         height: 30,
+        rotation: 'LWH',
       };
 
       expect(placementVolumeMm3(placement)).toBe(10 * 20 * 30); // 6000
@@ -249,6 +260,7 @@ describe('Canonical result placement primitives', () => {
         length: 10.5,
         width: 20.25,
         height: 30.75,
+        rotation: 'LWH',
       };
 
       expect(placementVolumeMm3(placement)).toBeCloseTo(10.5 * 20.25 * 30.75);
@@ -264,6 +276,7 @@ describe('Canonical result placement primitives', () => {
         length: -10, // Invalid
         width: 20,
         height: 30,
+        rotation: 'LWH',
       };
 
       expect(() => placementVolumeMm3(invalidPlacement as ItemPlacement)).toThrow(ValidationError);
@@ -279,6 +292,7 @@ describe('Canonical result placement primitives', () => {
         length: 100,
         width: 50,
         height: 25,
+        rotation: 'LWH',
       };
 
       const volume = placementVolumeMm3(placement);
@@ -287,7 +301,7 @@ describe('Canonical result placement primitives', () => {
   });
 
   describe('ItemPlacement interface validation', () => {
-    it('requires all mandatory properties', () => {
+    it('requires all mandatory properties including rotation', () => {
       // TypeScript compile-time check
       const placement: ItemPlacement = {
         itemId: 'valid',
@@ -298,13 +312,14 @@ describe('Canonical result placement primitives', () => {
         length: 1,
         width: 1,
         height: 1,
+        rotation: 'LWH',
       };
 
       expect(placement).toBeDefined();
     });
 
-    it('allows optional rotation property', () => {
-      const placementWithRotation: ItemPlacement = {
+    it('rejects missing rotation property', () => {
+      const invalidPlacement = {
         itemId: 'valid',
         instanceIndex: 0,
         x: 0,
@@ -313,24 +328,49 @@ describe('Canonical result placement primitives', () => {
         length: 1,
         width: 1,
         height: 1,
-        rotation: undefined,
+        // Missing rotation
       };
 
-      expect(placementWithRotation.rotation).toBeUndefined();
+      expect(() => validateItemPlacement(invalidPlacement as ItemPlacement)).toThrow(ValidationError);
+    });
+  });
 
-      const placementWithRotationValue: ItemPlacement = {
-        itemId: 'valid',
-        instanceIndex: 0,
-        x: 0,
-        y: 0,
-        z: 0,
-        length: 1,
-        width: 1,
-        height: 1,
-        rotation: { axis: 'z', angle: 45 },
-      };
+  describe('PlacementRotation validation', () => {
+    it.each(VALID_PLACEMENT_ROTATIONS)('accepts valid rotation: %s', (rotation) => {
+      expect(() => validatePlacementRotation(rotation)).not.toThrow();
+    });
 
-      expect((placementWithRotationValue.rotation as any)?.axis).toBe('z');
+    it('rejects invalid rotation string', () => {
+      expect(() => validatePlacementRotation('INVALID')).toThrow(ValidationError);
+      expect(() => validatePlacementRotation('')).toThrow(ValidationError);
+      expect(() => validatePlacementRotation('LWL')).toThrow(ValidationError);
+    });
+
+    it('rejects non-string rotation', () => {
+      expect(() => validatePlacementRotation(123)).toThrow(ValidationError);
+      expect(() => validatePlacementRotation(null)).toThrow(ValidationError);
+      expect(() => validatePlacementRotation(undefined)).toThrow(ValidationError);
+      expect(() => validatePlacementRotation({})).toThrow(ValidationError);
+      expect(() => validatePlacementRotation([])).toThrow(ValidationError);
+    });
+
+    it('preserves each rotation literal through createItemPlacement', () => {
+      VALID_PLACEMENT_ROTATIONS.forEach((rotation) => {
+        const placement: ItemPlacement = {
+          itemId: 'test',
+          instanceIndex: 0,
+          x: 0,
+          y: 0,
+          z: 0,
+          length: 10,
+          width: 20,
+          height: 30,
+          rotation,
+        };
+
+        const result = createItemPlacement(placement);
+        expect(result.rotation).toBe(rotation);
+      });
     });
   });
 });

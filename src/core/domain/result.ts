@@ -21,6 +21,53 @@ export type PlanStatus =
   | 'limit_reached';
 
 /**
+ * Canonical axis-aligned rotation representation.
+ *
+ * Letters represent which ORIGINAL item axis maps to packed X, Y, Z respectively.
+ *
+ * Example:
+ * 'LWH' = X:length, Y:width, Z:height
+ * 'WLH' = X:width, Y:length, Z:height
+ */
+export type PlacementRotation =
+  | 'LWH'
+  | 'WLH'
+  | 'LHW'
+  | 'HLW'
+  | 'WHL'
+  | 'HWL';
+
+/**
+ * All valid placement rotations.
+ */
+export const VALID_PLACEMENT_ROTATIONS: readonly PlacementRotation[] = [
+  'LWH',
+  'WLH',
+  'LHW',
+  'HLW',
+  'WHL',
+  'HWL',
+] as const;
+
+/**
+ * Validate a placement rotation value.
+ *
+ * @param rotation - The rotation value to validate
+ * @throws {ValidationError} If rotation is invalid
+ */
+export function validatePlacementRotation(rotation: unknown): void {
+  if (typeof rotation !== 'string') {
+    throw new ValidationError(`Rotation must be a string, got: ${typeof rotation}`);
+  }
+
+  if (!VALID_PLACEMENT_ROTATIONS.includes(rotation as PlacementRotation)) {
+    throw new ValidationError(
+      `Invalid rotation: ${rotation}. Must be one of: ${VALID_PLACEMENT_ROTATIONS.join(', ')}`
+    );
+  }
+}
+
+/**
  * Canonical item placement coordinates and dimensions.
  *
  * Represents one placed instance of an item in a carton.
@@ -59,10 +106,9 @@ export interface ItemPlacement {
   /**
    * Rotation representation.
    *
-   * The exact canonical rotation representation must be finalized
-   * before solver adapter implementation.
+   * Required canonical rotation representation.
    */
-  rotation?: unknown;
+  rotation: PlacementRotation;
 }
 
 /**
@@ -127,7 +173,8 @@ export function validateItemPlacement(placement: ItemPlacement): void {
     }
   }
 
-  // No rotation validation needed as rotation is optional unknown
+  // Rotation validation
+  validatePlacementRotation(placement.rotation);
 }
 
 /**

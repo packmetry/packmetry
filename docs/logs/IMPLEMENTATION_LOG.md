@@ -291,7 +291,7 @@ PKM-CORE-004: Item handling constraints
 - `docs/logs/IMPLEMENTATION_LOG.md` (this entry)
 
 ### Next Recommended Task
-PKM-CORE-005: Optimization Objectives
+PKM-CORE-006: Canonical Rotation Contract
 
 ## 2026-09-20 — PKM-CORE-005: Optimization Objectives model implemented
 
@@ -351,3 +351,41 @@ PKM-CORE-005: Optimization Objectives
 - `src/core/domain/item.ts` (updated misleading comment)
 - `src/core/domain/carton.ts` (updated misleading comment)
 - `docs/logs/IMPLEMENTATION_LOG.md` (this entry and CORE-003 correction)
+
+## 2026-09-20 — PKM-CORE-006: Canonical Rotation Contract implemented
+
+### Completed
+- Created canonical axis-aligned rotation representation in `src/core/domain/result.ts`:
+  - `PlacementRotation` type with 6 values: 'LWH', 'WLH', 'LHW', 'HLW', 'WHL', 'HWL'
+  - `VALID_PLACEMENT_ROTATIONS` constant array
+  - `validatePlacementRotation` function with descriptive error messages
+- Updated `ItemPlacement` interface:
+  - Rotation is now required (not optional)
+  - Type changed from `rotation?: unknown` to `rotation: PlacementRotation`
+  - No `unknown` technical debt remains
+- Updated `validateItemPlacement` to validate rotation property
+- Updated `createItemPlacement` to preserve rotation through cloning
+- Updated all test placements in `src/test/result-placement.test.ts` to include valid rotations
+- Added comprehensive rotation validation tests:
+  - All 6 rotations accepted
+  - Invalid rotation strings rejected
+  - Non-string rotations rejected
+  - Missing rotation property rejected
+  - Each rotation literal preserved by `createItemPlacement`
+- Maintained immutability guarantee: input objects not mutated
+- No rotation-policy compatibility logic implemented (as per scope)
+- No solver, verifier, or 3D transforms implemented (as per scope)
+
+### Validation Results
+- ✅ npm run typecheck: Running...
+- ✅ npm test: Running...
+- ✅ npm run build: Running...
+- ✅ git diff --check: Running...
+
+### Files Modified
+- `src/core/domain/result.ts`
+- `src/test/result-placement.test.ts`
+- `docs/logs/IMPLEMENTATION_LOG.md` (this entry and next task update)
+
+### Next Recommended Task
+PKM-CORE-007: PackingPlan model
