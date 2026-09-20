@@ -24,13 +24,12 @@ describe('Optimization objectives domain model', () => {
       ]);
     });
 
-    it('is immutable at runtime', () => {
-      // Runtime immutability check
+    it('does not allow mutation of readonly array', () => {
+      // Test that making a copy and modifying the copy does not affect the original readonly array
       const arrayCopy = [...VALID_OBJECTIVE_KINDS];
-      // This should not throw but won't modify the original array
       (arrayCopy as string[]).push('custom');
       expect(arrayCopy).toHaveLength(VALID_OBJECTIVE_KINDS.length + 1);
-      // Original array unchanged
+      // Original readonly array unchanged
       expect(VALID_OBJECTIVE_KINDS).toHaveLength(7);
     });
   });
