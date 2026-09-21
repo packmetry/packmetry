@@ -47,8 +47,7 @@ describe('PackingPlan domain model', () => {
     });
 
     it('rejects missing objective', () => {
-      const plan = { ...validPlan } as any;
-      delete plan.objective;
+      const plan = { ...validPlan, objective: undefined as never };
       expect(() => validatePackingPlan(plan)).toThrow('PackingPlan.objective is required');
     });
 
@@ -58,8 +57,7 @@ describe('PackingPlan domain model', () => {
     });
 
     it('rejects missing cartons', () => {
-      const plan = { ...validPlan } as any;
-      delete plan.cartons;
+      const plan = { ...validPlan, cartons: undefined as never };
       expect(() => validatePackingPlan(plan)).toThrow('PackingPlan.cartons is required');
     });
 
@@ -69,8 +67,7 @@ describe('PackingPlan domain model', () => {
     });
 
     it('rejects missing unplacedItems', () => {
-      const plan = { ...validPlan } as any;
-      delete plan.unplacedItems;
+      const plan = { ...validPlan, unplacedItems: undefined as never };
       expect(() => validatePackingPlan(plan)).toThrow('PackingPlan.unplacedItems is required');
     });
 
@@ -80,14 +77,12 @@ describe('PackingPlan domain model', () => {
     });
 
     it('rejects missing metrics', () => {
-      const plan = { ...validPlan } as any;
-      delete plan.metrics;
+      const plan = { ...validPlan, metrics: undefined as never };
       expect(() => validatePackingPlan(plan)).toThrow('PackingPlan.metrics is required');
     });
 
     it('rejects missing explanations', () => {
-      const plan = { ...validPlan } as any;
-      delete plan.explanations;
+      const plan = { ...validPlan, explanations: undefined as never };
       expect(() => validatePackingPlan(plan)).toThrow('PackingPlan.explanations is required');
     });
 
@@ -97,9 +92,33 @@ describe('PackingPlan domain model', () => {
     });
 
     it('rejects missing solverMeta', () => {
-      const plan = { ...validPlan } as any;
-      delete plan.solverMeta;
+      const plan = { ...validPlan, solverMeta: undefined as never };
       expect(() => validatePackingPlan(plan)).toThrow('PackingPlan.solverMeta is required');
+    });
+
+    it('rejects invalid PackedCarton', () => {
+      const plan = { ...validPlan, cartons: [{} as never] };
+      expect(() => validatePackingPlan(plan)).toThrow(ValidationError);
+    });
+
+    it('rejects invalid UnplacedItem', () => {
+      const plan = { ...validPlan, unplacedItems: [{} as never] };
+      expect(() => validatePackingPlan(plan)).toThrow(ValidationError);
+    });
+
+    it('rejects invalid PlanMetrics', () => {
+      const plan = { ...validPlan, metrics: {} as never };
+      expect(() => validatePackingPlan(plan)).toThrow(ValidationError);
+    });
+
+    it('rejects invalid Explanation', () => {
+      const plan = { ...validPlan, explanations: [{} as never] };
+      expect(() => validatePackingPlan(plan)).toThrow(ValidationError);
+    });
+
+    it('rejects invalid SolverMeta', () => {
+      const plan = { ...validPlan, solverMeta: {} as never };
+      expect(() => validatePackingPlan(plan)).toThrow(ValidationError);
     });
 
     it('rejects null or non-object', () => {
