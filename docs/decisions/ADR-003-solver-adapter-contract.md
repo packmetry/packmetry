@@ -34,7 +34,6 @@ interface SolverCandidateCarton {
 - Each entry equals one carton instance used by the candidate
 - `cartonId` references one Carton from `SolverInput.cartons`
 - Do not embed Carton; do not include metrics here
-- Placements reference valid item IDs and instance indices
 
 ### SolverCandidatePlan
 ```typescript
@@ -79,7 +78,7 @@ interface SolverAdapter {
 - Actual solver/library selection requires a separate future decision
 
 ## Alternatives considered
-1. **Synchronous solve()**: Rejected because Web Worker parallelism is required for production-scale problems.
+1. **Synchronous solve()**: Rejected to preserve an async, Web Worker-compatible solver boundary.
 2. **Callback-based progress**: Rejected for v1 to keep initial contract minimal; can be added later.
 3. **Embedded Carton in candidate**: Rejected to avoid data duplication and ensure consistency.
 4. **Single candidate instead of array**: Rejected to support solver libraries that produce alternative solutions.
