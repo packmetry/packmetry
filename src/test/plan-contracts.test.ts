@@ -1,10 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
-  type UnplacedReason,
   type UnplacedItem,
   type CartonMetrics,
   type PlanMetrics,
-  type ExplanationLevel,
   type Explanation,
   type SolverMeta,
   validateUnplacedReason,
@@ -59,7 +57,7 @@ describe('plan-contracts module', () => {
     });
 
     it.each([
-      [{ ...validUnplacedItem, itemId: 123 as any }, 'itemId must be a string'],
+      [{ ...validUnplacedItem, itemId: 123 as never }, 'itemId must be a string'],
       [{ ...validUnplacedItem, instanceIndex: -1 }, 'instanceIndex must be ≥ 0'],
       [{ ...validUnplacedItem, instanceIndex: 0.5 }, 'instanceIndex must be an integer'],
       [{ ...validUnplacedItem, instanceIndex: NaN }, 'instanceIndex must be a finite number'],
@@ -262,9 +260,9 @@ describe('plan-contracts module', () => {
 
     it.each([
       [{ ...validExplanation, code: '' }, 'code must be a non-empty string'],
-      [{ ...validExplanation, code: 123 as any }, 'code must be a string'],
+      [{ ...validExplanation, code: 123 as never }, 'code must be a string'],
       [{ ...validExplanation, message: '' }, 'message must be a non-empty string'],
-      [{ ...validExplanation, message: 456 as any }, 'message must be a string'],
+      [{ ...validExplanation, message: 456 as never }, 'message must be a string'],
       [{ ...validExplanation, level: 'invalid' }, 'Invalid ExplanationLevel'],
       [null, 'must be an object'],
       [{}, 'code must be a string'],
@@ -301,11 +299,11 @@ describe('plan-contracts module', () => {
     it.each([
       // invalid solverId
       [{ ...validSolverMeta, solverId: '' }, 'solverId must be a non-empty string'],
-      [{ ...validSolverMeta, solverId: 123 as any }, 'solverId must be a string'],
+      [{ ...validSolverMeta, solverId: 123 as never }, 'solverId must be a string'],
 
       // invalid solverVersion
       [{ ...validSolverMeta, solverVersion: '' }, 'solverVersion must be a non-empty string when provided'],
-      [{ ...validSolverMeta, solverVersion: 456 as any }, 'solverVersion must be a string when provided'],
+      [{ ...validSolverMeta, solverVersion: 456 as never }, 'solverVersion must be a string when provided'],
 
       // invalid durationMs
       [{ ...validSolverMeta, durationMs: -1 }, 'durationMs must be ≥ 0'],
@@ -313,7 +311,7 @@ describe('plan-contracts module', () => {
       [{ ...validSolverMeta, durationMs: Infinity }, 'durationMs must be a finite number'],
 
       // invalid deterministic
-      [{ ...validSolverMeta, deterministic: 'true' as any }, 'deterministic must be a boolean'],
+      [{ ...validSolverMeta, deterministic: 'true' as never }, 'deterministic must be a boolean'],
       [{ ...validSolverMeta, deterministic: null }, 'deterministic must be a boolean'],
 
       // general invalid
