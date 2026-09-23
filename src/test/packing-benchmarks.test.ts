@@ -9,7 +9,7 @@ import { PACKING_BENCHMARK_CASES } from './benchmarks/cases.js';
 
 describe('packing benchmark corpus', () => {
   it('contains the locked v1 benchmark set', () => {
-    expect(PACKING_BENCHMARK_CASES).toHaveLength(14);
+    expect(PACKING_BENCHMARK_CASES).toHaveLength(16);
   });
 
   it('uses unique benchmark ids', () => {

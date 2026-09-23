@@ -340,4 +340,35 @@ export const PACKING_BENCHMARK_CASES: readonly PackingBenchmarkCase[] = [
       repeatRuns: 3,
     },
   },
+  {
+    id: 'highly-different-item-sizes',
+    description: 'Large item with many small items.',
+    input: input(
+      [
+        item('large', { length: 80, width: 80, height: 80 }, 1),
+        item('small', { length: 20, width: 20, height: 20 }, 5),
+      ],
+      [carton('box', { length: 100, width: 100, height: 100 })]
+    ),
+    expected: {
+      status: 'feasible',
+      cartonCount: 1,
+      placedItemCount: 6,
+      unplacedItemCount: 0,
+    },
+  },
+  {
+    id: 'many-small-items',
+    description: 'Many small cubic items.',
+    input: input(
+      [item('cube', { length: 20, width: 20, height: 20 }, 50)],
+      [carton('box', { length: 100, width: 100, height: 100 })]
+    ),
+    expected: {
+      status: 'feasible',
+      cartonCount: 1,
+      placedItemCount: 50,
+      unplacedItemCount: 0,
+    },
+  },
 ] as const;
