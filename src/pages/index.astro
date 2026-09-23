@@ -1,31 +1,27 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import PackingWorkspace from '../components/PackingWorkspace';
 ---
 
 <BaseLayout>
-  <main>
-    <h1>Packmetry</h1>
-    <p>Universal browser-based packing decision workbench</p>
-    <p>This is a minimal placeholder page proving Astro runs.</p>
-    <p><em>Production codebase foundation established.</em></p>
-  </main>
+  <PackingWorkspace client:load />
 </BaseLayout>
 
-<style>
-  main {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 2rem;
-    font-family: system-ui, -apple-system, sans-serif;
+<style is:global>
+  html {
+    background: #f7f7f8;
   }
-  
-  h1 {
-    margin-bottom: 1rem;
-    color: #1a1a1a;
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    background: #f7f7f8;
   }
-  
-  p {
-    margin-bottom: 0.5rem;
-    color: #333;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
   }
 </style>
