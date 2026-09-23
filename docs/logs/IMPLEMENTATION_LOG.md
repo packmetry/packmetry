@@ -417,3 +417,114 @@ PKM-CORE-006: Canonical Rotation Contract
 
 ### Next Recommended Task
 PKM-CORE-007: PackingPlan model
+
+## 2026-09-21 — ADR-003 / solver adapter contract implemented
+
+### Completed
+- Solver adapter contract defined in `src/core/solver/contracts.ts`:
+  - `SolverInput` interface for normalized packing problem
+  - `SolverCandidatePlan` interface representing untrusted solver claims
+  - `SolverAdapter` interface with async Promise contract for Web Worker compatibility
+- All contracts use existing canonical domain models (Item, Carton, OptimizationObjective)
+- Preserves independence from UI/React/Three.js
+- Separates candidate claims from verified canonical result
+
+## 2026-09-22 — ADR-004 / independent verification implemented
+
+### Completed
+- Independent verification contract defined in `src/core/verification/contracts.ts`:
+  - `VerificationReport` interface with validity flag and issue descriptions
+  - `verifyCandidatePlan` function signature for verifying solver candidates
+- Verification implementation modules:
+  - `geometry.ts`: Collision and boundary checking
+  - `limits.ts`: Weight, quantity, and inventory limit validation
+  - `references.ts`: Item/carton reference and ID validation
+  - `verifier.ts`: Main orchestration combining all checks
+- Candidate output remains untrusted until independent verification passes
+- Verification does not construct canonical PackingPlan results (deferred per ADR-004)
+
+## 2026-09-22 — ADR-005 / deterministic baseline solver implemented
+
+### Completed
+- Deterministic baseline solver implemented in `src/core/solver/baseline.ts`:
+  - `solverId: 'packmetry-baseline'`
+  - Implements `SolverAdapter` interface
+  - First-fit decreasing with deterministic carton selection
+  - Axis-aligned rotations only (no complex rotation policies)
+  - Volume-first item ordering
+  - Deterministic tie-breaking for reproducible results
+- Returns exactly one candidate plan (per v1 design)
+- Does not claim mathematical optimality
+- Baseline serves as production-ready interchangeable solver
+- Exposed through solver public API
+
+## 2026-09-23 — Baseline solver public export
+
+### Completed
+- Solver subsystem exported through `src/core/solver/index.ts`:
+  - Exports all solver contracts (`SolverInput`, `SolverCandidatePlan`, `SolverAdapter`)
+  - Exports `BaselineSolver` class
+  - Exports solver integration utilities
+- All adapters accessible via standard import path
+- Maintains Web Worker compatibility through Promise interface
+- Interchangeable architecture preserved
+
+## 2026-09-23 — ADR-006 / solver-verification integration implemented
+
+### Completed
+- Solver-verification integration implemented in `src/core/solver/integration.ts`:
+  - `solveAndVerify` function orchestrates solver → verification pipeline
+  - Accepts any `SolverAdapter` implementation (not just BaselineSolver)
+  - Verifies every candidate returned by solver (1+)
+  - Returns `SolverVerificationResult` with validity status and reports
+  - Preserves independent verification as separate authority
+- No canonical PackingPlan construction (deferred)
+- No solver ranking, scoring, or fallback logic (deferred)
+- Integration ends after independent verification
+
+## 2026-09-23 — Solver-verification implementation validated
+
+### Completed
+- Integration tests created in `src/test/solver-verification-integration.test.ts`:
+  - Validates pipeline from solver input through verification
+  - Tests valid and invalid candidate scenarios
+  - Verifies independent verification authority maintained
+  - Confirms multiple-candidate handling
+- All solver-verification integration tests pass
+- Pipeline handles solver errors gracefully
+- No mutation of solver or verification inputs
+
+## 2026-09-23 — ADR-007 / canonical plan construction implemented
+
+### Completed
+- Canonical PackingPlan construction defined in `src/core/domain/plan-construction.ts`:
+  - `createPackingPlanFromVerifiedCandidate` function constructs canonical result
+  - Transforms verified candidate to canonical PackingPlan with required fields:
+    - ID generation with deterministic prefix
+    - Status mapping from candidate status
+    - Carton array conversion with metrics computation
+    - Unplaced items preservation
+    - Plan metrics calculation (carton count, volume efficiency, weight efficiency)
+    - Explanations placeholder array
+    - Solver metadata propagation
+- Preserves immutability guarantee
+- Requires independent verification to have passed
+- Does not replace independent verification
+- Throws on programming/invariant failures (undefined carton references)
+
+## 2026-09-23 — Canonical PackingPlan construction implementation validated
+
+### Completed
+- Plan construction tests created in `src/test/plan-construction.test.ts`:
+  - Valid construction from verified candidate
+  - Required field validations
+  - Carton metrics correctness verification
+  - Plan metrics calculation validation
+  - Immutability preservation tests
+  - Error handling for invalid inputs
+- All canonical construction tests pass
+- Construction does not mutate candidate arrays
+- Maintains deterministic plan ID generation
+
+### Current test baseline
+529 tests passing.

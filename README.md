@@ -46,4 +46,6 @@ See `docs/process/AI_IMPLEMENTATION_WORKFLOW.md`.
 
 ## Current state
 
-Repository/governance foundation only. Do not start the production UI or packing solver until the foundation task is reviewed and accepted.
+Core canonical units and domain contracts implemented. Deterministic baseline solver implemented with solver adapter contract. Independent verification implemented for candidate plans. Solver → verifier integration implemented. Canonical PackingPlan construction from verified candidates implemented. UI is intentionally not started yet.
+
+**Test baseline**: 529 tests passing.
