@@ -1,5 +1,6 @@
 import { useState, type SyntheticEvent } from 'react';
 
+import ResultSummary from './ResultSummary.js';
 import { createCarton } from '../core/domain/carton.js';
 import { createItem } from '../core/domain/item.js';
 import type { PackingPlan } from '../core/domain/packing-plan.js';
@@ -230,72 +231,25 @@ export default function PackingWorkspace() {
         </form>
 
         <section style={styles.card} aria-live="polite">
-          <h2 style={styles.cardHeading}>Result</h2>
-
           {!plan && !error && (
-            <p style={styles.muted}>
-              Run a calculation to see the verified result.
-            </p>
+            <>
+              <h2 style={styles.cardHeading}>Result</h2>
+              <p style={styles.muted}>
+                Run a calculation to see the verified result.
+              </p>
+            </>
           )}
 
           {error && (
-            <div role="alert" style={styles.error}>
-              {error}
-            </div>
-          )}
-
-          {plan && (
-            <div>
-              <div style={styles.statusRow}>
-                <strong>Status</strong>
-                <span style={styles.status}>{plan.status}</span>
+            <>
+              <h2 style={styles.cardHeading}>Result</h2>
+              <div role="alert" style={styles.error}>
+                {error}
               </div>
-
-              <dl style={styles.metrics}>
-                <div style={styles.metric}>
-                  <dt>Boxes used</dt>
-                  <dd style={styles.metricValue}>
-                    {plan.metrics.cartonCount}
-                  </dd>
-                </div>
-                <div style={styles.metric}>
-                  <dt>Items packed</dt>
-                  <dd style={styles.metricValue}>
-                    {plan.metrics.placedItemCount}
-                  </dd>
-                </div>
-                <div style={styles.metric}>
-                  <dt>Items unpacked</dt>
-                  <dd style={styles.metricValue}>
-                    {plan.metrics.unplacedItemCount}
-                  </dd>
-                </div>
-                <div style={styles.metric}>
-                  <dt>Space used</dt>
-                  <dd style={styles.metricValue}>
-                    {(plan.metrics.utilization * 100).toFixed(1)}%
-                  </dd>
-                </div>
-              </dl>
-
-              {plan.unplacedItems.length > 0 && (
-                <div style={styles.unplaced}>
-                  <strong>Why an item was not packed</strong>
-                  <ul>
-                    {plan.unplacedItems.map(item => (
-                      <li key={`${item.itemId}-${item.instanceIndex}`}>
-                        {item.reason}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <p style={styles.verified}>
-                Independently verified by the Packmetry core.
-              </p>
-            </div>
+            </>
           )}
+
+          {plan && <ResultSummary plan={plan} />}
         </section>
       </div>
     </main>
@@ -398,49 +352,5 @@ const styles = {
     background: '#fef2f2',
     color: '#991b1b',
     lineHeight: 1.5,
-  },
-  statusRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: '16px',
-    marginBottom: '20px',
-  },
-  status: {
-    borderRadius: '999px',
-    padding: '5px 10px',
-    background: '#f4f4f5',
-    fontSize: '13px',
-    fontWeight: 700,
-  },
-  metrics: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-    gap: '10px',
-    margin: 0,
-  },
-  metric: {
-    borderRadius: '12px',
-    padding: '14px',
-    background: '#f4f4f5',
-    color: '#52525b',
-    fontSize: '13px',
-  },
-  metricValue: {
-    margin: '5px 0 0',
-    color: '#18181b',
-    fontSize: '24px',
-    fontWeight: 800,
-  },
-  unplaced: {
-    marginTop: '20px',
-    borderTop: '1px solid #e4e4e7',
-    paddingTop: '16px',
-    color: '#3f3f46',
-  },
-  verified: {
-    margin: '20px 0 0',
-    fontSize: '13px',
-    color: '#71717a',
   },
 } as const;
