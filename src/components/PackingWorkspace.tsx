@@ -10,6 +10,12 @@ import {
   planPacking,
   type SolverInput,
 } from '../core/solver/index.js';
+import {
+  planNeedBoxes,
+  type PurchaseCartonRecommendation,
+} from '../core/workflows/index.js';
+
+export type WorkspaceMode = 'need-boxes' | 'have-box';
 
 export interface WorkspaceValues {
   itemLengthMm: number;
@@ -19,6 +25,11 @@ export interface WorkspaceValues {
   cartonLengthMm: number;
   cartonWidthMm: number;
   cartonHeightMm: number;
+}
+
+export interface NeedBoxesWorkspaceResult {
+  plan: PackingPlan;
+  purchaseRecommendations: PurchaseCartonRecommendation[];
 }
 
 export const DEFAULT_WORKSPACE_VALUES: WorkspaceValues = {
@@ -31,10 +42,8 @@ export const DEFAULT_WORKSPACE_VALUES: WorkspaceValues = {
   cartonHeightMm: 100,
 };
 
-export async function runPackingWorkspace(
-  values: WorkspaceValues
-): Promise<PackingPlan> {
-  const item = createItem({
+function createWorkspaceItem(values: WorkspaceValues) {
+  return createItem({
     id: 'workspace-item',
     name: 'Item',
     dimensions: {
@@ -44,6 +53,12 @@ export async function runPackingWorkspace(
     },
     quantity: values.itemQuantity,
   });
+}
+
+export async function runPackingWorkspace(
+  values: WorkspaceValues
+): Promise<PackingPlan> {
+  const item = createWorkspaceItem(values);
 
   const carton = createCarton({
     id: 'workspace-carton',
@@ -91,6 +106,48 @@ export async function runPackingWorkspace(
   }
 }
 
+export async function runNeedBoxesWorkspace(
+  values: WorkspaceValues
+): Promise<NeedBoxesWorkspaceResult> {
+  const item = createWorkspaceItem(values);
+
+  const result = await planNeedBoxes(
+    'workspace-plan',
+    new BaselineSolver(),
+    {
+      items: [item],
+      objective: {
+        kind: 'fewest-cartons',
+      },
+    }
+  );
+
+  if (result.planningResult.kind === 'planned') {
+    return {
+      plan: result.planningResult.plan,
+      purchaseRecommendations:
+        result.purchaseRecommendations,
+    };
+  }
+
+  switch (result.planningResult.selection.kind) {
+    case 'no-valid-candidate':
+      throw new Error(
+        'No independently verified box recommendation was produced'
+      );
+
+    case 'objective-unsupported':
+      throw new Error(
+        `Packing objective is not supported: ${result.planningResult.selection.objective}`
+      );
+
+    case 'insufficient-data':
+      throw new Error(
+        `Packing objective requires additional data: ${result.planningResult.selection.missingMetric}`
+      );
+  }
+}
+
 function NumberField({
   label,
   value,
@@ -120,10 +177,16 @@ function NumberField({
 }
 
 export default function PackingWorkspace() {
+  const [mode, setMode] =
+    useState<WorkspaceMode>('need-boxes');
   const [values, setValues] = useState<WorkspaceValues>(
     DEFAULT_WORKSPACE_VALUES
   );
   const [plan, setPlan] = useState<PackingPlan | null>(null);
+  const [
+    purchaseRecommendations,
+    setPurchaseRecommendations,
+  ] = useState<PurchaseCartonRecommendation[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
 
@@ -137,6 +200,13 @@ export default function PackingWorkspace() {
     }));
   };
 
+  const chooseMode = (nextMode: WorkspaceMode) => {
+    setMode(nextMode);
+    setPlan(null);
+    setPurchaseRecommendations([]);
+    setError(null);
+  };
+
   const submit = async (
     event: SyntheticEvent<HTMLFormElement>
   ) => {
@@ -144,9 +214,20 @@ export default function PackingWorkspace() {
     setRunning(true);
     setError(null);
     setPlan(null);
+    setPurchaseRecommendations([]);
 
     try {
-      setPlan(await runPackingWorkspace(values));
+      if (mode === 'need-boxes') {
+        const result =
+          await runNeedBoxesWorkspace(values);
+
+        setPlan(result.plan);
+        setPurchaseRecommendations(
+          result.purchaseRecommendations
+        );
+      } else {
+        setPlan(await runPackingWorkspace(values));
+      }
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -164,14 +245,67 @@ export default function PackingWorkspace() {
         <p style={styles.eyebrow}>Packmetry workspace</p>
         <h1 style={styles.heading}>Pack an item into a box</h1>
         <p style={styles.intro}>
-          Enter dimensions in millimetres. Packmetry will solve the
-          arrangement, independently verify it, and return a canonical result.
+          Enter item dimensions in millimetres. Packmetry can
+          recommend a box or use dimensions for a box you already
+          have, then independently verify the packing result.
         </p>
       </section>
 
       <div style={styles.grid}>
         <form onSubmit={submit} style={styles.card}>
-          <h2 style={styles.cardHeading}>Item</h2>
+          <h2 style={styles.cardHeading}>
+            How are you packing?
+          </h2>
+
+          <div
+            role="group"
+            aria-label="Box availability"
+            style={styles.modeGroup}
+          >
+            <button
+              type="button"
+              aria-pressed={mode === 'need-boxes'}
+              onClick={() => chooseMode('need-boxes')}
+              style={{
+                ...styles.modeButton,
+                ...(mode === 'need-boxes'
+                  ? styles.modeButtonActive
+                  : {}),
+              }}
+            >
+              <strong>I Need Boxes</strong>
+              <span style={styles.modeDescription}>
+                Recommend box dimensions for these items.
+              </span>
+            </button>
+
+            <button
+              type="button"
+              aria-pressed={mode === 'have-box'}
+              onClick={() => chooseMode('have-box')}
+              style={{
+                ...styles.modeButton,
+                ...(mode === 'have-box'
+                  ? styles.modeButtonActive
+                  : {}),
+              }}
+            >
+              <strong>I Already Have a Box</strong>
+              <span style={styles.modeDescription}>
+                Check packing against dimensions I provide.
+              </span>
+            </button>
+          </div>
+
+          <h2
+            style={{
+              ...styles.cardHeading,
+              marginTop: '1.5rem',
+            }}
+          >
+            Item
+          </h2>
+
           <div style={styles.fields}>
             <NumberField
               label="Length (mm)"
@@ -202,32 +336,58 @@ export default function PackingWorkspace() {
             />
           </div>
 
-          <h2 style={{ ...styles.cardHeading, marginTop: '1.5rem' }}>
-            Box
-          </h2>
-          <div style={styles.fields}>
-            <NumberField
-              label="Length (mm)"
-              value={values.cartonLengthMm}
-              min={0.001}
-              step={0.001}
-              onChange={value => update('cartonLengthMm', value)}
-            />
-            <NumberField
-              label="Width (mm)"
-              value={values.cartonWidthMm}
-              min={0.001}
-              step={0.001}
-              onChange={value => update('cartonWidthMm', value)}
-            />
-            <NumberField
-              label="Height (mm)"
-              value={values.cartonHeightMm}
-              min={0.001}
-              step={0.001}
-              onChange={value => update('cartonHeightMm', value)}
-            />
-          </div>
+          {mode === 'need-boxes' ? (
+            <div style={styles.helper}>
+              <strong>No box dimensions needed.</strong>
+              <span>
+                Packmetry will generate box candidates, solve them,
+                independently verify the result, and recommend the
+                internal dimensions actually used by the canonical
+                plan.
+              </span>
+            </div>
+          ) : (
+            <>
+              <h2
+                style={{
+                  ...styles.cardHeading,
+                  marginTop: '1.5rem',
+                }}
+              >
+                Box
+              </h2>
+
+              <div style={styles.fields}>
+                <NumberField
+                  label="Length (mm)"
+                  value={values.cartonLengthMm}
+                  min={0.001}
+                  step={0.001}
+                  onChange={value =>
+                    update('cartonLengthMm', value)
+                  }
+                />
+                <NumberField
+                  label="Width (mm)"
+                  value={values.cartonWidthMm}
+                  min={0.001}
+                  step={0.001}
+                  onChange={value =>
+                    update('cartonWidthMm', value)
+                  }
+                />
+                <NumberField
+                  label="Height (mm)"
+                  value={values.cartonHeightMm}
+                  min={0.001}
+                  step={0.001}
+                  onChange={value =>
+                    update('cartonHeightMm', value)
+                  }
+                />
+              </div>
+            </>
+          )}
 
           <button
             type="submit"
@@ -262,6 +422,58 @@ export default function PackingWorkspace() {
 
           {plan && (
             <>
+              {mode === 'need-boxes' &&
+                purchaseRecommendations.length > 0 && (
+                  <section
+                    aria-label="Box recommendation"
+                    style={styles.recommendation}
+                  >
+                    <p style={styles.eyebrow}>
+                      Box recommendation
+                    </p>
+                    <h2 style={styles.recommendationHeading}>
+                      What to buy
+                    </h2>
+
+                    <div style={styles.recommendationList}>
+                      {purchaseRecommendations.map(
+                        recommendation => {
+                          const dimensions =
+                            recommendation.carton
+                              .internalDimensions;
+
+                          return (
+                            <div
+                              key={recommendation.cartonId}
+                              style={styles.recommendationItem}
+                            >
+                              <strong>
+                                Quantity{' '}
+                                {recommendation.quantity}
+                              </strong>
+                              <span
+                                style={
+                                  styles.recommendationSize
+                                }
+                              >
+                                {dimensions.length} ×{' '}
+                                {dimensions.width} ×{' '}
+                                {dimensions.height} mm
+                              </span>
+                            </div>
+                          );
+                        }
+                      )}
+                    </div>
+
+                    <p style={styles.recommendationNote}>
+                      Recommended internal dimensions from the
+                      verified packing plan. Supplier availability
+                      and external dimensions are not claimed.
+                    </p>
+                  </section>
+                )}
+
               <ResultSummary plan={plan} />
               <PackingVisualization plan={plan} />
             </>
@@ -300,7 +512,7 @@ const styles = {
   },
   intro: {
     margin: 0,
-    maxWidth: '640px',
+    maxWidth: '680px',
     fontSize: '17px',
     lineHeight: 1.6,
     color: '#52525b',
@@ -321,6 +533,34 @@ const styles = {
   cardHeading: {
     margin: '0 0 16px',
     fontSize: '18px',
+  },
+  modeGroup: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: '10px',
+  },
+  modeButton: {
+    display: 'grid',
+    gap: '5px',
+    minHeight: '92px',
+    border: '1px solid #d4d4d8',
+    borderRadius: '12px',
+    padding: '14px',
+    textAlign: 'left' as const,
+    font: 'inherit',
+    color: '#18181b',
+    background: '#fafafa',
+    cursor: 'pointer',
+  },
+  modeButtonActive: {
+    borderColor: '#18181b',
+    background: '#f4f4f5',
+    boxShadow: 'inset 0 0 0 1px #18181b',
+  },
+  modeDescription: {
+    fontSize: '12px',
+    lineHeight: 1.45,
+    color: '#71717a',
   },
   fields: {
     display: 'grid',
@@ -345,6 +585,17 @@ const styles = {
     font: 'inherit',
     background: '#fafafa',
   },
+  helper: {
+    display: 'grid',
+    gap: '5px',
+    marginTop: '20px',
+    borderRadius: '10px',
+    padding: '12px',
+    background: '#f4f4f5',
+    color: '#3f3f46',
+    fontSize: '13px',
+    lineHeight: 1.5,
+  },
   button: {
     width: '100%',
     marginTop: '24px',
@@ -368,5 +619,38 @@ const styles = {
     background: '#fef2f2',
     color: '#991b1b',
     lineHeight: 1.5,
+  },
+  recommendation: {
+    marginBottom: '22px',
+    borderBottom: '1px solid #e4e4e7',
+    paddingBottom: '20px',
+  },
+  recommendationHeading: {
+    margin: '0 0 12px',
+    fontSize: '22px',
+  },
+  recommendationList: {
+    display: 'grid',
+    gap: '8px',
+  },
+  recommendationItem: {
+    display: 'grid',
+    gridTemplateColumns: 'auto 1fr',
+    gap: '12px',
+    alignItems: 'center',
+    border: '1px solid #e4e4e7',
+    borderRadius: '10px',
+    padding: '12px',
+    background: '#fafafa',
+  },
+  recommendationSize: {
+    textAlign: 'right' as const,
+    fontWeight: 700,
+  },
+  recommendationNote: {
+    margin: '10px 0 0',
+    fontSize: '12px',
+    lineHeight: 1.5,
+    color: '#71717a',
   },
 } as const;
