@@ -1,5 +1,6 @@
 import { useState, type SyntheticEvent } from 'react';
 
+import PackingVisualization from './PackingVisualization.js';
 import ResultSummary from './ResultSummary.js';
 import { createCarton } from '../core/domain/carton.js';
 import { createItem } from '../core/domain/item.js';
@@ -249,7 +250,12 @@ export default function PackingWorkspace() {
             </>
           )}
 
-          {plan && <ResultSummary plan={plan} />}
+          {plan && (
+            <>
+              <ResultSummary plan={plan} />
+              <PackingVisualization plan={plan} />
+            </>
+          )}
         </section>
       </div>
     </main>
