@@ -46,6 +46,23 @@ See `docs/process/AI_IMPLEMENTATION_WORKFLOW.md`.
 
 ## Current state
 
-Core canonical units and domain contracts implemented. Deterministic baseline solver implemented with solver adapter contract. Independent verification implemented for candidate plans. Solver → verifier integration implemented. Canonical PackingPlan construction from verified candidates implemented. UI is intentionally not started yet.
+Phase 6 complete: Full canonical planning pipeline implemented and validated.
 
-**Test baseline**: 529 tests passing.
+- GitHub CI workflow exists and is active.
+- Benchmark corpus has been expanded (16 locked test cases).
+- Minimal functional PackingWorkspace with manual input implemented.
+- ResultSummary implemented.
+- Three.js PackingVisualization implemented and integrated.
+- Manual browser smoke test confirmed: 3D carton renders correctly, packed items render correctly, different box sizes render correctly, drag/orbit works, zoom in/out works.
+- ADR-008 objective-aware verified candidate selection implemented.
+- ADR-009 canonical planning pipeline implemented.
+- PackingWorkspace now uses planPacking(...) instead of manually composing solver/verification/construction.
+
+**Test baseline**: 574 tests passing.
+
+## Next planned product phase
+
+Phase 7 — Three Box-Availability Workflows:
+1. I Need Boxes
+2. I Already Have Boxes
+3. Use What I Have, Then Tell Me What to Buy

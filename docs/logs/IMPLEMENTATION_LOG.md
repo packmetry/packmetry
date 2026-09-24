@@ -460,6 +460,125 @@ PKM-CORE-007: PackingPlan model
 
 ## 2026-09-23 — Baseline solver public export
 
+### Current test baseline
+529 tests passing.
+
+
+## 2026-09-24 — GitHub CI workflow established
+
+### Completed
+- GitHub Actions CI workflow created at `.github/workflows/ci.yml`
+- Runs on push to main and pull requests
+- Executes: npm ci, npm run typecheck, npm test
+- Provides automated validation for all repository changes
+- Ensures deterministic test execution in CI environment
+
+## 2026-09-24 — Benchmark corpus expanded
+
+### Completed
+- Benchmark corpus expanded to 16 locked test cases
+- Cases cover: exact fit, impossible fit, rotation required, multiple cartons, weight limits, inventory constraints
+- Includes deterministic repeatability benchmark
+- Provides stable regression foundation for solver verification
+- All benchmark cases validated for structural correctness
+
+## 2026-09-24 — Minimal functional PackingWorkspace implemented
+
+### Completed
+- `PackingWorkspace` React component implemented in `src/components/PackingWorkspace.tsx`
+- Provides manual input UI for single item packing problem
+- Supports: item dimensions, quantity, rotation policy, carton dimensions
+- Executes complete packing pipeline on form submission
+- Displays packing results via `ResultSummary` and `PackingVisualization`
+- Validates user input through canonical domain validation
+- Handles loading and error states appropriately
+
+## 2026-09-24 — ResultSummary implemented
+
+### Completed
+- `ResultSummary` React component implemented in `src/components/ResultSummary.tsx`
+- Displays canonical packing plan results in readable format
+- Shows: plan status, carton count, placed/unplaced item counts
+- Provides clear user-facing explanations for unplaced items
+- Formats metrics (volume efficiency, weight efficiency)
+- Presents solver metadata when available
+- Supports all plan statuses (feasible, partial, infeasible, limit_reached)
+
+## 2026-09-24 — Three.js PackingVisualization implemented and integrated
+
+### Completed
+- `PackingVisualization` React component implemented in `src/components/PackingVisualization.tsx`
+- Uses Three.js to render 3D visualization of packed cartons and items
+- Maps canonical dimensions to Three.js coordinate system
+- Supports: multiple carton visualization, carton selection, item color coding
+- Implements camera controls: drag/orbit, zoom in/out, reset view
+- Handles empty states and loading appropriately
+- Integrated into PackingWorkspace result display
+
+## 2026-09-24 — Manual browser smoke test confirmed
+
+### Completed
+- Manual browser smoke test performed with `npm run dev`
+- Confirmed: 3D carton renders correctly with proper dimensions
+- Confirmed: packed items render correctly within carton boundaries
+- Confirmed: different box sizes render correctly proportionally
+- Confirmed: drag/orbit camera controls work smoothly
+- Confirmed: zoom in/out controls work as expected
+- Confirmed: visual feedback matches canonical packing result
+
+## 2026-09-24 — ADR-008 objective-aware verified candidate selection implemented
+
+### Completed
+- Objective-aware candidate selection implemented in `src/core/solver/selection.ts`
+- `selectVerifiedCandidate` function scores and ranks verified candidates by objective
+- Supports: fewest-cartons, balanced, min-carton-cost, easier-to-carry
+- Rejects unsupported objectives (e.g., min-dim-weight) with clear error
+- Computes objective-specific metrics for ranking
+- Maintains immutability guarantees
+- Preserves verification-first architecture
+
+## 2026-09-24 — ADR-009 canonical planning pipeline implemented
+
+### Completed
+- Canonical planning pipeline implemented in `src/core/solver/pipeline.ts`
+- `planPacking` function provides unified orchestration API
+- Orchestrates: solver execution → independent verification → candidate selection → canonical construction
+- Preserves exactly-once execution guarantees
+- Maintains immutability throughout pipeline
+- Returns `CanonicalPlanningResult` with complete audit trail
+- Provides clean migration target for workspace and API layers
+
+## 2026-09-24 — PackingWorkspace migration to canonical planning pipeline
+
+### Completed
+- PackingWorkspace migrated from manual orchestration to `planPacking(...)`
+- Replaces manual `solveAndVerify` → `createPackingPlanFromVerifiedCandidate` chain
+- Preserves identical user-visible behavior
+- Gains automatic candidate selection and objective support
+- Reduces workspace orchestration complexity
+- Aligns with canonical planning pipeline architecture
+
+## 2026-09-24 — Phase 6 completion
+
+### Completed
+- Full canonical planning pipeline implemented and validated
+- Workspace UI components implemented and integrated
+- Three.js visualization operational and validated
+- GitHub CI workflow operational
+- Benchmark corpus solidified
+- All architectural layers connected end-to-end
+
+### Current test baseline
+574 tests passing.
+
+### Current dependency-aware stage
+Phase 6 complete.
+
+### Next planned product phase
+Phase 7 — Three Box-Availability Workflows:
+1. I Need Boxes
+2. I Already Have Boxes
+3. Use What I Have, Then Tell Me What to Buy
 ### Completed
 - Solver subsystem exported through `src/core/solver/index.ts`:
   - Exports all solver contracts (`SolverInput`, `SolverCandidatePlan`, `SolverAdapter`)
