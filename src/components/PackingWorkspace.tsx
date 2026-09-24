@@ -5,10 +5,11 @@ import ResultSummary from './ResultSummary.js';
 import { createCarton } from '../core/domain/carton.js';
 import { createItem } from '../core/domain/item.js';
 import type { PackingPlan } from '../core/domain/packing-plan.js';
-import { constructPackingPlan } from '../core/domain/plan-construction.js';
-import { BaselineSolver } from '../core/solver/baseline.js';
-import type { SolverInput } from '../core/solver/contracts.js';
-import { solveAndVerify } from '../core/solver/integration.js';
+import {
+  BaselineSolver,
+  planPacking,
+  type SolverInput,
+} from '../core/solver/index.js';
 
 export interface WorkspaceValues {
   itemLengthMm: number;
@@ -62,23 +63,32 @@ export async function runPackingWorkspace(
     },
   };
 
-  const verified = await solveAndVerify(new BaselineSolver(), input);
-  const candidate = verified.candidates.find(
-    result => result.verification.valid
+  const result = await planPacking(
+    'workspace-plan',
+    new BaselineSolver(),
+    input
   );
 
-  if (!candidate) {
-    throw new Error(
-      'No independently verified solver candidate was produced'
-    );
+  if (result.kind === 'planned') {
+    return result.plan;
   }
 
-  return constructPackingPlan(
-    'workspace-plan',
-    input,
-    candidate,
-    verified.solverMeta
-  );
+  switch (result.selection.kind) {
+    case 'no-valid-candidate':
+      throw new Error(
+        'No independently verified solver candidate was produced'
+      );
+
+    case 'objective-unsupported':
+      throw new Error(
+        `Packing objective is not supported: ${result.selection.objective}`
+      );
+
+    case 'insufficient-data':
+      throw new Error(
+        `Packing objective requires additional data: ${result.selection.missingMetric}`
+      );
+  }
 }
 
 function NumberField({
