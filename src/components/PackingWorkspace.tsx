@@ -11,11 +11,13 @@ import {
   type SolverInput,
 } from '../core/solver/index.js';
 import {
+  planHaveBoxes,
   planNeedBoxes,
+  type HaveBoxesInventoryUsage,
   type PurchaseCartonRecommendation,
 } from '../core/workflows/index.js';
 
-export type WorkspaceMode = 'need-boxes' | 'have-box';
+export type WorkspaceMode = 'need-boxes' | 'have-boxes';
 
 export interface WorkspaceValues {
   itemLengthMm: number;
@@ -27,9 +29,26 @@ export interface WorkspaceValues {
   cartonHeightMm: number;
 }
 
+export interface WorkspaceCartonValues {
+  id: string;
+  lengthMm: number;
+  widthMm: number;
+  heightMm: number;
+  quantityAvailable: number;
+}
+
 export interface NeedBoxesWorkspaceResult {
   plan: PackingPlan;
   purchaseRecommendations: PurchaseCartonRecommendation[];
+}
+
+export interface HaveBoxesWorkspaceResult {
+  plan: PackingPlan;
+  inventoryUsage: HaveBoxesInventoryUsage;
+}
+
+export interface PackingWorkspaceProps {
+  initialMode?: WorkspaceMode;
 }
 
 export const DEFAULT_WORKSPACE_VALUES: WorkspaceValues = {
@@ -42,6 +61,16 @@ export const DEFAULT_WORKSPACE_VALUES: WorkspaceValues = {
   cartonHeightMm: 100,
 };
 
+export const DEFAULT_WORKSPACE_CARTONS: WorkspaceCartonValues[] = [
+  {
+    id: 'workspace-carton-1',
+    lengthMm: 100,
+    widthMm: 100,
+    heightMm: 100,
+    quantityAvailable: 1,
+  },
+];
+
 function createWorkspaceItem(values: WorkspaceValues) {
   return createItem({
     id: 'workspace-item',
@@ -52,6 +81,22 @@ function createWorkspaceItem(values: WorkspaceValues) {
       height: values.itemHeightMm,
     },
     quantity: values.itemQuantity,
+  });
+}
+
+function createWorkspaceCarton(
+  values: WorkspaceCartonValues,
+  index: number
+) {
+  return createCarton({
+    id: values.id,
+    name: `Box ${index + 1}`,
+    internalDimensions: {
+      length: values.lengthMm,
+      width: values.widthMm,
+      height: values.heightMm,
+    },
+    quantityAvailable: values.quantityAvailable,
   });
 }
 
@@ -148,6 +193,55 @@ export async function runNeedBoxesWorkspace(
   }
 }
 
+export async function runHaveBoxesWorkspace(
+  values: WorkspaceValues,
+  cartons: readonly WorkspaceCartonValues[]
+): Promise<HaveBoxesWorkspaceResult> {
+  const item = createWorkspaceItem(values);
+
+  const result = await planHaveBoxes(
+    'workspace-plan',
+    new BaselineSolver(),
+    {
+      items: [item],
+      cartons: cartons.map(createWorkspaceCarton),
+      objective: {
+        kind: 'fewest-cartons',
+      },
+    }
+  );
+
+  if (result.planningResult.kind === 'planned') {
+    if (result.inventoryUsage === null) {
+      throw new Error(
+        'Existing box inventory usage was not produced'
+      );
+    }
+
+    return {
+      plan: result.planningResult.plan,
+      inventoryUsage: result.inventoryUsage,
+    };
+  }
+
+  switch (result.planningResult.selection.kind) {
+    case 'no-valid-candidate':
+      throw new Error(
+        'No independently verified existing-box plan was produced'
+      );
+
+    case 'objective-unsupported':
+      throw new Error(
+        `Packing objective is not supported: ${result.planningResult.selection.objective}`
+      );
+
+    case 'insufficient-data':
+      throw new Error(
+        `Packing objective requires additional data: ${result.planningResult.selection.missingMetric}`
+      );
+  }
+}
+
 function NumberField({
   label,
   value,
@@ -176,17 +270,149 @@ function NumberField({
   );
 }
 
-export default function PackingWorkspace() {
+function InventoryUsageSummary({
+  usage,
+}: {
+  usage: HaveBoxesInventoryUsage;
+}) {
+  const totalUsed = usage.usedCartons.reduce(
+    (sum, entry) => sum + entry.usedQuantity,
+    0
+  );
+
+  return (
+    <section
+      aria-label="Existing box inventory usage"
+      style={styles.inventorySummary}
+    >
+      <p style={styles.eyebrow}>Existing box inventory</p>
+      <h2 style={styles.recommendationHeading}>
+        Boxes used
+      </h2>
+      <p style={styles.inventoryLead}>
+        {totalUsed} box{totalUsed === 1 ? '' : 'es'} used from the
+        inventory you entered.
+      </p>
+
+      <div style={styles.recommendationList}>
+        {usage.usedCartons.map(entry => {
+          const dimensions = entry.carton.internalDimensions;
+
+          return (
+            <div
+              key={entry.cartonId}
+              style={styles.inventoryItem}
+            >
+              <div style={styles.inventoryItemMain}>
+                <strong>
+                  {entry.carton.name ?? entry.cartonId}
+                </strong>
+                <span style={styles.inventoryDimensions}>
+                  {dimensions.length} × {dimensions.width} ×{' '}
+                  {dimensions.height} mm
+                </span>
+              </div>
+
+              <div style={styles.inventoryCounts}>
+                <strong>
+                  Used {entry.usedQuantity}
+                  {entry.effectiveAvailability !== undefined
+                    ? ` of ${entry.effectiveAvailability}`
+                    : ''}
+                </strong>
+                <span>
+                  {entry.remainingQuantity !== undefined
+                    ? `${entry.remainingQuantity} remaining`
+                    : 'Availability not limited'}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {usage.unusedCartons.length > 0 && (
+        <>
+          <h3 style={styles.inventorySubheading}>
+            Unused box types
+          </h3>
+
+          <div style={styles.recommendationList}>
+            {usage.unusedCartons.map(entry => {
+              const dimensions = entry.carton.internalDimensions;
+
+              return (
+                <div
+                  key={entry.cartonId}
+                  style={styles.inventoryItem}
+                >
+                  <div style={styles.inventoryItemMain}>
+                    <strong>
+                      {entry.carton.name ?? entry.cartonId}
+                    </strong>
+                    <span style={styles.inventoryDimensions}>
+                      {dimensions.length} × {dimensions.width} ×{' '}
+                      {dimensions.height} mm
+                    </span>
+                  </div>
+
+                  <div style={styles.inventoryCounts}>
+                    <strong>Used 0</strong>
+                    <span>
+                      {entry.effectiveAvailability !== undefined
+                        ? `${entry.effectiveAvailability} available`
+                        : 'Availability not limited'}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      <p style={styles.recommendationNote}>
+        Packmetry used only the box types and available quantities
+        entered in this mode. It did not generate purchase boxes.
+      </p>
+    </section>
+  );
+}
+
+function nextCartonId(
+  cartons: readonly WorkspaceCartonValues[]
+): string {
+  let index = 1;
+
+  while (
+    cartons.some(
+      carton => carton.id === `workspace-carton-${index}`
+    )
+  ) {
+    index++;
+  }
+
+  return `workspace-carton-${index}`;
+}
+
+export default function PackingWorkspace({
+  initialMode = 'need-boxes',
+}: PackingWorkspaceProps = {}) {
   const [mode, setMode] =
-    useState<WorkspaceMode>('need-boxes');
+    useState<WorkspaceMode>(initialMode);
   const [values, setValues] = useState<WorkspaceValues>(
     DEFAULT_WORKSPACE_VALUES
+  );
+  const [cartons, setCartons] = useState<WorkspaceCartonValues[]>(
+    () => DEFAULT_WORKSPACE_CARTONS.map(carton => ({ ...carton }))
   );
   const [plan, setPlan] = useState<PackingPlan | null>(null);
   const [
     purchaseRecommendations,
     setPurchaseRecommendations,
   ] = useState<PurchaseCartonRecommendation[]>([]);
+  const [inventoryUsage, setInventoryUsage] =
+    useState<HaveBoxesInventoryUsage | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
 
@@ -200,11 +426,56 @@ export default function PackingWorkspace() {
     }));
   };
 
-  const chooseMode = (nextMode: WorkspaceMode) => {
-    setMode(nextMode);
+  const updateCarton = (
+    id: string,
+    key: Exclude<keyof WorkspaceCartonValues, 'id'>,
+    value: number
+  ) => {
+    setCartons(current =>
+      current.map(carton =>
+        carton.id === id
+          ? {
+              ...carton,
+              [key]: value,
+            }
+          : carton
+      )
+    );
+  };
+
+  const addCarton = () => {
+    setCartons(current => [
+      ...current,
+      {
+        id: nextCartonId(current),
+        lengthMm: 100,
+        widthMm: 100,
+        heightMm: 100,
+        quantityAvailable: 1,
+      },
+    ]);
+  };
+
+  const removeCarton = (id: string) => {
+    setCartons(current => {
+      if (current.length <= 1) {
+        return current;
+      }
+
+      return current.filter(carton => carton.id !== id);
+    });
+  };
+
+  const clearResult = () => {
     setPlan(null);
     setPurchaseRecommendations([]);
+    setInventoryUsage(null);
     setError(null);
+  };
+
+  const chooseMode = (nextMode: WorkspaceMode) => {
+    setMode(nextMode);
+    clearResult();
   };
 
   const submit = async (
@@ -212,9 +483,7 @@ export default function PackingWorkspace() {
   ) => {
     event.preventDefault();
     setRunning(true);
-    setError(null);
-    setPlan(null);
-    setPurchaseRecommendations([]);
+    clearResult();
 
     try {
       if (mode === 'need-boxes') {
@@ -226,7 +495,13 @@ export default function PackingWorkspace() {
           result.purchaseRecommendations
         );
       } else {
-        setPlan(await runPackingWorkspace(values));
+        const result = await runHaveBoxesWorkspace(
+          values,
+          cartons
+        );
+
+        setPlan(result.plan);
+        setInventoryUsage(result.inventoryUsage);
       }
     } catch (caught) {
       setError(
@@ -246,8 +521,8 @@ export default function PackingWorkspace() {
         <h1 style={styles.heading}>Pack an item into a box</h1>
         <p style={styles.intro}>
           Enter item dimensions in millimetres. Packmetry can
-          recommend a box or use dimensions for a box you already
-          have, then independently verify the packing result.
+          recommend boxes or plan against the box inventory you
+          already have, then independently verify the packing result.
         </p>
       </section>
 
@@ -281,18 +556,18 @@ export default function PackingWorkspace() {
 
             <button
               type="button"
-              aria-pressed={mode === 'have-box'}
-              onClick={() => chooseMode('have-box')}
+              aria-pressed={mode === 'have-boxes'}
+              onClick={() => chooseMode('have-boxes')}
               style={{
                 ...styles.modeButton,
-                ...(mode === 'have-box'
+                ...(mode === 'have-boxes'
                   ? styles.modeButtonActive
                   : {}),
               }}
             >
-              <strong>I Already Have a Box</strong>
+              <strong>I Already Have Boxes</strong>
               <span style={styles.modeDescription}>
-                Check packing against dimensions I provide.
+                Pack only with box types and quantities I have.
               </span>
             </button>
           </div>
@@ -348,43 +623,111 @@ export default function PackingWorkspace() {
             </div>
           ) : (
             <>
-              <h2
-                style={{
-                  ...styles.cardHeading,
-                  marginTop: '1.5rem',
-                }}
-              >
-                Box
-              </h2>
+              <div style={styles.sectionHeadingRow}>
+                <div>
+                  <h2 style={styles.boxesHeading}>
+                    Boxes you have
+                  </h2>
+                  <p style={styles.sectionHint}>
+                    Add every box type Packmetry may use and how many
+                    are currently available.
+                  </p>
+                </div>
+              </div>
 
-              <div style={styles.fields}>
-                <NumberField
-                  label="Length (mm)"
-                  value={values.cartonLengthMm}
-                  min={0.001}
-                  step={0.001}
-                  onChange={value =>
-                    update('cartonLengthMm', value)
-                  }
-                />
-                <NumberField
-                  label="Width (mm)"
-                  value={values.cartonWidthMm}
-                  min={0.001}
-                  step={0.001}
-                  onChange={value =>
-                    update('cartonWidthMm', value)
-                  }
-                />
-                <NumberField
-                  label="Height (mm)"
-                  value={values.cartonHeightMm}
-                  min={0.001}
-                  step={0.001}
-                  onChange={value =>
-                    update('cartonHeightMm', value)
-                  }
-                />
+              <div style={styles.cartonList}>
+                {cartons.map((carton, index) => (
+                  <section
+                    key={carton.id}
+                    aria-label={`Box type ${index + 1}`}
+                    style={styles.cartonEditor}
+                  >
+                    <div style={styles.cartonEditorHeader}>
+                      <strong>Box type {index + 1}</strong>
+
+                      {cartons.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeCarton(carton.id)}
+                          style={styles.removeButton}
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+
+                    <div style={styles.fields}>
+                      <NumberField
+                        label="Length (mm)"
+                        value={carton.lengthMm}
+                        min={0.001}
+                        step={0.001}
+                        onChange={value =>
+                          updateCarton(
+                            carton.id,
+                            'lengthMm',
+                            value
+                          )
+                        }
+                      />
+                      <NumberField
+                        label="Width (mm)"
+                        value={carton.widthMm}
+                        min={0.001}
+                        step={0.001}
+                        onChange={value =>
+                          updateCarton(
+                            carton.id,
+                            'widthMm',
+                            value
+                          )
+                        }
+                      />
+                      <NumberField
+                        label="Height (mm)"
+                        value={carton.heightMm}
+                        min={0.001}
+                        step={0.001}
+                        onChange={value =>
+                          updateCarton(
+                            carton.id,
+                            'heightMm',
+                            value
+                          )
+                        }
+                      />
+                      <NumberField
+                        label="Available quantity"
+                        value={carton.quantityAvailable}
+                        min={0}
+                        onChange={value =>
+                          updateCarton(
+                            carton.id,
+                            'quantityAvailable',
+                            value
+                          )
+                        }
+                      />
+                    </div>
+                  </section>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={addCarton}
+                style={styles.secondaryButton}
+              >
+                + Add another box type
+              </button>
+
+              <div style={styles.helper}>
+                <strong>Inventory limits are enforced.</strong>
+                <span>
+                  Packmetry will not invent or purchase extra boxes
+                  in this mode. A zero available quantity means that
+                  box type cannot be opened.
+                </span>
               </div>
             </>
           )}
@@ -472,6 +815,13 @@ export default function PackingWorkspace() {
                       and external dimensions are not claimed.
                     </p>
                   </section>
+                )}
+
+              {mode === 'have-boxes' &&
+                inventoryUsage !== null && (
+                  <InventoryUsageSummary
+                    usage={inventoryUsage}
+                  />
                 )}
 
               <ResultSummary plan={plan} />
@@ -585,6 +935,63 @@ const styles = {
     font: 'inherit',
     background: '#fafafa',
   },
+  sectionHeadingRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '12px',
+    alignItems: 'start',
+    marginTop: '24px',
+  },
+  boxesHeading: {
+    margin: '0 0 4px',
+    fontSize: '18px',
+  },
+  sectionHint: {
+    margin: 0,
+    color: '#71717a',
+    fontSize: '12px',
+    lineHeight: 1.5,
+  },
+  cartonList: {
+    display: 'grid',
+    gap: '12px',
+    marginTop: '14px',
+  },
+  cartonEditor: {
+    border: '1px solid #e4e4e7',
+    borderRadius: '12px',
+    padding: '14px',
+    background: '#fafafa',
+  },
+  cartonEditorHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '12px',
+  },
+  removeButton: {
+    border: 0,
+    padding: 0,
+    background: 'transparent',
+    color: '#71717a',
+    font: 'inherit',
+    fontSize: '12px',
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
+  secondaryButton: {
+    width: '100%',
+    marginTop: '12px',
+    border: '1px solid #d4d4d8',
+    borderRadius: '10px',
+    padding: '10px 14px',
+    background: '#ffffff',
+    color: '#18181b',
+    font: 'inherit',
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
   helper: {
     display: 'grid',
     gap: '5px',
@@ -651,6 +1058,47 @@ const styles = {
     margin: '10px 0 0',
     fontSize: '12px',
     lineHeight: 1.5,
+    color: '#71717a',
+  },
+  inventorySummary: {
+    marginBottom: '22px',
+    borderBottom: '1px solid #e4e4e7',
+    paddingBottom: '20px',
+  },
+  inventoryLead: {
+    margin: '-4px 0 12px',
+    color: '#52525b',
+    fontSize: '13px',
+    lineHeight: 1.5,
+  },
+  inventorySubheading: {
+    margin: '16px 0 8px',
+    fontSize: '14px',
+  },
+  inventoryItem: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) auto',
+    gap: '12px',
+    alignItems: 'center',
+    border: '1px solid #e4e4e7',
+    borderRadius: '10px',
+    padding: '12px',
+    background: '#fafafa',
+  },
+  inventoryItemMain: {
+    display: 'grid',
+    gap: '3px',
+    minWidth: 0,
+  },
+  inventoryDimensions: {
+    color: '#71717a',
+    fontSize: '12px',
+  },
+  inventoryCounts: {
+    display: 'grid',
+    gap: '3px',
+    textAlign: 'right' as const,
+    fontSize: '12px',
     color: '#71717a',
   },
 } as const;

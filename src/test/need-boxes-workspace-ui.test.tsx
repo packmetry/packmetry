@@ -11,7 +11,7 @@ describe('PackingWorkspace need-boxes mode', () => {
     const html = renderToStaticMarkup(<PackingWorkspace />);
 
     expect(html).toContain('I Need Boxes');
-    expect(html).toContain('I Already Have a Box');
+    expect(html).toContain('I Already Have Boxes');
     expect(html).toContain('No box dimensions needed.');
     expect(html).toContain('Calculate packing');
   });
