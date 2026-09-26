@@ -12,12 +12,17 @@ import {
 } from '../core/solver/index.js';
 import {
   planHaveBoxes,
+  planHybridBoxes,
   planNeedBoxes,
   type HaveBoxesInventoryUsage,
+  type HybridRemainderInstanceMapping,
   type PurchaseCartonRecommendation,
 } from '../core/workflows/index.js';
 
-export type WorkspaceMode = 'need-boxes' | 'have-boxes';
+export type WorkspaceMode =
+  | 'need-boxes'
+  | 'have-boxes'
+  | 'hybrid-boxes';
 
 export interface WorkspaceValues {
   itemLengthMm: number;
@@ -45,6 +50,17 @@ export interface NeedBoxesWorkspaceResult {
 export interface HaveBoxesWorkspaceResult {
   plan: PackingPlan;
   inventoryUsage: HaveBoxesInventoryUsage;
+}
+
+export interface HybridBoxesWorkspaceResult {
+  existingPlan: PackingPlan;
+  existingInventoryUsage: HaveBoxesInventoryUsage;
+  remainderItemCount: number;
+  remainderInstanceMapping: HybridRemainderInstanceMapping[];
+  supplementalPlan: PackingPlan | null;
+  supplementalPurchaseRecommendations: PurchaseCartonRecommendation[];
+  replacementPlan: PackingPlan | null;
+  replacementPurchaseRecommendations: PurchaseCartonRecommendation[];
 }
 
 export interface PackingWorkspaceProps {
@@ -100,6 +116,38 @@ function createWorkspaceCarton(
   });
 }
 
+function selectionError(
+  prefix: string,
+  selection:
+    | {
+        kind: 'no-valid-candidate';
+      }
+    | {
+        kind: 'objective-unsupported';
+        objective: string;
+      }
+    | {
+        kind: 'insufficient-data';
+        objective: string;
+        missingMetric: string;
+      }
+): Error {
+  switch (selection.kind) {
+    case 'no-valid-candidate':
+      return new Error(prefix);
+
+    case 'objective-unsupported':
+      return new Error(
+        `Packing objective is not supported: ${selection.objective}`
+      );
+
+    case 'insufficient-data':
+      return new Error(
+        `Packing objective requires additional data: ${selection.missingMetric}`
+      );
+  }
+}
+
 export async function runPackingWorkspace(
   values: WorkspaceValues
 ): Promise<PackingPlan> {
@@ -133,22 +181,10 @@ export async function runPackingWorkspace(
     return result.plan;
   }
 
-  switch (result.selection.kind) {
-    case 'no-valid-candidate':
-      throw new Error(
-        'No independently verified solver candidate was produced'
-      );
-
-    case 'objective-unsupported':
-      throw new Error(
-        `Packing objective is not supported: ${result.selection.objective}`
-      );
-
-    case 'insufficient-data':
-      throw new Error(
-        `Packing objective requires additional data: ${result.selection.missingMetric}`
-      );
-  }
+  throw selectionError(
+    'No independently verified solver candidate was produced',
+    result.selection
+  );
 }
 
 export async function runNeedBoxesWorkspace(
@@ -175,22 +211,10 @@ export async function runNeedBoxesWorkspace(
     };
   }
 
-  switch (result.planningResult.selection.kind) {
-    case 'no-valid-candidate':
-      throw new Error(
-        'No independently verified box recommendation was produced'
-      );
-
-    case 'objective-unsupported':
-      throw new Error(
-        `Packing objective is not supported: ${result.planningResult.selection.objective}`
-      );
-
-    case 'insufficient-data':
-      throw new Error(
-        `Packing objective requires additional data: ${result.planningResult.selection.missingMetric}`
-      );
-  }
+  throw selectionError(
+    'No independently verified box recommendation was produced',
+    result.planningResult.selection
+  );
 }
 
 export async function runHaveBoxesWorkspace(
@@ -211,35 +235,111 @@ export async function runHaveBoxesWorkspace(
     }
   );
 
-  if (result.planningResult.kind === 'planned') {
-    if (result.inventoryUsage === null) {
-      throw new Error(
-        'Existing box inventory usage was not produced'
+  if (result.planningResult.kind !== 'planned') {
+    throw selectionError(
+      'No independently verified existing-box plan was produced',
+      result.planningResult.selection
+    );
+  }
+
+  if (result.inventoryUsage === null) {
+    throw new Error(
+      'Existing box inventory usage was not produced'
+    );
+  }
+
+  return {
+    plan: result.planningResult.plan,
+    inventoryUsage: result.inventoryUsage,
+  };
+}
+
+export async function runHybridBoxesWorkspace(
+  values: WorkspaceValues,
+  cartons: readonly WorkspaceCartonValues[]
+): Promise<HybridBoxesWorkspaceResult> {
+  const item = createWorkspaceItem(values);
+
+  const result = await planHybridBoxes(
+    'workspace-plan',
+    new BaselineSolver(),
+    {
+      items: [item],
+      cartons: cartons.map(createWorkspaceCarton),
+      objective: {
+        kind: 'fewest-cartons',
+      },
+    }
+  );
+
+  if (result.existing.planningResult.kind !== 'planned') {
+    throw selectionError(
+      'No independently verified existing-box stage was produced',
+      result.existing.planningResult.selection
+    );
+  }
+
+  if (result.existing.inventoryUsage === null) {
+    throw new Error(
+      'Existing box inventory usage was not produced'
+    );
+  }
+
+  let supplementalPlan: PackingPlan | null = null;
+  let supplementalPurchaseRecommendations:
+    PurchaseCartonRecommendation[] = [];
+
+  if (result.supplemental !== null) {
+    if (result.supplemental.planningResult.kind !== 'planned') {
+      throw selectionError(
+        'No independently verified supplemental-box stage was produced',
+        result.supplemental.planningResult.selection
       );
     }
 
-    return {
-      plan: result.planningResult.plan,
-      inventoryUsage: result.inventoryUsage,
-    };
+    supplementalPlan =
+      result.supplemental.planningResult.plan;
+    supplementalPurchaseRecommendations =
+      result.supplemental.purchaseRecommendations;
   }
 
-  switch (result.planningResult.selection.kind) {
-    case 'no-valid-candidate':
-      throw new Error(
-        'No independently verified existing-box plan was produced'
-      );
+  let replacementPlan: PackingPlan | null = null;
+  let replacementPurchaseRecommendations:
+    PurchaseCartonRecommendation[] = [];
 
-    case 'objective-unsupported':
-      throw new Error(
-        `Packing objective is not supported: ${result.planningResult.selection.objective}`
+  if (result.replacementAlternative !== null) {
+    if (
+      result.replacementAlternative.planningResult.kind !==
+      'planned'
+    ) {
+      throw selectionError(
+        'No independently verified replacement comparison was produced',
+        result.replacementAlternative.planningResult.selection
       );
+    }
 
-    case 'insufficient-data':
-      throw new Error(
-        `Packing objective requires additional data: ${result.planningResult.selection.missingMetric}`
-      );
+    replacementPlan =
+      result.replacementAlternative.planningResult.plan;
+    replacementPurchaseRecommendations =
+      result.replacementAlternative.purchaseRecommendations;
   }
+
+  return {
+    existingPlan: result.existing.planningResult.plan,
+    existingInventoryUsage: result.existing.inventoryUsage,
+    remainderItemCount: result.remainderItems.reduce(
+      (sum, remainderItem) => sum + remainderItem.quantity,
+      0
+    ),
+    remainderInstanceMapping:
+      result.remainderInstanceMapping.map(entry => ({
+        ...entry,
+      })),
+    supplementalPlan,
+    supplementalPurchaseRecommendations,
+    replacementPlan,
+    replacementPurchaseRecommendations,
+  };
 }
 
 function NumberField({
@@ -270,10 +370,56 @@ function NumberField({
   );
 }
 
+function PurchaseRecommendationSummary({
+  title,
+  recommendations,
+  note,
+}: {
+  title: string;
+  recommendations: readonly PurchaseCartonRecommendation[];
+  note: string;
+}) {
+  return (
+    <section
+      aria-label={title}
+      style={styles.recommendation}
+    >
+      <p style={styles.eyebrow}>Box recommendation</p>
+      <h2 style={styles.recommendationHeading}>{title}</h2>
+
+      <div style={styles.recommendationList}>
+        {recommendations.map(recommendation => {
+          const dimensions =
+            recommendation.carton.internalDimensions;
+
+          return (
+            <div
+              key={recommendation.cartonId}
+              style={styles.recommendationItem}
+            >
+              <strong>
+                Quantity {recommendation.quantity}
+              </strong>
+              <span style={styles.recommendationSize}>
+                {dimensions.length} × {dimensions.width} ×{' '}
+                {dimensions.height} mm
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <p style={styles.recommendationNote}>{note}</p>
+    </section>
+  );
+}
+
 function InventoryUsageSummary({
   usage,
+  note = 'Packmetry used only the box types and available quantities entered in this mode. It did not generate purchase boxes.',
 }: {
   usage: HaveBoxesInventoryUsage;
+  note?: string;
 }) {
   const totalUsed = usage.usedCartons.reduce(
     (sum, entry) => sum + entry.usedQuantity,
@@ -371,11 +517,154 @@ function InventoryUsageSummary({
         </>
       )}
 
-      <p style={styles.recommendationNote}>
-        Packmetry used only the box types and available quantities
-        entered in this mode. It did not generate purchase boxes.
-      </p>
+      <p style={styles.recommendationNote}>{note}</p>
     </section>
+  );
+}
+
+function PlanStage({
+  label,
+  title,
+  detail,
+  plan,
+}: {
+  label: string;
+  title: string;
+  detail: string;
+  plan: PackingPlan;
+}) {
+  return (
+    <section
+      aria-label={title}
+      style={styles.planStage}
+    >
+      <div style={styles.planStageHeader}>
+        <p style={styles.eyebrow}>{label}</p>
+        <h2 style={styles.planStageTitle}>{title}</h2>
+        <p style={styles.planStageDetail}>{detail}</p>
+      </div>
+
+      <ResultSummary plan={plan} />
+      <PackingVisualization plan={plan} />
+    </section>
+  );
+}
+
+function HybridResult({
+  result,
+}: {
+  result: HybridBoxesWorkspaceResult;
+}) {
+  const existingPacked =
+    result.existingPlan.metrics.placedItemCount;
+
+  return (
+    <>
+      <section
+        aria-label="Hybrid packing overview"
+        style={styles.hybridOverview}
+      >
+        <p style={styles.eyebrow}>Hybrid packing result</p>
+        <h2 style={styles.recommendationHeading}>
+          Use what you have, then buy only what is still needed
+        </h2>
+
+        {result.remainderItemCount === 0 ? (
+          <p style={styles.hybridOverviewText}>
+            Your existing box inventory covers every requested item.
+            Nothing additional needs to be purchased.
+          </p>
+        ) : (
+          <p style={styles.hybridOverviewText}>
+            Existing inventory packs {existingPacked}{' '}
+            {existingPacked === 1 ? 'item' : 'items'}. The verified
+            remainder contains {result.remainderItemCount}{' '}
+            {result.remainderItemCount === 1 ? 'item' : 'items'} and
+            is planned separately with purchase boxes below.
+          </p>
+        )}
+
+        <p style={styles.hybridBoundaryNote}>
+          The existing, supplemental, and replacement results remain
+          separate independently verified canonical plans. Packmetry
+          does not fabricate one merged PackingPlan.
+        </p>
+      </section>
+
+      <InventoryUsageSummary
+        usage={result.existingInventoryUsage}
+        note={
+          result.remainderItemCount === 0
+            ? 'These existing boxes cover the complete request, so no supplemental purchase stage was needed.'
+            : 'These existing boxes are used first. Purchase recommendations below cover only the verified remainder.'
+        }
+      />
+
+      <PlanStage
+        label="Step 1"
+        title="Existing boxes"
+        detail="This canonical plan uses only the box inventory and quantities you entered."
+        plan={result.existingPlan}
+      />
+
+      {result.supplementalPlan !== null && (
+        <>
+          {result.supplementalPurchaseRecommendations.length >
+            0 && (
+            <PurchaseRecommendationSummary
+              title="What to buy for the remainder"
+              recommendations={
+                result.supplementalPurchaseRecommendations
+              }
+              note="These internal box dimensions are derived only from the verified items left unpacked after the existing-inventory stage."
+            />
+          )}
+
+          <PlanStage
+            label="Step 2"
+            title="Supplemental boxes for the remainder"
+            detail="This is a separate canonical plan for the verified remainder only."
+            plan={result.supplementalPlan}
+          />
+        </>
+      )}
+
+      {result.replacementPlan !== null && (
+        <section
+          aria-label="Complete purchase replacement comparison"
+          style={styles.comparisonSection}
+        >
+          <p style={styles.eyebrow}>Comparison only</p>
+          <h2 style={styles.recommendationHeading}>
+            Buy boxes for everything instead
+          </h2>
+          <p style={styles.hybridOverviewText}>
+            This alternative ignores the existing inventory and
+            plans the complete item request with generated purchase
+            boxes. It is shown separately; Packmetry has not chosen
+            it as a winner.
+          </p>
+
+          {result.replacementPurchaseRecommendations.length >
+            0 && (
+            <PurchaseRecommendationSummary
+              title="Complete replacement box list"
+              recommendations={
+                result.replacementPurchaseRecommendations
+              }
+              note="This box list belongs only to the complete purchase-only comparison plan."
+            />
+          )}
+
+          <PlanStage
+            label="Alternative"
+            title="Purchase-only replacement plan"
+            detail="This independently verified plan covers the full request without using your existing boxes."
+            plan={result.replacementPlan}
+          />
+        </section>
+      )}
+    </>
   );
 }
 
@@ -413,6 +702,8 @@ export default function PackingWorkspace({
   ] = useState<PurchaseCartonRecommendation[]>([]);
   const [inventoryUsage, setInventoryUsage] =
     useState<HaveBoxesInventoryUsage | null>(null);
+  const [hybridResult, setHybridResult] =
+    useState<HybridBoxesWorkspaceResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
 
@@ -470,6 +761,7 @@ export default function PackingWorkspace({
     setPlan(null);
     setPurchaseRecommendations([]);
     setInventoryUsage(null);
+    setHybridResult(null);
     setError(null);
   };
 
@@ -494,7 +786,7 @@ export default function PackingWorkspace({
         setPurchaseRecommendations(
           result.purchaseRecommendations
         );
-      } else {
+      } else if (mode === 'have-boxes') {
         const result = await runHaveBoxesWorkspace(
           values,
           cartons
@@ -502,6 +794,13 @@ export default function PackingWorkspace({
 
         setPlan(result.plan);
         setInventoryUsage(result.inventoryUsage);
+      } else {
+        const result = await runHybridBoxesWorkspace(
+          values,
+          cartons
+        );
+
+        setHybridResult(result);
       }
     } catch (caught) {
       setError(
@@ -514,6 +813,9 @@ export default function PackingWorkspace({
     }
   };
 
+  const showsInventoryEditor =
+    mode === 'have-boxes' || mode === 'hybrid-boxes';
+
   return (
     <main style={styles.page}>
       <section style={styles.hero}>
@@ -521,8 +823,9 @@ export default function PackingWorkspace({
         <h1 style={styles.heading}>Pack an item into a box</h1>
         <p style={styles.intro}>
           Enter item dimensions in millimetres. Packmetry can
-          recommend boxes or plan against the box inventory you
-          already have, then independently verify the packing result.
+          recommend boxes, use only boxes you already have, or use
+          your inventory first and recommend boxes for the verified
+          remainder.
         </p>
       </section>
 
@@ -570,6 +873,26 @@ export default function PackingWorkspace({
                 Pack only with box types and quantities I have.
               </span>
             </button>
+
+            <button
+              type="button"
+              aria-pressed={mode === 'hybrid-boxes'}
+              onClick={() => chooseMode('hybrid-boxes')}
+              style={{
+                ...styles.modeButton,
+                ...(mode === 'hybrid-boxes'
+                  ? styles.modeButtonActive
+                  : {}),
+              }}
+            >
+              <strong>
+                Use What I Have, Then Tell Me What to Buy
+              </strong>
+              <span style={styles.modeDescription}>
+                Use existing inventory first, then recommend boxes
+                only for the verified remainder.
+              </span>
+            </button>
           </div>
 
           <h2
@@ -611,7 +934,7 @@ export default function PackingWorkspace({
             />
           </div>
 
-          {mode === 'need-boxes' ? (
+          {mode === 'need-boxes' && (
             <div style={styles.helper}>
               <strong>No box dimensions needed.</strong>
               <span>
@@ -621,7 +944,9 @@ export default function PackingWorkspace({
                 plan.
               </span>
             </div>
-          ) : (
+          )}
+
+          {showsInventoryEditor && (
             <>
               <div style={styles.sectionHeadingRow}>
                 <div>
@@ -721,14 +1046,27 @@ export default function PackingWorkspace({
                 + Add another box type
               </button>
 
-              <div style={styles.helper}>
-                <strong>Inventory limits are enforced.</strong>
-                <span>
-                  Packmetry will not invent or purchase extra boxes
-                  in this mode. A zero available quantity means that
-                  box type cannot be opened.
-                </span>
-              </div>
+              {mode === 'have-boxes' ? (
+                <div style={styles.helper}>
+                  <strong>Inventory limits are enforced.</strong>
+                  <span>
+                    Packmetry will not invent or purchase extra boxes
+                    in this mode. A zero available quantity means that
+                    box type cannot be opened.
+                  </span>
+                </div>
+              ) : (
+                <div style={styles.helper}>
+                  <strong>Use existing boxes first.</strong>
+                  <span>
+                    Packmetry will independently verify what your
+                    inventory can pack, derive the exact remainder,
+                    recommend purchase boxes only for that remainder,
+                    and keep a full purchase-only alternative
+                    separate for comparison.
+                  </span>
+                </div>
+              )}
             </>
           )}
 
@@ -745,7 +1083,7 @@ export default function PackingWorkspace({
         </form>
 
         <section style={styles.card} aria-live="polite">
-          {!plan && !error && (
+          {!plan && !hybridResult && !error && (
             <>
               <h2 style={styles.cardHeading}>Result</h2>
               <p style={styles.muted}>
@@ -767,54 +1105,11 @@ export default function PackingWorkspace({
             <>
               {mode === 'need-boxes' &&
                 purchaseRecommendations.length > 0 && (
-                  <section
-                    aria-label="Box recommendation"
-                    style={styles.recommendation}
-                  >
-                    <p style={styles.eyebrow}>
-                      Box recommendation
-                    </p>
-                    <h2 style={styles.recommendationHeading}>
-                      What to buy
-                    </h2>
-
-                    <div style={styles.recommendationList}>
-                      {purchaseRecommendations.map(
-                        recommendation => {
-                          const dimensions =
-                            recommendation.carton
-                              .internalDimensions;
-
-                          return (
-                            <div
-                              key={recommendation.cartonId}
-                              style={styles.recommendationItem}
-                            >
-                              <strong>
-                                Quantity{' '}
-                                {recommendation.quantity}
-                              </strong>
-                              <span
-                                style={
-                                  styles.recommendationSize
-                                }
-                              >
-                                {dimensions.length} ×{' '}
-                                {dimensions.width} ×{' '}
-                                {dimensions.height} mm
-                              </span>
-                            </div>
-                          );
-                        }
-                      )}
-                    </div>
-
-                    <p style={styles.recommendationNote}>
-                      Recommended internal dimensions from the
-                      verified packing plan. Supplier availability
-                      and external dimensions are not claimed.
-                    </p>
-                  </section>
+                  <PurchaseRecommendationSummary
+                    title="What to buy"
+                    recommendations={purchaseRecommendations}
+                    note="Recommended internal dimensions from the verified packing plan. Supplier availability and external dimensions are not claimed."
+                  />
                 )}
 
               {mode === 'have-boxes' &&
@@ -828,6 +1123,11 @@ export default function PackingWorkspace({
               <PackingVisualization plan={plan} />
             </>
           )}
+
+          {mode === 'hybrid-boxes' &&
+            hybridResult !== null && (
+              <HybridResult result={hybridResult} />
+            )}
         </section>
       </div>
     </main>
@@ -844,7 +1144,7 @@ const styles = {
     color: '#18181b',
   },
   hero: {
-    maxWidth: '720px',
+    maxWidth: '760px',
     marginBottom: '32px',
   },
   eyebrow: {
@@ -862,7 +1162,7 @@ const styles = {
   },
   intro: {
     margin: 0,
-    maxWidth: '680px',
+    maxWidth: '720px',
     fontSize: '17px',
     lineHeight: 1.6,
     color: '#52525b',
@@ -886,13 +1186,14 @@ const styles = {
   },
   modeGroup: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gridTemplateColumns:
+      'repeat(auto-fit, minmax(150px, 1fr))',
     gap: '10px',
   },
   modeButton: {
     display: 'grid',
     gap: '5px',
-    minHeight: '92px',
+    minHeight: '104px',
     border: '1px solid #d4d4d8',
     borderRadius: '12px',
     padding: '14px',
@@ -1100,5 +1401,49 @@ const styles = {
     textAlign: 'right' as const,
     fontSize: '12px',
     color: '#71717a',
+  },
+  hybridOverview: {
+    marginBottom: '22px',
+    borderBottom: '1px solid #e4e4e7',
+    paddingBottom: '20px',
+  },
+  hybridOverviewText: {
+    margin: '0 0 10px',
+    color: '#52525b',
+    fontSize: '13px',
+    lineHeight: 1.55,
+  },
+  hybridBoundaryNote: {
+    margin: 0,
+    borderRadius: '10px',
+    padding: '10px 12px',
+    background: '#f4f4f5',
+    color: '#52525b',
+    fontSize: '12px',
+    lineHeight: 1.5,
+  },
+  planStage: {
+    marginTop: '24px',
+    borderTop: '1px solid #e4e4e7',
+    paddingTop: '20px',
+  },
+  planStageHeader: {
+    marginBottom: '18px',
+  },
+  planStageTitle: {
+    margin: '0 0 6px',
+    fontSize: '20px',
+    color: '#18181b',
+  },
+  planStageDetail: {
+    margin: 0,
+    color: '#71717a',
+    fontSize: '12px',
+    lineHeight: 1.5,
+  },
+  comparisonSection: {
+    marginTop: '28px',
+    borderTop: '2px solid #d4d4d8',
+    paddingTop: '22px',
   },
 } as const;
