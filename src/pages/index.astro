@@ -1,27 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PackingWorkspace from '../components/PackingWorkspace';
+import '../styles/packmetry-workspace.css';
 ---
 
 <BaseLayout>
   <PackingWorkspace client:load />
 </BaseLayout>
-
-<style is:global>
-  html {
-    background: #f7f7f8;
-  }
-
-  body {
-    margin: 0;
-    min-width: 320px;
-    min-height: 100vh;
-    background: #f7f7f8;
-  }
-
-  *,
-  *::before,
-  *::after {
-    box-sizing: border-box;
-  }
-</style>

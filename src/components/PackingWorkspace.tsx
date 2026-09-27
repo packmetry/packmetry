@@ -87,6 +87,34 @@ export const DEFAULT_WORKSPACE_CARTONS: WorkspaceCartonValues[] = [
   },
 ];
 
+const MODE_COPY: Record<
+  WorkspaceMode,
+  {
+    short: string;
+    full: string;
+    description: string;
+  }
+> = {
+  'need-boxes': {
+    short: 'Need boxes',
+    full: 'I Need Boxes',
+    description:
+      'Tell Packmetry what you are packing. It will recommend internal box dimensions from a verified packing plan.',
+  },
+  'have-boxes': {
+    short: 'Have boxes',
+    full: 'I Already Have Boxes',
+    description:
+      'Use only the box types and available quantities you enter. Inventory limits are enforced.',
+  },
+  'hybrid-boxes': {
+    short: 'Use mine + buy rest',
+    full: 'Use What I Have, Then Tell Me What to Buy',
+    description:
+      'Use your existing inventory first, then recommend purchase boxes only for the verified remainder.',
+  },
+};
+
 function createWorkspaceItem(values: WorkspaceValues) {
   return createItem({
     id: 'workspace-item',
@@ -356,15 +384,15 @@ function NumberField({
   onChange: (value: number) => void;
 }) {
   return (
-    <label style={styles.field}>
-      <span style={styles.label}>{label}</span>
+    <label className="pm-field">
+      <span className="pm-field-label">{label}</span>
       <input
+        className="pm-number-input"
         type="number"
         value={value}
         min={min}
         step={step}
         onChange={event => onChange(Number(event.target.value))}
-        style={styles.input}
       />
     </label>
   );
@@ -382,12 +410,15 @@ function PurchaseRecommendationSummary({
   return (
     <section
       aria-label={title}
-      style={styles.recommendation}
+      className="pm-result-section pm-recommendation"
     >
-      <p style={styles.eyebrow}>Box recommendation</p>
-      <h2 style={styles.recommendationHeading}>{title}</h2>
+      <div className="pm-section-kicker">Box recommendation</div>
+      <div className="pm-section-heading-row">
+        <h2 className="pm-result-section-title">{title}</h2>
+        <span className="pm-verified-mark">Verified plan</span>
+      </div>
 
-      <div style={styles.recommendationList}>
+      <div className="pm-recommendation-list">
         {recommendations.map(recommendation => {
           const dimensions =
             recommendation.carton.internalDimensions;
@@ -395,12 +426,18 @@ function PurchaseRecommendationSummary({
           return (
             <div
               key={recommendation.cartonId}
-              style={styles.recommendationItem}
+              className="pm-recommendation-row"
             >
-              <strong>
-                Quantity {recommendation.quantity}
-              </strong>
-              <span style={styles.recommendationSize}>
+              <div>
+                <span className="pm-recommendation-quantity">
+                  {recommendation.quantity} ×
+                </span>{' '}
+                <strong>
+                  {recommendation.carton.name ??
+                    'Recommended box'}
+                </strong>
+              </div>
+              <span className="pm-dimension-value">
                 {dimensions.length} × {dimensions.width} ×{' '}
                 {dimensions.height} mm
               </span>
@@ -409,7 +446,7 @@ function PurchaseRecommendationSummary({
         })}
       </div>
 
-      <p style={styles.recommendationNote}>{note}</p>
+      <p className="pm-fine-print">{note}</p>
     </section>
   );
 }
@@ -429,37 +466,38 @@ function InventoryUsageSummary({
   return (
     <section
       aria-label="Existing box inventory usage"
-      style={styles.inventorySummary}
+      className="pm-result-section"
     >
-      <p style={styles.eyebrow}>Existing box inventory</p>
-      <h2 style={styles.recommendationHeading}>
-        Boxes used
-      </h2>
-      <p style={styles.inventoryLead}>
-        {totalUsed} box{totalUsed === 1 ? '' : 'es'} used from the
-        inventory you entered.
-      </p>
+      <div className="pm-section-kicker">
+        Existing box inventory
+      </div>
+      <div className="pm-section-heading-row">
+        <h2 className="pm-result-section-title">Boxes used</h2>
+        <span className="pm-count-summary">
+          {totalUsed} box{totalUsed === 1 ? '' : 'es'}
+        </span>
+      </div>
 
-      <div style={styles.recommendationList}>
+      <div className="pm-inventory-result-list">
         {usage.usedCartons.map(entry => {
           const dimensions = entry.carton.internalDimensions;
 
           return (
             <div
               key={entry.cartonId}
-              style={styles.inventoryItem}
+              className="pm-inventory-result-row"
             >
-              <div style={styles.inventoryItemMain}>
+              <div className="pm-inventory-result-main">
                 <strong>
                   {entry.carton.name ?? entry.cartonId}
                 </strong>
-                <span style={styles.inventoryDimensions}>
+                <span className="pm-dimension-value">
                   {dimensions.length} × {dimensions.width} ×{' '}
                   {dimensions.height} mm
                 </span>
               </div>
 
-              <div style={styles.inventoryCounts}>
+              <div className="pm-inventory-result-count">
                 <strong>
                   Used {entry.usedQuantity}
                   {entry.effectiveAvailability !== undefined
@@ -478,31 +516,29 @@ function InventoryUsageSummary({
       </div>
 
       {usage.unusedCartons.length > 0 && (
-        <>
-          <h3 style={styles.inventorySubheading}>
-            Unused box types
-          </h3>
-
-          <div style={styles.recommendationList}>
+        <details className="pm-details">
+          <summary>
+            Unused box types ({usage.unusedCartons.length})
+          </summary>
+          <div className="pm-details-body">
             {usage.unusedCartons.map(entry => {
               const dimensions = entry.carton.internalDimensions;
 
               return (
                 <div
                   key={entry.cartonId}
-                  style={styles.inventoryItem}
+                  className="pm-inventory-result-row"
                 >
-                  <div style={styles.inventoryItemMain}>
+                  <div className="pm-inventory-result-main">
                     <strong>
                       {entry.carton.name ?? entry.cartonId}
                     </strong>
-                    <span style={styles.inventoryDimensions}>
+                    <span className="pm-dimension-value">
                       {dimensions.length} × {dimensions.width} ×{' '}
                       {dimensions.height} mm
                     </span>
                   </div>
-
-                  <div style={styles.inventoryCounts}>
+                  <div className="pm-inventory-result-count">
                     <strong>Used 0</strong>
                     <span>
                       {entry.effectiveAvailability !== undefined
@@ -514,81 +550,97 @@ function InventoryUsageSummary({
               );
             })}
           </div>
-        </>
+        </details>
       )}
 
-      <p style={styles.recommendationNote}>{note}</p>
+      <p className="pm-fine-print">{note}</p>
     </section>
   );
 }
 
-function PlanStage({
-  label,
-  title,
-  detail,
-  plan,
-}: {
-  label: string;
-  title: string;
-  detail: string;
-  plan: PackingPlan;
-}) {
-  return (
-    <section
-      aria-label={title}
-      style={styles.planStage}
-    >
-      <div style={styles.planStageHeader}>
-        <p style={styles.eyebrow}>{label}</p>
-        <h2 style={styles.planStageTitle}>{title}</h2>
-        <p style={styles.planStageDetail}>{detail}</p>
-      </div>
-
-      <ResultSummary plan={plan} />
-      <PackingVisualization plan={plan} />
-    </section>
-  );
-}
+type HybridView = 'existing' | 'supplemental' | 'replacement';
 
 function HybridResult({
   result,
 }: {
   result: HybridBoxesWorkspaceResult;
 }) {
+  const preferredView: HybridView =
+    result.supplementalPlan !== null
+      ? 'supplemental'
+      : 'existing';
+  const [requestedView, setRequestedView] =
+    useState<HybridView>(preferredView);
+
   const existingPacked =
     result.existingPlan.metrics.placedItemCount;
 
+  const activeView: HybridView =
+    requestedView === 'supplemental' &&
+    result.supplementalPlan === null
+      ? 'existing'
+      : requestedView === 'replacement' &&
+          result.replacementPlan === null
+        ? 'existing'
+        : requestedView;
+
+  const activePlan =
+    activeView === 'supplemental'
+      ? result.supplementalPlan ?? result.existingPlan
+      : activeView === 'replacement'
+        ? result.replacementPlan ?? result.existingPlan
+        : result.existingPlan;
+
+  const activeTitle =
+    activeView === 'existing'
+      ? 'Existing boxes'
+      : activeView === 'supplemental'
+        ? 'Buy for the remainder'
+        : 'Buy boxes for everything instead';
+
+  const activeDescription =
+    activeView === 'existing'
+      ? 'This verified plan uses only the box inventory and quantities you entered.'
+      : activeView === 'supplemental'
+        ? 'This is a separate verified plan for the exact remainder left after existing inventory was used.'
+        : 'Comparison only. This separate verified plan ignores existing inventory and packs the complete request with generated purchase boxes.';
+
   return (
-    <>
+    <div className="pm-hybrid-result">
       <section
         aria-label="Hybrid packing overview"
-        style={styles.hybridOverview}
+        className="pm-result-section pm-result-lead"
       >
-        <p style={styles.eyebrow}>Hybrid packing result</p>
-        <h2 style={styles.recommendationHeading}>
+        <div className="pm-section-kicker">
+          Hybrid packing result
+        </div>
+        <h2 className="pm-result-headline">
           Use what you have, then buy only what is still needed
         </h2>
 
         {result.remainderItemCount === 0 ? (
-          <p style={styles.hybridOverviewText}>
+          <p className="pm-result-copy">
             Your existing box inventory covers every requested item.
             Nothing additional needs to be purchased.
           </p>
         ) : (
-          <p style={styles.hybridOverviewText}>
+          <p className="pm-result-copy">
             Existing inventory packs {existingPacked}{' '}
-            {existingPacked === 1 ? 'item' : 'items'}. The verified
-            remainder contains {result.remainderItemCount}{' '}
-            {result.remainderItemCount === 1 ? 'item' : 'items'} and
-            is planned separately with purchase boxes below.
+            {existingPacked === 1 ? 'item' : 'items'}. Buy boxes only
+            for the {result.remainderItemCount}{' '}
+            {result.remainderItemCount === 1 ? 'item' : 'items'} in
+            the verified remainder.
           </p>
         )}
 
-        <p style={styles.hybridBoundaryNote}>
-          The existing, supplemental, and replacement results remain
-          separate independently verified canonical plans. Packmetry
-          does not fabricate one merged PackingPlan.
-        </p>
+        <details className="pm-details pm-technical-details">
+          <summary>How this result is verified</summary>
+          <div className="pm-details-body">
+            The existing, supplemental, and replacement results remain
+            separate independently verified canonical plans. Packmetry
+            does not fabricate one merged PackingPlan.
+          </div>
+        </details>
       </section>
 
       <InventoryUsageSummary
@@ -596,75 +648,95 @@ function HybridResult({
         note={
           result.remainderItemCount === 0
             ? 'These existing boxes cover the complete request, so no supplemental purchase stage was needed.'
-            : 'These existing boxes are used first. Purchase recommendations below cover only the verified remainder.'
+            : 'These existing boxes are used first. Purchase recommendations cover only the verified remainder.'
         }
       />
 
-      <PlanStage
-        label="Step 1"
-        title="Existing boxes"
-        detail="This canonical plan uses only the box inventory and quantities you entered."
-        plan={result.existingPlan}
-      />
+      {result.supplementalPlan !== null &&
+        result.supplementalPurchaseRecommendations.length > 0 && (
+          <PurchaseRecommendationSummary
+            title="What to buy for the remainder"
+            recommendations={
+              result.supplementalPurchaseRecommendations
+            }
+            note="Recommended internal dimensions are derived only from the items left unpacked after the existing-inventory stage."
+          />
+        )}
 
-      {result.supplementalPlan !== null && (
-        <>
-          {result.supplementalPurchaseRecommendations.length >
-            0 && (
-            <PurchaseRecommendationSummary
-              title="What to buy for the remainder"
-              recommendations={
-                result.supplementalPurchaseRecommendations
-              }
-              note="These internal box dimensions are derived only from the verified items left unpacked after the existing-inventory stage."
-            />
+      <section className="pm-result-section pm-plan-view">
+        <div className="pm-plan-view-header">
+          <div>
+            <div className="pm-section-kicker">Packing view</div>
+            <h2 className="pm-result-section-title">
+              {activeTitle}
+            </h2>
+            <p className="pm-plan-description">
+              {activeDescription}
+            </p>
+          </div>
+
+          {(result.supplementalPlan !== null ||
+            result.replacementPlan !== null) && (
+            <div
+              className="pm-result-tabs"
+              role="group"
+              aria-label="Hybrid result view"
+            >
+              <button
+                type="button"
+                aria-pressed={activeView === 'existing'}
+                onClick={() => setRequestedView('existing')}
+              >
+                Existing
+              </button>
+
+              {result.supplementalPlan !== null && (
+                <button
+                  type="button"
+                  aria-pressed={activeView === 'supplemental'}
+                  onClick={() => setRequestedView('supplemental')}
+                >
+                  Buy remainder
+                </button>
+              )}
+
+              {result.replacementPlan !== null && (
+                <button
+                  type="button"
+                  aria-pressed={activeView === 'replacement'}
+                  onClick={() => setRequestedView('replacement')}
+                >
+                  Compare
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {activeView === 'replacement' &&
+          result.replacementPurchaseRecommendations.length > 0 && (
+            <div className="pm-inline-comparison">
+              <span className="pm-section-kicker">
+                Comparison only
+              </span>
+              <span>
+                {result.replacementPurchaseRecommendations
+                  .map(recommendation => {
+                    const dimensions =
+                      recommendation.carton.internalDimensions;
+                    return `${recommendation.quantity} × ${dimensions.length} × ${dimensions.width} × ${dimensions.height} mm`;
+                  })
+                  .join(' · ')}
+              </span>
+            </div>
           )}
 
-          <PlanStage
-            label="Step 2"
-            title="Supplemental boxes for the remainder"
-            detail="This is a separate canonical plan for the verified remainder only."
-            plan={result.supplementalPlan}
-          />
-        </>
-      )}
-
-      {result.replacementPlan !== null && (
-        <section
-          aria-label="Complete purchase replacement comparison"
-          style={styles.comparisonSection}
-        >
-          <p style={styles.eyebrow}>Comparison only</p>
-          <h2 style={styles.recommendationHeading}>
-            Buy boxes for everything instead
-          </h2>
-          <p style={styles.hybridOverviewText}>
-            This alternative ignores the existing inventory and
-            plans the complete item request with generated purchase
-            boxes. It is shown separately; Packmetry has not chosen
-            it as a winner.
-          </p>
-
-          {result.replacementPurchaseRecommendations.length >
-            0 && (
-            <PurchaseRecommendationSummary
-              title="Complete replacement box list"
-              recommendations={
-                result.replacementPurchaseRecommendations
-              }
-              note="This box list belongs only to the complete purchase-only comparison plan."
-            />
-          )}
-
-          <PlanStage
-            label="Alternative"
-            title="Purchase-only replacement plan"
-            detail="This independently verified plan covers the full request without using your existing boxes."
-            plan={result.replacementPlan}
-          />
-        </section>
-      )}
-    </>
+        <div className="pm-plan-output">
+          <ResultSummary plan={activePlan} />
+          <PackingVisualization plan={activePlan} />
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -817,171 +889,157 @@ export default function PackingWorkspace({
     mode === 'have-boxes' || mode === 'hybrid-boxes';
 
   return (
-    <main style={styles.page}>
-      <section style={styles.hero}>
-        <p style={styles.eyebrow}>Packmetry workspace</p>
-        <h1 style={styles.heading}>Pack an item into a box</h1>
-        <p style={styles.intro}>
-          Enter item dimensions in millimetres. Packmetry can
-          recommend boxes, use only boxes you already have, or use
-          your inventory first and recommend boxes for the verified
-          remainder.
+    <main className="pm-workspace">
+      <header className="pm-app-header">
+        <div>
+          <p className="pm-app-kicker">Packmetry workspace</p>
+          <h1>Pack an item into a box</h1>
+        </div>
+        <p className="pm-app-intro">
+          Set the item dimensions, choose how boxes are sourced, and
+          inspect the verified packing result in 3D.
         </p>
-      </section>
+      </header>
 
-      <div style={styles.grid}>
-        <form onSubmit={submit} style={styles.card}>
-          <h2 style={styles.cardHeading}>
-            How are you packing?
-          </h2>
-
-          <div
-            role="group"
-            aria-label="Box availability"
-            style={styles.modeGroup}
-          >
-            <button
-              type="button"
-              aria-pressed={mode === 'need-boxes'}
-              onClick={() => chooseMode('need-boxes')}
-              style={{
-                ...styles.modeButton,
-                ...(mode === 'need-boxes'
-                  ? styles.modeButtonActive
-                  : {}),
-              }}
-            >
-              <strong>I Need Boxes</strong>
-              <span style={styles.modeDescription}>
-                Recommend box dimensions for these items.
-              </span>
-            </button>
-
-            <button
-              type="button"
-              aria-pressed={mode === 'have-boxes'}
-              onClick={() => chooseMode('have-boxes')}
-              style={{
-                ...styles.modeButton,
-                ...(mode === 'have-boxes'
-                  ? styles.modeButtonActive
-                  : {}),
-              }}
-            >
-              <strong>I Already Have Boxes</strong>
-              <span style={styles.modeDescription}>
-                Pack only with box types and quantities I have.
-              </span>
-            </button>
-
-            <button
-              type="button"
-              aria-pressed={mode === 'hybrid-boxes'}
-              onClick={() => chooseMode('hybrid-boxes')}
-              style={{
-                ...styles.modeButton,
-                ...(mode === 'hybrid-boxes'
-                  ? styles.modeButtonActive
-                  : {}),
-              }}
-            >
-              <strong>
-                Use What I Have, Then Tell Me What to Buy
-              </strong>
-              <span style={styles.modeDescription}>
-                Use existing inventory first, then recommend boxes
-                only for the verified remainder.
-              </span>
-            </button>
+      <div className="pm-workbench">
+        <form onSubmit={submit} className="pm-pane pm-setup-pane">
+          <div className="pm-pane-header">
+            <div>
+              <p className="pm-pane-kicker">Setup</p>
+              <h2>What are you packing?</h2>
+            </div>
+            <span className="pm-unit-note">Measurements in mm</span>
           </div>
 
-          <h2
-            style={{
-              ...styles.cardHeading,
-              marginTop: '1.5rem',
-            }}
-          >
-            Item
-          </h2>
+          <section className="pm-form-section pm-mode-section">
+            <div
+              role="group"
+              aria-label="Box availability"
+              className="pm-mode-selector"
+            >
+              {(Object.keys(MODE_COPY) as WorkspaceMode[]).map(
+                option => (
+                  <button
+                    key={option}
+                    type="button"
+                    aria-label={MODE_COPY[option].full}
+                    aria-pressed={mode === option}
+                    onClick={() => chooseMode(option)}
+                    className="pm-mode-option"
+                  >
+                    {MODE_COPY[option].short}
+                  </button>
+                )
+              )}
+            </div>
 
-          <div style={styles.fields}>
-            <NumberField
-              label="Length (mm)"
-              value={values.itemLengthMm}
-              min={0.001}
-              step={0.001}
-              onChange={value => update('itemLengthMm', value)}
-            />
-            <NumberField
-              label="Width (mm)"
-              value={values.itemWidthMm}
-              min={0.001}
-              step={0.001}
-              onChange={value => update('itemWidthMm', value)}
-            />
-            <NumberField
-              label="Height (mm)"
-              value={values.itemHeightMm}
-              min={0.001}
-              step={0.001}
-              onChange={value => update('itemHeightMm', value)}
-            />
-            <NumberField
-              label="Quantity"
-              value={values.itemQuantity}
-              min={1}
-              onChange={value => update('itemQuantity', value)}
-            />
-          </div>
+            <div className="pm-mode-explainer">
+              <strong>{MODE_COPY[mode].full}</strong>
+              <span>{MODE_COPY[mode].description}</span>
+            </div>
+          </section>
+
+          <section className="pm-form-section">
+            <div className="pm-form-section-heading">
+              <span className="pm-section-number">01</span>
+              <div>
+                <h3>Item</h3>
+                <p>Enter the outside dimensions of one item.</p>
+              </div>
+            </div>
+
+            <div className="pm-measurement-grid">
+              <NumberField
+                label="Length (mm)"
+                value={values.itemLengthMm}
+                min={0.001}
+                step={0.001}
+                onChange={value =>
+                  update('itemLengthMm', value)
+                }
+              />
+              <NumberField
+                label="Width (mm)"
+                value={values.itemWidthMm}
+                min={0.001}
+                step={0.001}
+                onChange={value =>
+                  update('itemWidthMm', value)
+                }
+              />
+              <NumberField
+                label="Height (mm)"
+                value={values.itemHeightMm}
+                min={0.001}
+                step={0.001}
+                onChange={value =>
+                  update('itemHeightMm', value)
+                }
+              />
+            </div>
+
+            <div className="pm-quantity-row">
+              <NumberField
+                label="Quantity"
+                value={values.itemQuantity}
+                min={1}
+                onChange={value =>
+                  update('itemQuantity', value)
+                }
+              />
+            </div>
+          </section>
 
           {mode === 'need-boxes' && (
-            <div style={styles.helper}>
+            <div className="pm-context-note">
               <strong>No box dimensions needed.</strong>
               <span>
-                Packmetry will generate box candidates, solve them,
-                independently verify the result, and recommend the
-                internal dimensions actually used by the canonical
-                plan.
+                Packmetry generates box candidates and recommends the
+                internal dimensions used by the verified plan.
               </span>
             </div>
           )}
 
           {showsInventoryEditor && (
-            <>
-              <div style={styles.sectionHeadingRow}>
+            <section className="pm-form-section">
+              <div className="pm-form-section-heading">
+                <span className="pm-section-number">02</span>
                 <div>
-                  <h2 style={styles.boxesHeading}>
-                    Boxes you have
-                  </h2>
-                  <p style={styles.sectionHint}>
-                    Add every box type Packmetry may use and how many
-                    are currently available.
+                  <h3>Boxes you have</h3>
+                  <p>
+                    Add each box type Packmetry may use and how many
+                    are available.
                   </p>
                 </div>
               </div>
 
-              <div style={styles.cartonList}>
+              <div className="pm-carton-list">
                 {cartons.map((carton, index) => (
                   <section
                     key={carton.id}
                     aria-label={`Box type ${index + 1}`}
-                    style={styles.cartonEditor}
+                    className="pm-carton-row"
                   >
-                    <div style={styles.cartonEditorHeader}>
-                      <strong>Box type {index + 1}</strong>
+                    <div className="pm-carton-row-header">
+                      <div>
+                        <span className="pm-carton-index">
+                          {String(index + 1).padStart(2, '0')}
+                        </span>
+                        <strong>Box type {index + 1}</strong>
+                      </div>
 
                       {cartons.length > 1 && (
                         <button
                           type="button"
                           onClick={() => removeCarton(carton.id)}
-                          style={styles.removeButton}
+                          className="pm-remove-button"
                         >
                           Remove
                         </button>
                       )}
                     </div>
 
-                    <div style={styles.fields}>
+                    <div className="pm-carton-fields">
                       <NumberField
                         label="Length (mm)"
                         value={carton.lengthMm}
@@ -1041,13 +1099,14 @@ export default function PackingWorkspace({
               <button
                 type="button"
                 onClick={addCarton}
-                style={styles.secondaryButton}
+                className="pm-add-button"
               >
-                + Add another box type
+                <span>+</span>
+                Add another box type
               </button>
 
               {mode === 'have-boxes' ? (
-                <div style={styles.helper}>
+                <div className="pm-context-note">
                   <strong>Inventory limits are enforced.</strong>
                   <span>
                     Packmetry will not invent or purchase extra boxes
@@ -1056,53 +1115,73 @@ export default function PackingWorkspace({
                   </span>
                 </div>
               ) : (
-                <div style={styles.helper}>
+                <div className="pm-context-note">
                   <strong>Use existing boxes first.</strong>
                   <span>
-                    Packmetry will independently verify what your
-                    inventory can pack, derive the exact remainder,
-                    recommend purchase boxes only for that remainder,
-                    and keep a full purchase-only alternative
-                    separate for comparison.
+                    Packmetry verifies what your inventory can pack,
+                    then recommends purchase boxes only for the exact
+                    remainder.
                   </span>
                 </div>
               )}
-            </>
+            </section>
           )}
 
-          <button
-            type="submit"
-            disabled={running}
-            style={{
-              ...styles.button,
-              opacity: running ? 0.65 : 1,
-            }}
-          >
-            {running ? 'Calculating…' : 'Calculate packing'}
-          </button>
+          <div className="pm-submit-area">
+            <button
+              type="submit"
+              disabled={running}
+              className="pm-primary-button"
+            >
+              {running ? 'Calculating…' : 'Calculate packing'}
+            </button>
+            <span className="pm-submit-note">
+              Result is independently verified by the Packmetry core.
+            </span>
+          </div>
         </form>
 
-        <section style={styles.card} aria-live="polite">
+        <section
+          className="pm-pane pm-result-pane"
+          aria-live="polite"
+        >
           {!plan && !hybridResult && !error && (
-            <>
-              <h2 style={styles.cardHeading}>Result</h2>
-              <p style={styles.muted}>
+            <div className="pm-empty-result">
+              <div className="pm-empty-result-top">
+                <div>
+                  <p className="pm-pane-kicker">Result</p>
+                  <h2>Ready when you are.</h2>
+                </div>
+                <span className="pm-status-label">Waiting</span>
+              </div>
+
+              <div
+                className="pm-empty-box"
+                aria-hidden="true"
+              >
+                <span className="pm-empty-box-line pm-empty-box-line-a" />
+                <span className="pm-empty-box-line pm-empty-box-line-b" />
+                <span className="pm-empty-box-line pm-empty-box-line-c" />
+              </div>
+
+              <p>
                 Run a calculation to see the verified result.
               </p>
-            </>
+            </div>
           )}
 
           {error && (
-            <>
-              <h2 style={styles.cardHeading}>Result</h2>
-              <div role="alert" style={styles.error}>
+            <div className="pm-error-state">
+              <p className="pm-pane-kicker">Result</p>
+              <h2>Check the packing inputs.</h2>
+              <div role="alert" className="pm-error-message">
                 {error}
               </div>
-            </>
+            </div>
           )}
 
           {plan && (
-            <>
+            <div className="pm-standard-result">
               {mode === 'need-boxes' &&
                 purchaseRecommendations.length > 0 && (
                   <PurchaseRecommendationSummary
@@ -1119,9 +1198,11 @@ export default function PackingWorkspace({
                   />
                 )}
 
-              <ResultSummary plan={plan} />
-              <PackingVisualization plan={plan} />
-            </>
+              <div className="pm-plan-output">
+                <ResultSummary plan={plan} />
+                <PackingVisualization plan={plan} />
+              </div>
+            </div>
           )}
 
           {mode === 'hybrid-boxes' &&
@@ -1133,317 +1214,3 @@ export default function PackingWorkspace({
     </main>
   );
 }
-
-const styles = {
-  page: {
-    maxWidth: '1100px',
-    margin: '0 auto',
-    padding: '48px 20px 72px',
-    fontFamily:
-      'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    color: '#18181b',
-  },
-  hero: {
-    maxWidth: '760px',
-    marginBottom: '32px',
-  },
-  eyebrow: {
-    margin: '0 0 8px',
-    fontSize: '13px',
-    fontWeight: 700,
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase' as const,
-  },
-  heading: {
-    margin: '0 0 12px',
-    fontSize: 'clamp(2rem, 6vw, 3.5rem)',
-    lineHeight: 1,
-    letterSpacing: '-0.04em',
-  },
-  intro: {
-    margin: 0,
-    maxWidth: '720px',
-    fontSize: '17px',
-    lineHeight: 1.6,
-    color: '#52525b',
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-    gap: '20px',
-    alignItems: 'start',
-  },
-  card: {
-    border: '1px solid #e4e4e7',
-    borderRadius: '16px',
-    padding: '24px',
-    background: '#ffffff',
-    boxShadow: '0 12px 32px rgba(0,0,0,0.05)',
-  },
-  cardHeading: {
-    margin: '0 0 16px',
-    fontSize: '18px',
-  },
-  modeGroup: {
-    display: 'grid',
-    gridTemplateColumns:
-      'repeat(auto-fit, minmax(150px, 1fr))',
-    gap: '10px',
-  },
-  modeButton: {
-    display: 'grid',
-    gap: '5px',
-    minHeight: '104px',
-    border: '1px solid #d4d4d8',
-    borderRadius: '12px',
-    padding: '14px',
-    textAlign: 'left' as const,
-    font: 'inherit',
-    color: '#18181b',
-    background: '#fafafa',
-    cursor: 'pointer',
-  },
-  modeButtonActive: {
-    borderColor: '#18181b',
-    background: '#f4f4f5',
-    boxShadow: 'inset 0 0 0 1px #18181b',
-  },
-  modeDescription: {
-    fontSize: '12px',
-    lineHeight: 1.45,
-    color: '#71717a',
-  },
-  fields: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-    gap: '12px',
-  },
-  field: {
-    display: 'grid',
-    gap: '6px',
-  },
-  label: {
-    fontSize: '13px',
-    fontWeight: 600,
-    color: '#52525b',
-  },
-  input: {
-    width: '100%',
-    boxSizing: 'border-box' as const,
-    border: '1px solid #d4d4d8',
-    borderRadius: '10px',
-    padding: '10px 12px',
-    font: 'inherit',
-    background: '#fafafa',
-  },
-  sectionHeadingRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    gap: '12px',
-    alignItems: 'start',
-    marginTop: '24px',
-  },
-  boxesHeading: {
-    margin: '0 0 4px',
-    fontSize: '18px',
-  },
-  sectionHint: {
-    margin: 0,
-    color: '#71717a',
-    fontSize: '12px',
-    lineHeight: 1.5,
-  },
-  cartonList: {
-    display: 'grid',
-    gap: '12px',
-    marginTop: '14px',
-  },
-  cartonEditor: {
-    border: '1px solid #e4e4e7',
-    borderRadius: '12px',
-    padding: '14px',
-    background: '#fafafa',
-  },
-  cartonEditorHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: '12px',
-    marginBottom: '12px',
-  },
-  removeButton: {
-    border: 0,
-    padding: 0,
-    background: 'transparent',
-    color: '#71717a',
-    font: 'inherit',
-    fontSize: '12px',
-    fontWeight: 700,
-    cursor: 'pointer',
-  },
-  secondaryButton: {
-    width: '100%',
-    marginTop: '12px',
-    border: '1px solid #d4d4d8',
-    borderRadius: '10px',
-    padding: '10px 14px',
-    background: '#ffffff',
-    color: '#18181b',
-    font: 'inherit',
-    fontWeight: 700,
-    cursor: 'pointer',
-  },
-  helper: {
-    display: 'grid',
-    gap: '5px',
-    marginTop: '20px',
-    borderRadius: '10px',
-    padding: '12px',
-    background: '#f4f4f5',
-    color: '#3f3f46',
-    fontSize: '13px',
-    lineHeight: 1.5,
-  },
-  button: {
-    width: '100%',
-    marginTop: '24px',
-    border: 0,
-    borderRadius: '10px',
-    padding: '12px 16px',
-    font: 'inherit',
-    fontWeight: 700,
-    cursor: 'pointer',
-    background: '#18181b',
-    color: '#ffffff',
-  },
-  muted: {
-    margin: 0,
-    color: '#71717a',
-    lineHeight: 1.6,
-  },
-  error: {
-    borderRadius: '10px',
-    padding: '12px',
-    background: '#fef2f2',
-    color: '#991b1b',
-    lineHeight: 1.5,
-  },
-  recommendation: {
-    marginBottom: '22px',
-    borderBottom: '1px solid #e4e4e7',
-    paddingBottom: '20px',
-  },
-  recommendationHeading: {
-    margin: '0 0 12px',
-    fontSize: '22px',
-  },
-  recommendationList: {
-    display: 'grid',
-    gap: '8px',
-  },
-  recommendationItem: {
-    display: 'grid',
-    gridTemplateColumns: 'auto 1fr',
-    gap: '12px',
-    alignItems: 'center',
-    border: '1px solid #e4e4e7',
-    borderRadius: '10px',
-    padding: '12px',
-    background: '#fafafa',
-  },
-  recommendationSize: {
-    textAlign: 'right' as const,
-    fontWeight: 700,
-  },
-  recommendationNote: {
-    margin: '10px 0 0',
-    fontSize: '12px',
-    lineHeight: 1.5,
-    color: '#71717a',
-  },
-  inventorySummary: {
-    marginBottom: '22px',
-    borderBottom: '1px solid #e4e4e7',
-    paddingBottom: '20px',
-  },
-  inventoryLead: {
-    margin: '-4px 0 12px',
-    color: '#52525b',
-    fontSize: '13px',
-    lineHeight: 1.5,
-  },
-  inventorySubheading: {
-    margin: '16px 0 8px',
-    fontSize: '14px',
-  },
-  inventoryItem: {
-    display: 'grid',
-    gridTemplateColumns: 'minmax(0, 1fr) auto',
-    gap: '12px',
-    alignItems: 'center',
-    border: '1px solid #e4e4e7',
-    borderRadius: '10px',
-    padding: '12px',
-    background: '#fafafa',
-  },
-  inventoryItemMain: {
-    display: 'grid',
-    gap: '3px',
-    minWidth: 0,
-  },
-  inventoryDimensions: {
-    color: '#71717a',
-    fontSize: '12px',
-  },
-  inventoryCounts: {
-    display: 'grid',
-    gap: '3px',
-    textAlign: 'right' as const,
-    fontSize: '12px',
-    color: '#71717a',
-  },
-  hybridOverview: {
-    marginBottom: '22px',
-    borderBottom: '1px solid #e4e4e7',
-    paddingBottom: '20px',
-  },
-  hybridOverviewText: {
-    margin: '0 0 10px',
-    color: '#52525b',
-    fontSize: '13px',
-    lineHeight: 1.55,
-  },
-  hybridBoundaryNote: {
-    margin: 0,
-    borderRadius: '10px',
-    padding: '10px 12px',
-    background: '#f4f4f5',
-    color: '#52525b',
-    fontSize: '12px',
-    lineHeight: 1.5,
-  },
-  planStage: {
-    marginTop: '24px',
-    borderTop: '1px solid #e4e4e7',
-    paddingTop: '20px',
-  },
-  planStageHeader: {
-    marginBottom: '18px',
-  },
-  planStageTitle: {
-    margin: '0 0 6px',
-    fontSize: '20px',
-    color: '#18181b',
-  },
-  planStageDetail: {
-    margin: 0,
-    color: '#71717a',
-    fontSize: '12px',
-    lineHeight: 1.5,
-  },
-  comparisonSection: {
-    marginTop: '28px',
-    borderTop: '2px solid #d4d4d8',
-    paddingTop: '22px',
-  },
-} as const;

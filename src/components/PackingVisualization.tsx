@@ -30,17 +30,17 @@ export interface VisualizationModel {
   items: VisualizationItem[];
 }
 
-const VIEW_HEIGHT = 360;
+const VIEW_HEIGHT = 340;
 
 const ITEM_COLORS = [
-  0x2563eb,
-  0x16a34a,
-  0xdc2626,
-  0x9333ea,
-  0xea580c,
-  0x0891b2,
-  0xca8a04,
-  0x4f46e5,
+  0x3569c8,
+  0x3f8b69,
+  0xb95a52,
+  0x7867b8,
+  0xc8753d,
+  0x3f8792,
+  0xb18b37,
+  0x5968a8,
 ] as const;
 
 export function buildVisualizationModel(
@@ -150,11 +150,11 @@ export default function PackingVisualization({
 
     try {
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0xf8fafc);
+      scene.background = new THREE.Color(0xf7f9fa);
 
       const initialWidth = Math.max(
         280,
-        Math.floor(mount.clientWidth || 520)
+        Math.floor(mount.clientWidth || 620)
       );
 
       const maxDimension = Math.max(
@@ -189,11 +189,11 @@ export default function PackingVisualization({
 
       mount.replaceChildren(renderer.domElement);
 
-      scene.add(new THREE.AmbientLight(0xffffff, 1.55));
+      scene.add(new THREE.AmbientLight(0xffffff, 1.5));
 
       const keyLight = new THREE.DirectionalLight(
         0xffffff,
-        2.2
+        2.05
       );
       keyLight.position.set(
         model.sizeX,
@@ -203,8 +203,8 @@ export default function PackingVisualization({
       scene.add(keyLight);
 
       const fillLight = new THREE.DirectionalLight(
-        0xdbeafe,
-        1.1
+        0xd8e5ef,
+        0.95
       );
       fillLight.position.set(
         -model.sizeX,
@@ -224,7 +224,7 @@ export default function PackingVisualization({
       const cartonLines = new THREE.LineSegments(
         cartonEdges,
         new THREE.LineBasicMaterial({
-          color: 0x18181b,
+          color: 0x17212b,
           transparent: true,
           opacity: 0.72,
         })
@@ -243,10 +243,10 @@ export default function PackingVisualization({
 
         const material = new THREE.MeshStandardMaterial({
           color,
-          roughness: 0.66,
-          metalness: 0.02,
+          roughness: 0.72,
+          metalness: 0.01,
           transparent: true,
-          opacity: 0.82,
+          opacity: 0.84,
         });
 
         const mesh = new THREE.Mesh(geometry, material);
@@ -267,7 +267,7 @@ export default function PackingVisualization({
           new THREE.LineBasicMaterial({
             color: 0xffffff,
             transparent: true,
-            opacity: 0.75,
+            opacity: 0.72,
           })
         );
         edges.position.copy(mesh.position);
@@ -281,8 +281,8 @@ export default function PackingVisualization({
       const grid = new THREE.GridHelper(
         maxHorizontal * 1.55,
         10,
-        0xd4d4d8,
-        0xe4e4e7
+        0xcfd8df,
+        0xe5eaee
       );
       grid.position.y = -model.sizeY / 2;
       scene.add(grid);
@@ -312,7 +312,7 @@ export default function PackingVisualization({
 
         const width = Math.max(
           280,
-          Math.floor(mount.clientWidth || 520)
+          Math.floor(mount.clientWidth || 620)
         );
 
         camera.aspect = width / VIEW_HEIGHT;
@@ -355,16 +355,13 @@ export default function PackingVisualization({
     return (
       <section
         aria-labelledby="packing-visualization-heading"
-        style={styles.card}
+        className="pm-viz pm-viz-empty"
       >
-        <p style={styles.eyebrow}>3D packing view</p>
-        <h3
-          id="packing-visualization-heading"
-          style={styles.heading}
-        >
+        <p className="pm-section-kicker">3D packing view</p>
+        <h3 id="packing-visualization-heading">
           No packed box to visualize.
         </h3>
-        <p style={styles.description}>
+        <p>
           A 3D view will appear when the verified plan contains at
           least one packed box.
         </p>
@@ -375,28 +372,25 @@ export default function PackingVisualization({
   return (
     <section
       aria-labelledby="packing-visualization-heading"
-      style={styles.card}
+      className="pm-viz"
     >
-      <div style={styles.header}>
+      <div className="pm-viz-header">
         <div>
-          <p style={styles.eyebrow}>3D packing view</p>
-          <h3
-            id="packing-visualization-heading"
-            style={styles.heading}
-          >
+          <p className="pm-section-kicker">3D packing view</p>
+          <h3 id="packing-visualization-heading">
             {cartonLabel(
               plan.cartons[safeCartonIndex]!,
               safeCartonIndex
             )}
           </h3>
-          <p style={styles.description}>
+          <p className="pm-viz-instruction">
             Drag to rotate · Scroll to zoom
           </p>
         </div>
 
         {plan.cartons.length > 1 && (
           <div
-            style={styles.selector}
+            className="pm-viz-selector"
             aria-label="Choose box to visualize"
           >
             {plan.cartons.map((carton, index) => (
@@ -405,14 +399,8 @@ export default function PackingVisualization({
                 type="button"
                 onClick={() => setSelectedCartonIndex(index)}
                 aria-pressed={safeCartonIndex === index}
-                style={{
-                  ...styles.selectorButton,
-                  ...(safeCartonIndex === index
-                    ? styles.selectorButtonActive
-                    : {}),
-                }}
               >
-                {index + 1}
+                Box {index + 1}
               </button>
             ))}
           </div>
@@ -420,7 +408,7 @@ export default function PackingVisualization({
       </div>
 
       {renderError && (
-        <div role="alert" style={styles.error}>
+        <div role="alert" className="pm-viz-error">
           3D view unavailable: {renderError}
         </div>
       )}
@@ -428,94 +416,13 @@ export default function PackingVisualization({
       <div
         ref={mountRef}
         data-testid="packing-visualization-canvas"
-        style={styles.canvas}
+        className="pm-viz-canvas"
       />
 
-      <p style={styles.caption}>
+      <p className="pm-viz-caption">
         The wireframe is the inside of the box. Colored blocks are
         the verified item placements.
       </p>
     </section>
   );
 }
-
-const styles = {
-  card: {
-    marginTop: '24px',
-    borderTop: '1px solid #e4e4e7',
-    paddingTop: '20px',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: '16px',
-    marginBottom: '12px',
-  },
-  eyebrow: {
-    margin: '0 0 5px',
-    color: '#71717a',
-    fontSize: '11px',
-    fontWeight: 700,
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase' as const,
-  },
-  heading: {
-    margin: 0,
-    color: '#18181b',
-    fontSize: '16px',
-    lineHeight: 1.3,
-  },
-  description: {
-    margin: '5px 0 0',
-    color: '#71717a',
-    fontSize: '12px',
-  },
-  selector: {
-    display: 'flex',
-    flexWrap: 'wrap' as const,
-    justifyContent: 'flex-end',
-    gap: '6px',
-  },
-  selectorButton: {
-    minWidth: '32px',
-    height: '32px',
-    border: '1px solid #d4d4d8',
-    borderRadius: '8px',
-    padding: '0 9px',
-    background: '#ffffff',
-    color: '#3f3f46',
-    font: 'inherit',
-    fontSize: '12px',
-    fontWeight: 700,
-    cursor: 'pointer',
-  },
-  selectorButtonActive: {
-    borderColor: '#18181b',
-    background: '#18181b',
-    color: '#ffffff',
-  },
-  canvas: {
-    width: '100%',
-    minHeight: `${VIEW_HEIGHT}px`,
-    overflow: 'hidden',
-    border: '1px solid #e4e4e7',
-    borderRadius: '12px',
-    background: '#f8fafc',
-  },
-  caption: {
-    margin: '9px 0 0',
-    color: '#71717a',
-    fontSize: '11px',
-    lineHeight: 1.45,
-  },
-  error: {
-    marginBottom: '10px',
-    borderRadius: '10px',
-    padding: '10px 12px',
-    background: '#fef2f2',
-    color: '#991b1b',
-    fontSize: '12px',
-    lineHeight: 1.45,
-  },
-} as const;
