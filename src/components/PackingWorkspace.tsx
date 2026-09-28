@@ -1,4 +1,4 @@
-import { useState, type SyntheticEvent } from 'react';
+import { useEffect, useState, type SyntheticEvent } from 'react';
 
 import PackingVisualization from './PackingVisualization.js';
 import ResultSummary from './ResultSummary.js';
@@ -36,6 +36,7 @@ export interface WorkspaceValues {
 
 export interface WorkspaceItemValues {
   id: string;
+  name?: string;
   lengthMm: number;
   widthMm: number;
   heightMm: number;
@@ -88,6 +89,7 @@ export const DEFAULT_WORKSPACE_VALUES: WorkspaceValues = {
 export const DEFAULT_WORKSPACE_ITEMS: WorkspaceItemValues[] = [
   {
     id: 'workspace-item-1',
+    name: '',
     lengthMm: 80,
     widthMm: 80,
     heightMm: 80,
@@ -152,7 +154,7 @@ function createWorkspaceItems(
   return items.map((item, index) =>
     createItem({
       id: item.id,
-      name: `Item type ${index + 1}`,
+      name: item.name?.trim() || `Item ${index + 1}`,
       dimensions: {
         length: item.lengthMm,
         width: item.widthMm,
@@ -168,6 +170,7 @@ function legacyWorkspaceItemValues(
 ): WorkspaceItemValues {
   return {
     id: 'workspace-item',
+    name: '',
     lengthMm: values.itemLengthMm,
     widthMm: values.itemWidthMm,
     heightMm: values.itemHeightMm,
@@ -461,7 +464,9 @@ function NumberField({
         value={value}
         min={min}
         step={step}
-        onChange={event => onChange(Number(event.target.value))}
+        onChange={event =>
+          onChange(Number(event.target.value))
+        }
       />
     </label>
   );
@@ -481,10 +486,17 @@ function PurchaseRecommendationSummary({
       aria-label={title}
       className="pm-result-section pm-recommendation"
     >
-      <div className="pm-section-kicker">Box recommendation</div>
+      <div className="pm-section-kicker">
+        Box recommendation
+      </div>
+
       <div className="pm-section-heading-row">
-        <h2 className="pm-result-section-title">{title}</h2>
-        <span className="pm-verified-mark">Verified plan</span>
+        <h2 className="pm-result-section-title">
+          {title}
+        </h2>
+        <span className="pm-verified-mark">
+          Verified plan
+        </span>
       </div>
 
       <div className="pm-recommendation-list">
@@ -506,6 +518,7 @@ function PurchaseRecommendationSummary({
                     'Recommended box'}
                 </strong>
               </div>
+
               <span className="pm-dimension-value">
                 {dimensions.length} × {dimensions.width} ×{' '}
                 {dimensions.height} mm
@@ -540,8 +553,12 @@ function InventoryUsageSummary({
       <div className="pm-section-kicker">
         Existing box inventory
       </div>
+
       <div className="pm-section-heading-row">
-        <h2 className="pm-result-section-title">Boxes used</h2>
+        <h2 className="pm-result-section-title">
+          Boxes used
+        </h2>
+
         <span className="pm-count-summary">
           {totalUsed} box{totalUsed === 1 ? '' : 'es'}
         </span>
@@ -549,7 +566,8 @@ function InventoryUsageSummary({
 
       <div className="pm-inventory-result-list">
         {usage.usedCartons.map(entry => {
-          const dimensions = entry.carton.internalDimensions;
+          const dimensions =
+            entry.carton.internalDimensions;
 
           return (
             <div
@@ -560,6 +578,7 @@ function InventoryUsageSummary({
                 <strong>
                   {entry.carton.name ?? entry.cartonId}
                 </strong>
+
                 <span className="pm-dimension-value">
                   {dimensions.length} × {dimensions.width} ×{' '}
                   {dimensions.height} mm
@@ -573,6 +592,7 @@ function InventoryUsageSummary({
                     ? ` of ${entry.effectiveAvailability}`
                     : ''}
                 </strong>
+
                 <span>
                   {entry.remainingQuantity !== undefined
                     ? `${entry.remainingQuantity} remaining`
@@ -589,9 +609,11 @@ function InventoryUsageSummary({
           <summary>
             Unused box types ({usage.unusedCartons.length})
           </summary>
+
           <div className="pm-details-body">
             {usage.unusedCartons.map(entry => {
-              const dimensions = entry.carton.internalDimensions;
+              const dimensions =
+                entry.carton.internalDimensions;
 
               return (
                 <div
@@ -602,13 +624,16 @@ function InventoryUsageSummary({
                     <strong>
                       {entry.carton.name ?? entry.cartonId}
                     </strong>
+
                     <span className="pm-dimension-value">
                       {dimensions.length} × {dimensions.width} ×{' '}
                       {dimensions.height} mm
                     </span>
                   </div>
+
                   <div className="pm-inventory-result-count">
                     <strong>Used 0</strong>
+
                     <span>
                       {entry.effectiveAvailability !== undefined
                         ? `${entry.effectiveAvailability} available`
@@ -627,7 +652,10 @@ function InventoryUsageSummary({
   );
 }
 
-type HybridView = 'existing' | 'supplemental' | 'replacement';
+type HybridView =
+  | 'existing'
+  | 'supplemental'
+  | 'replacement';
 
 function HybridResult({
   result,
@@ -638,8 +666,12 @@ function HybridResult({
     result.supplementalPlan !== null
       ? 'supplemental'
       : 'existing';
+
   const [requestedView, setRequestedView] =
     useState<HybridView>(preferredView);
+useEffect(() => {
+  setRequestedView(preferredView);
+}, [result, preferredView]);
 
   const existingPacked =
     result.existingPlan.metrics.placedItemCount;
@@ -655,9 +687,11 @@ function HybridResult({
 
   const activePlan =
     activeView === 'supplemental'
-      ? result.supplementalPlan ?? result.existingPlan
+      ? result.supplementalPlan ??
+        result.existingPlan
       : activeView === 'replacement'
-        ? result.replacementPlan ?? result.existingPlan
+        ? result.replacementPlan ??
+          result.existingPlan
         : result.existingPlan;
 
   const activeTitle =
@@ -683,6 +717,7 @@ function HybridResult({
         <div className="pm-section-kicker">
           Hybrid packing result
         </div>
+
         <h2 className="pm-result-headline">
           Use what you have, then buy only what is still needed
         </h2>
@@ -695,15 +730,23 @@ function HybridResult({
         ) : (
           <p className="pm-result-copy">
             Existing inventory packs {existingPacked}{' '}
-            {existingPacked === 1 ? 'item' : 'items'}. Buy boxes only
-            for the {result.remainderItemCount}{' '}
-            {result.remainderItemCount === 1 ? 'item' : 'items'} in
-            the verified remainder.
+            {existingPacked === 1
+              ? 'item'
+              : 'items'}
+            . Buy boxes only for the{' '}
+            {result.remainderItemCount}{' '}
+            {result.remainderItemCount === 1
+              ? 'item'
+              : 'items'}{' '}
+            in the verified remainder.
           </p>
         )}
 
         <details className="pm-details pm-technical-details">
-          <summary>How this result is verified</summary>
+          <summary>
+            How this result is verified
+          </summary>
+
           <div className="pm-details-body">
             The existing, supplemental, and replacement results remain
             separate independently verified canonical plans. Packmetry
@@ -722,7 +765,8 @@ function HybridResult({
       />
 
       {result.supplementalPlan !== null &&
-        result.supplementalPurchaseRecommendations.length > 0 && (
+        result.supplementalPurchaseRecommendations.length >
+          0 && (
           <PurchaseRecommendationSummary
             title="What to buy for the remainder"
             recommendations={
@@ -735,10 +779,14 @@ function HybridResult({
       <section className="pm-result-section pm-plan-view">
         <div className="pm-plan-view-header">
           <div>
-            <div className="pm-section-kicker">Packing view</div>
+            <div className="pm-section-kicker">
+              Packing view
+            </div>
+
             <h2 className="pm-result-section-title">
               {activeTitle}
             </h2>
+
             <p className="pm-plan-description">
               {activeDescription}
             </p>
@@ -753,17 +801,26 @@ function HybridResult({
             >
               <button
                 type="button"
-                aria-pressed={activeView === 'existing'}
-                onClick={() => setRequestedView('existing')}
+                aria-pressed={
+                  activeView === 'existing'
+                }
+                onClick={() =>
+                  setRequestedView('existing')
+                }
               >
                 Existing
               </button>
 
-              {result.supplementalPlan !== null && (
+              {result.supplementalPlan !==
+                null && (
                 <button
                   type="button"
-                  aria-pressed={activeView === 'supplemental'}
-                  onClick={() => setRequestedView('supplemental')}
+                  aria-pressed={
+                    activeView === 'supplemental'
+                  }
+                  onClick={() =>
+                    setRequestedView('supplemental')
+                  }
                 >
                   Buy remainder
                 </button>
@@ -772,8 +829,12 @@ function HybridResult({
               {result.replacementPlan !== null && (
                 <button
                   type="button"
-                  aria-pressed={activeView === 'replacement'}
-                  onClick={() => setRequestedView('replacement')}
+                  aria-pressed={
+                    activeView === 'replacement'
+                  }
+                  onClick={() =>
+                    setRequestedView('replacement')
+                  }
                 >
                   Compare
                 </button>
@@ -783,16 +844,20 @@ function HybridResult({
         </div>
 
         {activeView === 'replacement' &&
-          result.replacementPurchaseRecommendations.length > 0 && (
+          result.replacementPurchaseRecommendations
+            .length > 0 && (
             <div className="pm-inline-comparison">
               <span className="pm-section-kicker">
                 Comparison only
               </span>
+
               <span>
                 {result.replacementPurchaseRecommendations
                   .map(recommendation => {
                     const dimensions =
-                      recommendation.carton.internalDimensions;
+                      recommendation.carton
+                        .internalDimensions;
+
                     return `${recommendation.quantity} × ${dimensions.length} × ${dimensions.width} × ${dimensions.height} mm`;
                   })
                   .join(' · ')}
@@ -815,7 +880,10 @@ function nextItemId(
   let index = 1;
 
   while (
-    items.some(item => item.id === `workspace-item-${index}`)
+    items.some(
+      item =>
+        item.id === `workspace-item-${index}`
+    )
   ) {
     index++;
   }
@@ -830,7 +898,8 @@ function nextCartonId(
 
   while (
     cartons.some(
-      carton => carton.id === `workspace-carton-${index}`
+      carton =>
+        carton.id === `workspace-carton-${index}`
     )
   ) {
     index++;
@@ -844,27 +913,57 @@ export default function PackingWorkspace({
 }: PackingWorkspaceProps = {}) {
   const [mode, setMode] =
     useState<WorkspaceMode>(initialMode);
-  const [items, setItems] = useState<WorkspaceItemValues[]>(
-    () => DEFAULT_WORKSPACE_ITEMS.map(item => ({ ...item }))
-  );
-  const [cartons, setCartons] = useState<WorkspaceCartonValues[]>(
-    () => DEFAULT_WORKSPACE_CARTONS.map(carton => ({ ...carton }))
-  );
-  const [plan, setPlan] = useState<PackingPlan | null>(null);
+
+  const [items, setItems] =
+    useState<WorkspaceItemValues[]>(
+      () =>
+        DEFAULT_WORKSPACE_ITEMS.map(item => ({
+          ...item,
+        }))
+    );
+
+  const [cartons, setCartons] =
+    useState<WorkspaceCartonValues[]>(
+      () =>
+        DEFAULT_WORKSPACE_CARTONS.map(
+          carton => ({
+            ...carton,
+          })
+        )
+    );
+
+  const [plan, setPlan] =
+    useState<PackingPlan | null>(null);
+
   const [
     purchaseRecommendations,
     setPurchaseRecommendations,
-  ] = useState<PurchaseCartonRecommendation[]>([]);
+  ] = useState<
+    PurchaseCartonRecommendation[]
+  >([]);
+
   const [inventoryUsage, setInventoryUsage] =
-    useState<HaveBoxesInventoryUsage | null>(null);
+    useState<HaveBoxesInventoryUsage | null>(
+      null
+    );
+
   const [hybridResult, setHybridResult] =
-    useState<HybridBoxesWorkspaceResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [running, setRunning] = useState(false);
+    useState<HybridBoxesWorkspaceResult | null>(
+      null
+    );
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  const [running, setRunning] =
+    useState(false);
 
   const updateItem = (
     id: string,
-    key: Exclude<keyof WorkspaceItemValues, 'id'>,
+    key: Exclude<
+      keyof WorkspaceItemValues,
+      'id' | 'name'
+    >,
     value: number
   ) => {
     setItems(current =>
@@ -879,11 +978,28 @@ export default function PackingWorkspace({
     );
   };
 
+  const updateItemName = (
+    id: string,
+    name: string
+  ) => {
+    setItems(current =>
+      current.map(item =>
+        item.id === id
+          ? {
+              ...item,
+              name,
+            }
+          : item
+      )
+    );
+  };
+
   const addItem = () => {
     setItems(current => [
       ...current,
       {
         id: nextItemId(current),
+        name: '',
         lengthMm: 80,
         widthMm: 80,
         heightMm: 80,
@@ -898,13 +1014,18 @@ export default function PackingWorkspace({
         return current;
       }
 
-      return current.filter(item => item.id !== id);
+      return current.filter(
+        item => item.id !== id
+      );
     });
   };
 
   const updateCarton = (
     id: string,
-    key: Exclude<keyof WorkspaceCartonValues, 'id'>,
+    key: Exclude<
+      keyof WorkspaceCartonValues,
+      'id'
+    >,
     value: number
   ) => {
     setCartons(current =>
@@ -938,7 +1059,9 @@ export default function PackingWorkspace({
         return current;
       }
 
-      return current.filter(carton => carton.id !== id);
+      return current.filter(
+        carton => carton.id !== id
+      );
     });
   };
 
@@ -950,7 +1073,9 @@ export default function PackingWorkspace({
     setError(null);
   };
 
-  const chooseMode = (nextMode: WorkspaceMode) => {
+  const chooseMode = (
+    nextMode: WorkspaceMode
+  ) => {
     setMode(nextMode);
     clearResult();
   };
@@ -965,25 +1090,33 @@ export default function PackingWorkspace({
     try {
       if (mode === 'need-boxes') {
         const result =
-          await runNeedBoxesWorkspaceItems(items);
+          await runNeedBoxesWorkspaceItems(
+            items
+          );
 
         setPlan(result.plan);
+
         setPurchaseRecommendations(
           result.purchaseRecommendations
         );
       } else if (mode === 'have-boxes') {
-        const result = await runHaveBoxesWorkspaceItems(
-          items,
-          cartons
-        );
+        const result =
+          await runHaveBoxesWorkspaceItems(
+            items,
+            cartons
+          );
 
         setPlan(result.plan);
-        setInventoryUsage(result.inventoryUsage);
-      } else {
-        const result = await runHybridBoxesWorkspaceItems(
-          items,
-          cartons
+
+        setInventoryUsage(
+          result.inventoryUsage
         );
+      } else {
+        const result =
+          await runHybridBoxesWorkspaceItems(
+            items,
+            cartons
+          );
 
         setHybridResult(result);
       }
@@ -999,29 +1132,48 @@ export default function PackingWorkspace({
   };
 
   const showsInventoryEditor =
-    mode === 'have-boxes' || mode === 'hybrid-boxes';
+    mode === 'have-boxes' ||
+    mode === 'hybrid-boxes';
 
   return (
     <main className="pm-workspace">
       <header className="pm-app-header">
         <div>
-          <p className="pm-app-kicker">Packmetry workspace</p>
-          <h1>Pack items into the right boxes</h1>
+          <p className="pm-app-kicker">
+            Packmetry workspace
+          </p>
+
+          <h1>
+            Pack items into the right boxes
+          </h1>
         </div>
+
         <p className="pm-app-intro">
-  Enter your items, choose how boxes are sourced, and inspect the
-  verified packing result in 3D.
-</p>
+          Enter your items, choose how boxes
+          are sourced, and inspect the verified
+          packing result in 3D.
+        </p>
       </header>
 
       <div className="pm-workbench">
-        <form onSubmit={submit} className="pm-pane pm-setup-pane">
+        <form
+          onSubmit={submit}
+          className="pm-pane pm-setup-pane"
+        >
           <div className="pm-pane-header">
             <div>
-              <p className="pm-pane-kicker">Setup</p>
-              <h2>What are you packing?</h2>
+              <p className="pm-pane-kicker">
+                Setup
+              </p>
+
+              <h2>
+                What are you packing?
+              </h2>
             </div>
-            <span className="pm-unit-note">Measurements in mm</span>
+
+            <span className="pm-unit-note">
+              Measurements in mm
+            </span>
           </div>
 
           <section className="pm-form-section pm-mode-section">
@@ -1030,159 +1182,95 @@ export default function PackingWorkspace({
               aria-label="Box availability"
               className="pm-mode-selector"
             >
-              {(Object.keys(MODE_COPY) as WorkspaceMode[]).map(
-                option => (
-                  <button
-                    key={option}
-                    type="button"
-                    aria-label={MODE_COPY[option].full}
-                    aria-pressed={mode === option}
-                    onClick={() => chooseMode(option)}
-                    className="pm-mode-option"
-                  >
-                    {MODE_COPY[option].short}
-                  </button>
-                )
-              )}
+              {(
+                Object.keys(
+                  MODE_COPY
+                ) as WorkspaceMode[]
+              ).map(option => (
+                <button
+                  key={option}
+                  type="button"
+                  aria-label={
+                    MODE_COPY[option].full
+                  }
+                  aria-pressed={
+                    mode === option
+                  }
+                  onClick={() =>
+                    chooseMode(option)
+                  }
+                  className="pm-mode-option"
+                >
+                  {MODE_COPY[option].short}
+                </button>
+              ))}
             </div>
 
             <div className="pm-mode-explainer">
-              <strong>{MODE_COPY[mode].full}</strong>
-              <span>{MODE_COPY[mode].description}</span>
+              <strong>
+                {MODE_COPY[mode].full}
+              </strong>
+
+              <span>
+                {MODE_COPY[mode].description}
+              </span>
             </div>
           </section>
 
           <section className="pm-form-section">
             <div className="pm-form-section-heading">
-              <span className="pm-section-number">01</span>
+              <span className="pm-section-number">
+                01
+              </span>
+
               <div>
                 <h3>Items to pack</h3>
+
                 <p>
-                  Add each item type once, then set how many of that
-                  item you need to pack.
+                  Add each item once, then set
+                  how many of that item you need
+                  to pack.
                 </p>
               </div>
             </div>
 
             <div className="pm-carton-list">
-              {items.map((item, index) => (
-                <section
-                  key={item.id}
-                  aria-label={`Item type ${index + 1}`}
-                  className="pm-carton-row"
-                >
-                  <div className="pm-carton-row-header">
-                    <div>
-                      <span className="pm-carton-index">
-                        {String(index + 1).padStart(2, '0')}
-                      </span>
-                      <strong>Item type {index + 1}</strong>
-                    </div>
-
-                    {items.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeItem(item.id)}
-                        className="pm-remove-button"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="pm-carton-fields">
-                    <NumberField
-                      label="Length (mm)"
-                      value={item.lengthMm}
-                      min={0.001}
-                      step={0.001}
-                      onChange={value =>
-                        updateItem(item.id, 'lengthMm', value)
-                      }
-                    />
-                    <NumberField
-                      label="Width (mm)"
-                      value={item.widthMm}
-                      min={0.001}
-                      step={0.001}
-                      onChange={value =>
-                        updateItem(item.id, 'widthMm', value)
-                      }
-                    />
-                    <NumberField
-                      label="Height (mm)"
-                      value={item.heightMm}
-                      min={0.001}
-                      step={0.001}
-                      onChange={value =>
-                        updateItem(item.id, 'heightMm', value)
-                      }
-                    />
-                    <NumberField
-                      label="Quantity"
-                      value={item.quantity}
-                      min={1}
-                      onChange={value =>
-                        updateItem(item.id, 'quantity', value)
-                      }
-                    />
-                  </div>
-                </section>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={addItem}
-              className="pm-add-button"
-            >
-              <span>+</span>
-              Add another item type
-            </button>
-          </section>
-
-          {mode === 'need-boxes' && (
-            <div className="pm-context-note">
-              <strong>No box dimensions needed.</strong>
-              <span>
-                Packmetry generates box candidates and recommends the
-                internal dimensions used by the verified plan.
-              </span>
-            </div>
-          )}
-
-          {showsInventoryEditor && (
-            <section className="pm-form-section">
-              <div className="pm-form-section-heading">
-                <span className="pm-section-number">02</span>
-                <div>
-                  <h3>Boxes you have</h3>
-                  <p>
-                    Add each box type Packmetry may use and how many
-                    are available.
-                  </p>
-                </div>
-              </div>
-
-              <div className="pm-carton-list">
-                {cartons.map((carton, index) => (
+              {items.map(
+                (item, index) => (
                   <section
-                    key={carton.id}
-                    aria-label={`Box type ${index + 1}`}
+                    key={item.id}
+                    aria-label={`Item ${
+                      index + 1
+                    }`}
                     className="pm-carton-row"
                   >
                     <div className="pm-carton-row-header">
                       <div>
                         <span className="pm-carton-index">
-                          {String(index + 1).padStart(2, '0')}
+                          {String(
+                            index + 1
+                          ).padStart(
+                            2,
+                            '0'
+                          )}
                         </span>
-                        <strong>Box type {index + 1}</strong>
+
+                        <strong>
+                          {item.name?.trim() ||
+                            `Item ${
+                              index + 1
+                            }`}
+                        </strong>
                       </div>
 
-                      {cartons.length > 1 && (
+                      {items.length > 1 && (
                         <button
                           type="button"
-                          onClick={() => removeCarton(carton.id)}
+                          onClick={() =>
+                            removeItem(
+                              item.id
+                            )
+                          }
                           className="pm-remove-button"
                         >
                           Remove
@@ -1191,60 +1279,251 @@ export default function PackingWorkspace({
                     </div>
 
                     <div className="pm-carton-fields">
+                      <label className="pm-field">
+                        <span className="pm-field-label">
+                          Item name (optional)
+                        </span>
+
+                        <input
+                          className="pm-number-input"
+                          type="text"
+                          value={
+                            item.name ?? ''
+                          }
+                          placeholder="e.g. Books"
+                          onChange={event =>
+                            updateItemName(
+                              item.id,
+                              event.target
+                                .value
+                            )
+                          }
+                        />
+                      </label>
+
                       <NumberField
                         label="Length (mm)"
-                        value={carton.lengthMm}
+                        value={
+                          item.lengthMm
+                        }
                         min={0.001}
                         step={0.001}
                         onChange={value =>
-                          updateCarton(
-                            carton.id,
+                          updateItem(
+                            item.id,
                             'lengthMm',
                             value
                           )
                         }
                       />
+
                       <NumberField
                         label="Width (mm)"
-                        value={carton.widthMm}
+                        value={
+                          item.widthMm
+                        }
                         min={0.001}
                         step={0.001}
                         onChange={value =>
-                          updateCarton(
-                            carton.id,
+                          updateItem(
+                            item.id,
                             'widthMm',
                             value
                           )
                         }
                       />
+
                       <NumberField
                         label="Height (mm)"
-                        value={carton.heightMm}
+                        value={
+                          item.heightMm
+                        }
                         min={0.001}
                         step={0.001}
                         onChange={value =>
-                          updateCarton(
-                            carton.id,
+                          updateItem(
+                            item.id,
                             'heightMm',
                             value
                           )
                         }
                       />
+
                       <NumberField
-                        label="Available quantity"
-                        value={carton.quantityAvailable}
-                        min={0}
+                        label="Quantity"
+                        value={
+                          item.quantity
+                        }
+                        min={1}
                         onChange={value =>
-                          updateCarton(
-                            carton.id,
-                            'quantityAvailable',
+                          updateItem(
+                            item.id,
+                            'quantity',
                             value
                           )
                         }
                       />
                     </div>
                   </section>
-                ))}
+                )
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={addItem}
+              className="pm-add-button"
+            >
+              <span>+</span>
+              Add another item
+            </button>
+          </section>
+
+          {mode === 'need-boxes' && (
+            <div className="pm-context-note">
+              <strong>
+                No box dimensions needed.
+              </strong>
+
+              <span>
+                Packmetry generates box
+                candidates and recommends the
+                internal dimensions used by the
+                verified plan.
+              </span>
+            </div>
+          )}
+
+          {showsInventoryEditor && (
+            <section className="pm-form-section">
+              <div className="pm-form-section-heading">
+                <span className="pm-section-number">
+                  02
+                </span>
+
+                <div>
+                  <h3>
+                    Boxes you have
+                  </h3>
+
+                  <p>
+                    Add each box type Packmetry
+                    may use and how many are
+                    available.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pm-carton-list">
+                {cartons.map(
+                  (carton, index) => (
+                    <section
+                      key={carton.id}
+                      aria-label={`Box type ${
+                        index + 1
+                      }`}
+                      className="pm-carton-row"
+                    >
+                      <div className="pm-carton-row-header">
+                        <div>
+                          <span className="pm-carton-index">
+                            {String(
+                              index + 1
+                            ).padStart(
+                              2,
+                              '0'
+                            )}
+                          </span>
+
+                          <strong>
+                            Box type{' '}
+                            {index + 1}
+                          </strong>
+                        </div>
+
+                        {cartons.length >
+                          1 && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              removeCarton(
+                                carton.id
+                              )
+                            }
+                            className="pm-remove-button"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="pm-carton-fields">
+                        <NumberField
+                          label="Length (mm)"
+                          value={
+                            carton.lengthMm
+                          }
+                          min={0.001}
+                          step={0.001}
+                          onChange={value =>
+                            updateCarton(
+                              carton.id,
+                              'lengthMm',
+                              value
+                            )
+                          }
+                        />
+
+                        <NumberField
+                          label="Width (mm)"
+                          value={
+                            carton.widthMm
+                          }
+                          min={0.001}
+                          step={0.001}
+                          onChange={value =>
+                            updateCarton(
+                              carton.id,
+                              'widthMm',
+                              value
+                            )
+                          }
+                        />
+
+                        <NumberField
+                          label="Height (mm)"
+                          value={
+                            carton.heightMm
+                          }
+                          min={0.001}
+                          step={0.001}
+                          onChange={value =>
+                            updateCarton(
+                              carton.id,
+                              'heightMm',
+                              value
+                            )
+                          }
+                        />
+
+                        <NumberField
+                          label="Available quantity"
+                          value={
+                            carton.quantityAvailable
+                          }
+                          min={0}
+                          onChange={value =>
+                            updateCarton(
+                              carton.id,
+                              'quantityAvailable',
+                              value
+                            )
+                          }
+                        />
+                      </div>
+                    </section>
+                  )
+                )}
               </div>
 
               <button
@@ -1258,19 +1537,30 @@ export default function PackingWorkspace({
 
               {mode === 'have-boxes' ? (
                 <div className="pm-context-note">
-                  <strong>Inventory limits are enforced.</strong>
+                  <strong>
+                    Inventory limits are
+                    enforced.
+                  </strong>
+
                   <span>
-                    Packmetry will not invent or purchase extra boxes
-                    in this mode. A zero available quantity means that
-                    box type cannot be opened.
+                    Packmetry will not invent
+                    or purchase extra boxes in
+                    this mode. A zero available
+                    quantity means that box
+                    type cannot be opened.
                   </span>
                 </div>
               ) : (
                 <div className="pm-context-note">
-                  <strong>Use existing boxes first.</strong>
+                  <strong>
+                    Use existing boxes first.
+                  </strong>
+
                   <span>
-                    Packmetry verifies what your inventory can pack,
-                    then recommends purchase boxes only for the exact
+                    Packmetry verifies what
+                    your inventory can pack,
+                    then recommends purchase
+                    boxes only for the exact
                     remainder.
                   </span>
                 </div>
@@ -1284,10 +1574,14 @@ export default function PackingWorkspace({
               disabled={running}
               className="pm-primary-button"
             >
-              {running ? 'Calculating…' : 'Calculate packing'}
+              {running
+                ? 'Calculating…'
+                : 'Calculate packing'}
             </button>
+
             <span className="pm-submit-note">
-              Result is independently verified by the Packmetry core.
+              Result is independently verified
+              by the Packmetry core.
             </span>
           </div>
         </form>
@@ -1296,36 +1590,56 @@ export default function PackingWorkspace({
           className="pm-pane pm-result-pane"
           aria-live="polite"
         >
-          {!plan && !hybridResult && !error && (
-            <div className="pm-empty-result">
-              <div className="pm-empty-result-top">
-                <div>
-                  <p className="pm-pane-kicker">Result</p>
-                  <h2>Ready when you are.</h2>
+          {!plan &&
+            !hybridResult &&
+            !error && (
+              <div className="pm-empty-result">
+                <div className="pm-empty-result-top">
+                  <div>
+                    <p className="pm-pane-kicker">
+                      Result
+                    </p>
+
+                    <h2>
+                      Ready when you are.
+                    </h2>
+                  </div>
+
+                  <span className="pm-status-label">
+                    Waiting
+                  </span>
                 </div>
-                <span className="pm-status-label">Waiting</span>
-              </div>
 
-              <div
-                className="pm-empty-box"
-                aria-hidden="true"
-              >
-                <span className="pm-empty-box-line pm-empty-box-line-a" />
-                <span className="pm-empty-box-line pm-empty-box-line-b" />
-                <span className="pm-empty-box-line pm-empty-box-line-c" />
-              </div>
+                <div
+                  className="pm-empty-box"
+                  aria-hidden="true"
+                >
+                  <span className="pm-empty-box-line pm-empty-box-line-a" />
+                  <span className="pm-empty-box-line pm-empty-box-line-b" />
+                  <span className="pm-empty-box-line pm-empty-box-line-c" />
+                </div>
 
-              <p>
-                Run a calculation to see the verified result.
-              </p>
-            </div>
-          )}
+                <p>
+                  Run a calculation to see the
+                  verified result.
+                </p>
+              </div>
+            )}
 
           {error && (
             <div className="pm-error-state">
-              <p className="pm-pane-kicker">Result</p>
-              <h2>Check the packing inputs.</h2>
-              <div role="alert" className="pm-error-message">
+              <p className="pm-pane-kicker">
+                Result
+              </p>
+
+              <h2>
+                Check the packing inputs.
+              </h2>
+
+              <div
+                role="alert"
+                className="pm-error-message"
+              >
                 {error}
               </div>
             </div>
@@ -1334,31 +1648,44 @@ export default function PackingWorkspace({
           {plan && (
             <div className="pm-standard-result">
               {mode === 'need-boxes' &&
-                purchaseRecommendations.length > 0 && (
+                purchaseRecommendations.length >
+                  0 && (
                   <PurchaseRecommendationSummary
                     title="What to buy"
-                    recommendations={purchaseRecommendations}
+                    recommendations={
+                      purchaseRecommendations
+                    }
                     note="Recommended internal dimensions from the verified packing plan. Supplier availability and external dimensions are not claimed."
                   />
                 )}
 
               {mode === 'have-boxes' &&
-                inventoryUsage !== null && (
+                inventoryUsage !==
+                  null && (
                   <InventoryUsageSummary
-                    usage={inventoryUsage}
+                    usage={
+                      inventoryUsage
+                    }
                   />
                 )}
 
               <div className="pm-plan-output">
-                <ResultSummary plan={plan} />
-                <PackingVisualization plan={plan} />
+                <ResultSummary
+                  plan={plan}
+                />
+
+                <PackingVisualization
+                  plan={plan}
+                />
               </div>
             </div>
           )}
 
           {mode === 'hybrid-boxes' &&
             hybridResult !== null && (
-              <HybridResult result={hybridResult} />
+              <HybridResult
+                result={hybridResult}
+              />
             )}
         </section>
       </div>

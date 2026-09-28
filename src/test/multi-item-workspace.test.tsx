@@ -42,11 +42,11 @@ function carton(
 }
 
 describe('PackingWorkspace multiple item types', () => {
-  it('renders an item-type editor that can grow beyond one item', () => {
+  it('renders an item editor that can grow beyond one item', () => {
     const html = renderToStaticMarkup(<PackingWorkspace />);
 
-    expect(html).toContain('Item type 1');
-    expect(html).toContain('Add another item type');
+    expect(html).toContain('Item 1');
+    expect(html).toContain('Add another item');
     expect(html).toContain('Quantity');
   });
 
@@ -70,7 +70,15 @@ describe('PackingWorkspace multiple item types', () => {
         item('workspace-item-1', 20, 20, 20, 1),
         item('workspace-item-2', 40, 30, 20, 1),
       ],
-      [carton('existing-box', 100, 100, 100, 1)]
+      [
+        carton(
+          'existing-box',
+          100,
+          100,
+          100,
+          1
+        ),
+      ]
     );
 
     expect(result.plan.status).toBe('feasible');
@@ -85,13 +93,27 @@ describe('PackingWorkspace multiple item types', () => {
         item('workspace-item-1', 20, 20, 20, 1),
         item('workspace-item-2', 40, 40, 40, 1),
       ],
-      [carton('small-existing-box', 20, 20, 20, 1)]
+      [
+        carton(
+          'small-existing-box',
+          20,
+          20,
+          20,
+          1
+        ),
+      ]
     );
 
-    expect(result.existingPlan.metrics.placedItemCount).toBe(1);
-    expect(result.existingPlan.metrics.unplacedItemCount).toBe(1);
+    expect(
+      result.existingPlan.metrics.placedItemCount
+    ).toBe(1);
+
+    expect(
+      result.existingPlan.metrics.unplacedItemCount
+    ).toBe(1);
 
     expect(result.remainderItemCount).toBe(1);
+
     expect(result.remainderInstanceMapping).toEqual([
       {
         itemId: 'workspace-item-2',
@@ -100,10 +122,14 @@ describe('PackingWorkspace multiple item types', () => {
       },
     ]);
 
-    expect(result.supplementalPlan?.status).toBe('feasible');
+    expect(
+      result.supplementalPlan?.status
+    ).toBe('feasible');
+
     expect(
       result.supplementalPlan?.metrics.placedItemCount
     ).toBe(1);
+
     expect(
       result.supplementalPlan?.metrics.unplacedItemCount
     ).toBe(0);
