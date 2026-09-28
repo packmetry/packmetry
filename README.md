@@ -46,23 +46,20 @@ See `docs/process/AI_IMPLEMENTATION_WORKFLOW.md`.
 
 ## Current state
 
-Phase 6 complete: Full canonical planning pipeline implemented and validated.
+Phase 7 complete: Three Box-Availability Workflows implemented and validated.
 
-- GitHub CI workflow exists and is active.
-- Benchmark corpus has been expanded (16 locked test cases).
-- Minimal functional PackingWorkspace with manual input implemented.
-- ResultSummary implemented.
-- Three.js PackingVisualization implemented and integrated.
-- Manual browser smoke test confirmed: 3D carton renders correctly, packed items render correctly, different box sizes render correctly, drag/orbit works, zoom in/out works.
-- ADR-008 objective-aware verified candidate selection implemented.
-- ADR-009 canonical planning pipeline implemented.
-- PackingWorkspace now uses planPacking(...) instead of manually composing solver/verification/construction.
+- ADR-010 accepted and implemented.
+- Purchase-carton candidate generation implemented.
+- I Need Boxes workflow fully integrated into PackingWorkspace.
+- I Already Have Boxes workflow with inventory-aware workspace integration.
+- Hybrid existing-first + buy-remainder workflow integrated into PackingWorkspace.
+- Packmetry workspace UI redesigned and compacted.
+- Result presentation streamlined (nested result scrolling removed).
+- Multiple different item types and independent quantities supported across all three workflows.
+- Canonical verified planning remains the single source of truth for all workflows.
 
-**Test baseline**: 574 tests passing.
+**Test baseline**: 637 tests passing.
 
 ## Next planned product phase
 
-Phase 7 — Three Box-Availability Workflows:
-1. I Need Boxes
-2. I Already Have Boxes
-3. Use What I Have, Then Tell Me What to Buy
+Phase 8 — Personal UX

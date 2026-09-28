@@ -647,3 +647,24 @@ Phase 7 — Three Box-Availability Workflows:
 
 ### Current test baseline
 529 tests passing.
+
+## 2026-09-28 — Phase 7: Box-Availability Workflows, Workspace Redesign & Multi-Item Support Complete
+
+### Completed
+- ADR-010 accepted and implemented
+- Purchase-carton candidate generator implemented
+- I Need Boxes workflow + workspace integration
+- I Already Have Boxes workflow + inventory-aware workspace integration
+- Hybrid workflow + workspace integration
+- Packmetry workspace visual redesign
+- Result presentation compacted / nested result scrolling removed
+- Multiple different item types supported across all three workflows
+
+### Validation Results
+- Latest accepted test baseline: 637 tests passing
+
+### Current dependency-aware stage
+Phase 7 complete
+
+### Next planned phase
+Phase 8 — Personal UX
