@@ -34,6 +34,14 @@ export interface WorkspaceValues {
   cartonHeightMm: number;
 }
 
+export interface WorkspaceItemValues {
+  id: string;
+  lengthMm: number;
+  widthMm: number;
+  heightMm: number;
+  quantity: number;
+}
+
 export interface WorkspaceCartonValues {
   id: string;
   lengthMm: number;
@@ -76,6 +84,16 @@ export const DEFAULT_WORKSPACE_VALUES: WorkspaceValues = {
   cartonWidthMm: 100,
   cartonHeightMm: 100,
 };
+
+export const DEFAULT_WORKSPACE_ITEMS: WorkspaceItemValues[] = [
+  {
+    id: 'workspace-item-1',
+    lengthMm: 80,
+    widthMm: 80,
+    heightMm: 80,
+    quantity: 1,
+  },
+];
 
 export const DEFAULT_WORKSPACE_CARTONS: WorkspaceCartonValues[] = [
   {
@@ -126,6 +144,35 @@ function createWorkspaceItem(values: WorkspaceValues) {
     },
     quantity: values.itemQuantity,
   });
+}
+
+function createWorkspaceItems(
+  items: readonly WorkspaceItemValues[]
+) {
+  return items.map((item, index) =>
+    createItem({
+      id: item.id,
+      name: `Item type ${index + 1}`,
+      dimensions: {
+        length: item.lengthMm,
+        width: item.widthMm,
+        height: item.heightMm,
+      },
+      quantity: item.quantity,
+    })
+  );
+}
+
+function legacyWorkspaceItemValues(
+  values: WorkspaceValues
+): WorkspaceItemValues {
+  return {
+    id: 'workspace-item',
+    lengthMm: values.itemLengthMm,
+    widthMm: values.itemWidthMm,
+    heightMm: values.itemHeightMm,
+    quantity: values.itemQuantity,
+  };
 }
 
 function createWorkspaceCarton(
@@ -215,16 +262,14 @@ export async function runPackingWorkspace(
   );
 }
 
-export async function runNeedBoxesWorkspace(
-  values: WorkspaceValues
+export async function runNeedBoxesWorkspaceItems(
+  items: readonly WorkspaceItemValues[]
 ): Promise<NeedBoxesWorkspaceResult> {
-  const item = createWorkspaceItem(values);
-
   const result = await planNeedBoxes(
     'workspace-plan',
     new BaselineSolver(),
     {
-      items: [item],
+      items: createWorkspaceItems(items),
       objective: {
         kind: 'fewest-cartons',
       },
@@ -245,17 +290,23 @@ export async function runNeedBoxesWorkspace(
   );
 }
 
-export async function runHaveBoxesWorkspace(
-  values: WorkspaceValues,
+export async function runNeedBoxesWorkspace(
+  values: WorkspaceValues
+): Promise<NeedBoxesWorkspaceResult> {
+  return runNeedBoxesWorkspaceItems([
+    legacyWorkspaceItemValues(values),
+  ]);
+}
+
+export async function runHaveBoxesWorkspaceItems(
+  items: readonly WorkspaceItemValues[],
   cartons: readonly WorkspaceCartonValues[]
 ): Promise<HaveBoxesWorkspaceResult> {
-  const item = createWorkspaceItem(values);
-
   const result = await planHaveBoxes(
     'workspace-plan',
     new BaselineSolver(),
     {
-      items: [item],
+      items: createWorkspaceItems(items),
       cartons: cartons.map(createWorkspaceCarton),
       objective: {
         kind: 'fewest-cartons',
@@ -282,17 +333,25 @@ export async function runHaveBoxesWorkspace(
   };
 }
 
-export async function runHybridBoxesWorkspace(
+export async function runHaveBoxesWorkspace(
   values: WorkspaceValues,
   cartons: readonly WorkspaceCartonValues[]
-): Promise<HybridBoxesWorkspaceResult> {
-  const item = createWorkspaceItem(values);
+): Promise<HaveBoxesWorkspaceResult> {
+  return runHaveBoxesWorkspaceItems(
+    [legacyWorkspaceItemValues(values)],
+    cartons
+  );
+}
 
+export async function runHybridBoxesWorkspaceItems(
+  items: readonly WorkspaceItemValues[],
+  cartons: readonly WorkspaceCartonValues[]
+): Promise<HybridBoxesWorkspaceResult> {
   const result = await planHybridBoxes(
     'workspace-plan',
     new BaselineSolver(),
     {
-      items: [item],
+      items: createWorkspaceItems(items),
       cartons: cartons.map(createWorkspaceCarton),
       objective: {
         kind: 'fewest-cartons',
@@ -368,6 +427,16 @@ export async function runHybridBoxesWorkspace(
     replacementPlan,
     replacementPurchaseRecommendations,
   };
+}
+
+export async function runHybridBoxesWorkspace(
+  values: WorkspaceValues,
+  cartons: readonly WorkspaceCartonValues[]
+): Promise<HybridBoxesWorkspaceResult> {
+  return runHybridBoxesWorkspaceItems(
+    [legacyWorkspaceItemValues(values)],
+    cartons
+  );
 }
 
 function NumberField({
@@ -740,6 +809,20 @@ function HybridResult({
   );
 }
 
+function nextItemId(
+  items: readonly WorkspaceItemValues[]
+): string {
+  let index = 1;
+
+  while (
+    items.some(item => item.id === `workspace-item-${index}`)
+  ) {
+    index++;
+  }
+
+  return `workspace-item-${index}`;
+}
+
 function nextCartonId(
   cartons: readonly WorkspaceCartonValues[]
 ): string {
@@ -761,8 +844,8 @@ export default function PackingWorkspace({
 }: PackingWorkspaceProps = {}) {
   const [mode, setMode] =
     useState<WorkspaceMode>(initialMode);
-  const [values, setValues] = useState<WorkspaceValues>(
-    DEFAULT_WORKSPACE_VALUES
+  const [items, setItems] = useState<WorkspaceItemValues[]>(
+    () => DEFAULT_WORKSPACE_ITEMS.map(item => ({ ...item }))
   );
   const [cartons, setCartons] = useState<WorkspaceCartonValues[]>(
     () => DEFAULT_WORKSPACE_CARTONS.map(carton => ({ ...carton }))
@@ -779,14 +862,44 @@ export default function PackingWorkspace({
   const [error, setError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
 
-  const update = (
-    key: keyof WorkspaceValues,
+  const updateItem = (
+    id: string,
+    key: Exclude<keyof WorkspaceItemValues, 'id'>,
     value: number
   ) => {
-    setValues(current => ({
+    setItems(current =>
+      current.map(item =>
+        item.id === id
+          ? {
+              ...item,
+              [key]: value,
+            }
+          : item
+      )
+    );
+  };
+
+  const addItem = () => {
+    setItems(current => [
       ...current,
-      [key]: value,
-    }));
+      {
+        id: nextItemId(current),
+        lengthMm: 80,
+        widthMm: 80,
+        heightMm: 80,
+        quantity: 1,
+      },
+    ]);
+  };
+
+  const removeItem = (id: string) => {
+    setItems(current => {
+      if (current.length <= 1) {
+        return current;
+      }
+
+      return current.filter(item => item.id !== id);
+    });
   };
 
   const updateCarton = (
@@ -852,23 +965,23 @@ export default function PackingWorkspace({
     try {
       if (mode === 'need-boxes') {
         const result =
-          await runNeedBoxesWorkspace(values);
+          await runNeedBoxesWorkspaceItems(items);
 
         setPlan(result.plan);
         setPurchaseRecommendations(
           result.purchaseRecommendations
         );
       } else if (mode === 'have-boxes') {
-        const result = await runHaveBoxesWorkspace(
-          values,
+        const result = await runHaveBoxesWorkspaceItems(
+          items,
           cartons
         );
 
         setPlan(result.plan);
         setInventoryUsage(result.inventoryUsage);
       } else {
-        const result = await runHybridBoxesWorkspace(
-          values,
+        const result = await runHybridBoxesWorkspaceItems(
+          items,
           cartons
         );
 
@@ -893,12 +1006,12 @@ export default function PackingWorkspace({
       <header className="pm-app-header">
         <div>
           <p className="pm-app-kicker">Packmetry workspace</p>
-          <h1>Pack an item into a box</h1>
+          <h1>Pack items into the right boxes</h1>
         </div>
         <p className="pm-app-intro">
-          Set the item dimensions, choose how boxes are sourced, and
-          inspect the verified packing result in 3D.
-        </p>
+  Enter your items, choose how boxes are sourced, and inspect the
+  verified packing result in 3D.
+</p>
       </header>
 
       <div className="pm-workbench">
@@ -943,51 +1056,89 @@ export default function PackingWorkspace({
             <div className="pm-form-section-heading">
               <span className="pm-section-number">01</span>
               <div>
-                <h3>Item</h3>
-                <p>Enter the outside dimensions of one item.</p>
+                <h3>Items to pack</h3>
+                <p>
+                  Add each item type once, then set how many of that
+                  item you need to pack.
+                </p>
               </div>
             </div>
 
-            <div className="pm-measurement-grid">
-              <NumberField
-                label="Length (mm)"
-                value={values.itemLengthMm}
-                min={0.001}
-                step={0.001}
-                onChange={value =>
-                  update('itemLengthMm', value)
-                }
-              />
-              <NumberField
-                label="Width (mm)"
-                value={values.itemWidthMm}
-                min={0.001}
-                step={0.001}
-                onChange={value =>
-                  update('itemWidthMm', value)
-                }
-              />
-              <NumberField
-                label="Height (mm)"
-                value={values.itemHeightMm}
-                min={0.001}
-                step={0.001}
-                onChange={value =>
-                  update('itemHeightMm', value)
-                }
-              />
+            <div className="pm-carton-list">
+              {items.map((item, index) => (
+                <section
+                  key={item.id}
+                  aria-label={`Item type ${index + 1}`}
+                  className="pm-carton-row"
+                >
+                  <div className="pm-carton-row-header">
+                    <div>
+                      <span className="pm-carton-index">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <strong>Item type {index + 1}</strong>
+                    </div>
+
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeItem(item.id)}
+                        className="pm-remove-button"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="pm-carton-fields">
+                    <NumberField
+                      label="Length (mm)"
+                      value={item.lengthMm}
+                      min={0.001}
+                      step={0.001}
+                      onChange={value =>
+                        updateItem(item.id, 'lengthMm', value)
+                      }
+                    />
+                    <NumberField
+                      label="Width (mm)"
+                      value={item.widthMm}
+                      min={0.001}
+                      step={0.001}
+                      onChange={value =>
+                        updateItem(item.id, 'widthMm', value)
+                      }
+                    />
+                    <NumberField
+                      label="Height (mm)"
+                      value={item.heightMm}
+                      min={0.001}
+                      step={0.001}
+                      onChange={value =>
+                        updateItem(item.id, 'heightMm', value)
+                      }
+                    />
+                    <NumberField
+                      label="Quantity"
+                      value={item.quantity}
+                      min={1}
+                      onChange={value =>
+                        updateItem(item.id, 'quantity', value)
+                      }
+                    />
+                  </div>
+                </section>
+              ))}
             </div>
 
-            <div className="pm-quantity-row">
-              <NumberField
-                label="Quantity"
-                value={values.itemQuantity}
-                min={1}
-                onChange={value =>
-                  update('itemQuantity', value)
-                }
-              />
-            </div>
+            <button
+              type="button"
+              onClick={addItem}
+              className="pm-add-button"
+            >
+              <span>+</span>
+              Add another item type
+            </button>
           </section>
 
           {mode === 'need-boxes' && (

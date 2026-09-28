@@ -10,7 +10,7 @@ describe('PackingWorkspace', () => {
   it('renders the minimal manual packing workspace', () => {
     const html = renderToStaticMarkup(<PackingWorkspace />);
 
-    expect(html).toContain('Pack an item into a box');
+    expect(html).toContain('Pack items into the right boxes');
     expect(html).toContain('Calculate packing');
     expect(html).toContain('Run a calculation to see the verified result.');
   });
