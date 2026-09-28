@@ -165,6 +165,17 @@ function createWorkspaceItems(
   );
 }
 
+function createWorkspaceItemLabels(
+  items: readonly WorkspaceItemValues[]
+): Readonly<Record<string, string>> {
+  return Object.fromEntries(
+    items.map((item, index) => [
+      item.id,
+      item.name?.trim() || `Item ${index + 1}`,
+    ])
+  );
+}
+
 function legacyWorkspaceItemValues(
   values: WorkspaceValues
 ): WorkspaceItemValues {
@@ -659,8 +670,10 @@ type HybridView =
 
 function HybridResult({
   result,
+  itemLabels,
 }: {
   result: HybridBoxesWorkspaceResult;
+  itemLabels: Readonly<Record<string, string>>;
 }) {
   const preferredView: HybridView =
     result.supplementalPlan !== null
@@ -669,9 +682,10 @@ function HybridResult({
 
   const [requestedView, setRequestedView] =
     useState<HybridView>(preferredView);
-useEffect(() => {
-  setRequestedView(preferredView);
-}, [result, preferredView]);
+
+  useEffect(() => {
+    setRequestedView(preferredView);
+  }, [result, preferredView]);
 
   const existingPacked =
     result.existingPlan.metrics.placedItemCount;
@@ -867,7 +881,10 @@ useEffect(() => {
 
         <div className="pm-plan-output">
           <ResultSummary plan={activePlan} />
-          <PackingVisualization plan={activePlan} />
+          <PackingVisualization
+            plan={activePlan}
+            itemLabels={itemLabels}
+          />
         </div>
       </section>
     </div>
@@ -957,6 +974,8 @@ export default function PackingWorkspace({
 
   const [running, setRunning] =
     useState(false);
+
+  const itemLabels = createWorkspaceItemLabels(items);
 
   const updateItem = (
     id: string,
@@ -1676,6 +1695,7 @@ export default function PackingWorkspace({
 
                 <PackingVisualization
                   plan={plan}
+                  itemLabels={itemLabels}
                 />
               </div>
             </div>
@@ -1685,6 +1705,7 @@ export default function PackingWorkspace({
             hybridResult !== null && (
               <HybridResult
                 result={hybridResult}
+                itemLabels={itemLabels}
               />
             )}
         </section>
