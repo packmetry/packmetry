@@ -116,7 +116,7 @@ describe('ResultSummary', () => {
       'This box setup cannot pack the items.'
     );
     expect(html).toContain('Items not packed');
-    expect(html).toContain('item-1 #1');
+    expect(html).toContain('Item 1 #1');
     expect(html).toContain(
       'No available box is large enough for this item.'
     );
@@ -131,7 +131,9 @@ describe('ResultSummary', () => {
       />
     );
 
-    expect(html).toContain('Some items still need a box.');
+    expect(html).toContain(
+      'Some items still need a box.'
+    );
   });
 
   it('renders solver-limit status copy', () => {
@@ -164,13 +166,17 @@ describe('ResultSummary', () => {
     );
 
     expect(html).toContain('Notes');
-    expect(html).toContain('This is a packing note.');
+    expect(html).toContain(
+      'This is a packing note.'
+    );
   });
 
   it('maps every unplaced reason to plain language', () => {
     expect(
       describeUnplacedReason('no-fitting-carton')
-    ).toBe('No available box is large enough for this item.');
+    ).toBe(
+      'No available box is large enough for this item.'
+    );
 
     expect(
       describeUnplacedReason('inventory-exhausted')
@@ -178,7 +184,9 @@ describe('ResultSummary', () => {
       'There are not enough available boxes to place this item.'
     );
 
-    expect(describeUnplacedReason('weight-limit')).toBe(
+    expect(
+      describeUnplacedReason('weight-limit')
+    ).toBe(
       'Placing this item would exceed a box weight limit.'
     );
 

@@ -880,7 +880,10 @@ function HybridResult({
           )}
 
         <div className="pm-plan-output">
-          <ResultSummary plan={activePlan} />
+          <ResultSummary
+            plan={activePlan}
+            itemLabels={itemLabels}
+          />
           <PackingVisualization
             plan={activePlan}
             itemLabels={itemLabels}
@@ -1691,6 +1694,7 @@ export default function PackingWorkspace({
               <div className="pm-plan-output">
                 <ResultSummary
                   plan={plan}
+                  itemLabels={itemLabels}
                 />
 
                 <PackingVisualization
