@@ -1,7 +1,16 @@
+import {
+  useState,
+} from 'react';
+
 import type { PackingPlan } from '../core/domain/packing-plan.js';
 import type { ObjectiveKind } from '../core/domain/objectives.js';
 import type { PlanStatus } from '../core/domain/result.js';
 import type { UnplacedReason } from '../core/domain/plan-contracts.js';
+
+import {
+  savePackingPlan,
+  sharePackingPlan,
+} from '../browser/packing-plan-actions.js';
 
 export interface ResultSummaryProps {
   plan: PackingPlan;
@@ -12,34 +21,46 @@ const EMPTY_ITEM_LABELS: Readonly<Record<string, string>> = {};
 
 const STATUS_COPY: Record<
   PlanStatus,
-  { heading: string; detail: string; badge: string }
+  {
+    heading: string;
+    detail: string;
+    badge: string;
+  }
 > = {
   feasible: {
-    heading: 'Everything fits.',
+    heading:
+      'Everything fits.',
     detail:
       'All requested items were packed into the box plan below.',
-    badge: 'Verified fit',
+    badge:
+      'Verified fit',
   },
 
   partial: {
-    heading: 'Some items still need a box.',
+    heading:
+      'Some items still need a box.',
     detail:
       'Packmetry found a verified partial plan, but not every requested item could be placed.',
-    badge: 'Partial fit',
+    badge:
+      'Partial fit',
   },
 
   infeasible: {
-    heading: 'This box setup cannot pack the items.',
+    heading:
+      'This box setup cannot pack the items.',
     detail:
       'No requested item could be placed with the currently available box setup.',
-    badge: 'Does not fit',
+    badge:
+      'Does not fit',
   },
 
   limit_reached: {
-    heading: 'Packing stopped before a complete answer.',
+    heading:
+      'Packing stopped before a complete answer.',
     detail:
       'The solver reached its current limit before it could finish the packing search.',
-    badge: 'Search stopped',
+    badge:
+      'Search stopped',
   },
 };
 
@@ -91,8 +112,12 @@ export function describeObjectiveRationale(
   }
 }
 
-function formatPercent(value: number): string {
-  return `${(value * 100).toFixed(1)}%`;
+function formatPercent(
+  value: number
+): string {
+  return `${(
+    value * 100
+  ).toFixed(1)}%`;
 }
 
 function formatDimensions(
@@ -105,53 +130,158 @@ function formatDimensions(
 
 function buildItemIndexes(
   plan: PackingPlan
-): ReadonlyMap<string, number> {
-  const indexes = new Map<string, number>();
+): ReadonlyMap<
+  string,
+  number
+> {
+  const indexes =
+    new Map<
+      string,
+      number
+    >();
 
-  const registerItem = (itemId: string) => {
-    if (!indexes.has(itemId)) {
-      indexes.set(itemId, indexes.size);
+  const registerItem = (
+    itemId: string
+  ) => {
+    if (
+      !indexes.has(
+        itemId
+      )
+    ) {
+      indexes.set(
+        itemId,
+        indexes.size
+      );
     }
   };
 
-  plan.cartons.forEach(packedCarton => {
-    packedCarton.placements.forEach(placement => {
-      registerItem(placement.itemId);
-    });
-  });
+  plan.cartons.forEach(
+    packedCarton => {
+      packedCarton.placements.forEach(
+        placement => {
+          registerItem(
+            placement.itemId
+          );
+        }
+      );
+    }
+  );
 
-  plan.unplacedItems.forEach(item => {
-    registerItem(item.itemId);
-  });
+  plan.unplacedItems.forEach(
+    item => {
+      registerItem(
+        item.itemId
+      );
+    }
+  );
 
   return indexes;
 }
 
 function itemDisplayName(
   itemId: string,
-  itemLabels: Readonly<Record<string, string>>,
-  itemIndexes: ReadonlyMap<string, number>
+  itemLabels: Readonly<
+    Record<
+      string,
+      string
+    >
+  >,
+  itemIndexes: ReadonlyMap<
+    string,
+    number
+  >
 ): string {
-  const suppliedLabel = itemLabels[itemId]?.trim();
+  const suppliedLabel =
+    itemLabels[
+      itemId
+    ]?.trim();
 
   if (suppliedLabel) {
     return suppliedLabel;
   }
 
-  const itemIndex = itemIndexes.get(itemId);
+  const itemIndex =
+    itemIndexes.get(
+      itemId
+    );
 
-  return itemIndex === undefined
+  return itemIndex ===
+    undefined
     ? 'Item'
-    : `Item ${itemIndex + 1}`;
+    : `Item ${
+        itemIndex + 1
+      }`;
 }
 
 export default function ResultSummary({
   plan,
   itemLabels = EMPTY_ITEM_LABELS,
 }: ResultSummaryProps) {
-  const statusCopy = STATUS_COPY[plan.status];
+  const statusCopy =
+    STATUS_COPY[
+      plan.status
+    ];
 
-  const itemIndexes = buildItemIndexes(plan);
+  const itemIndexes =
+    buildItemIndexes(
+      plan
+    );
+
+  const [
+    actionMessage,
+    setActionMessage,
+  ] =
+    useState<string | null>(
+      null
+    );
+
+  const handleSavePlan =
+    () => {
+      const saved =
+        savePackingPlan(
+          plan
+        );
+
+      setActionMessage(
+        saved
+          ? 'Plan saved as a JSON file.'
+          : 'Saving is not available in this browser.'
+      );
+    };
+
+  const handleSharePlan =
+    async () => {
+      const result =
+        await sharePackingPlan(
+          plan
+        );
+
+      switch (result) {
+        case 'shared':
+          setActionMessage(
+            'Plan shared.'
+          );
+          break;
+
+        case 'copied':
+          setActionMessage(
+            'Plan copied to your clipboard.'
+          );
+          break;
+
+        case 'cancelled':
+          setActionMessage(
+            'Share cancelled.'
+          );
+          break;
+
+        case 'unavailable':
+          setActionMessage(
+            'Sharing is not available in this browser.'
+          );
+          break;
+      }
+    };
 
   return (
     <section
@@ -165,40 +295,76 @@ export default function ResultSummary({
           </p>
 
           <h2 id="packing-result-heading">
-            {statusCopy.heading}
+            {
+              statusCopy.heading
+            }
           </h2>
 
-          <p>{statusCopy.detail}</p>
+          <p>
+            {
+              statusCopy.detail
+            }
+          </p>
         </div>
 
         <span
           className={`pm-summary-status pm-summary-status-${statusCopy.badge}`}
         >
-          {statusCopy.badge}
+          {
+            statusCopy.badge
+          }
         </span>
       </div>
 
       <dl className="pm-summary-metrics">
         <div className="pm-summary-metric">
-          <dt>Boxes used</dt>
-          <dd>{plan.metrics.cartonCount}</dd>
+          <dt>
+            Boxes used
+          </dt>
+
+          <dd>
+            {
+              plan.metrics
+                .cartonCount
+            }
+          </dd>
         </div>
 
         <div className="pm-summary-metric">
-          <dt>Items packed</dt>
-          <dd>{plan.metrics.placedItemCount}</dd>
+          <dt>
+            Items packed
+          </dt>
+
+          <dd>
+            {
+              plan.metrics
+                .placedItemCount
+            }
+          </dd>
         </div>
 
         <div className="pm-summary-metric">
-          <dt>Items unpacked</dt>
-          <dd>{plan.metrics.unplacedItemCount}</dd>
+          <dt>
+            Items unpacked
+          </dt>
+
+          <dd>
+            {
+              plan.metrics
+                .unplacedItemCount
+            }
+          </dd>
         </div>
 
         <div className="pm-summary-metric">
-          <dt>Volume used</dt>
+          <dt>
+            Volume used
+          </dt>
+
           <dd>
             {formatPercent(
-              plan.metrics.utilization
+              plan.metrics
+                .utilization
             )}
           </dd>
         </div>
@@ -213,24 +379,73 @@ export default function ResultSummary({
         </p>
 
         <h3 id="packing-rationale-heading">
-          Chosen for your packing goal
+          Chosen for your
+          packing goal
         </h3>
 
         <p>
           {describeObjectiveRationale(
-            plan.objective.kind
+            plan.objective
+              .kind
           )}
         </p>
       </section>
 
-      {(plan.cartons.length > 0 ||
-        plan.unplacedItems.length > 0 ||
-        plan.explanations.length > 0) && (
+      <section
+        aria-label="Packing plan actions"
+        className="pm-summary-detail-section"
+      >
+        <div
+          className="pm-result-tabs"
+          role="group"
+          aria-label="Packing plan actions"
+        >
+          <button
+            type="button"
+            onClick={
+              handleSavePlan
+            }
+          >
+            Save plan
+          </button>
+
+          <button
+            type="button"
+            onClick={
+              handleSharePlan
+            }
+          >
+            Share plan
+          </button>
+        </div>
+
+        {actionMessage !==
+          null && (
+          <p
+            role="status"
+            className="pm-fine-print"
+          >
+            {
+              actionMessage
+            }
+          </p>
+        )}
+      </section>
+
+      {(plan.cartons.length >
+        0 ||
+        plan.unplacedItems
+          .length > 0 ||
+        plan.explanations
+          .length > 0) && (
         <details className="pm-summary-details">
-          <summary>Plan details</summary>
+          <summary>
+            Plan details
+          </summary>
 
           <div className="pm-summary-details-body">
-            {plan.cartons.length > 0 && (
+            {plan.cartons
+              .length > 0 && (
               <section
                 aria-labelledby="box-plan-heading"
               >
@@ -240,15 +455,23 @@ export default function ResultSummary({
 
                 <div className="pm-summary-box-list">
                   {plan.cartons.map(
-                    (packedCarton, index) => (
+                    (
+                      packedCarton,
+                      index
+                    ) => (
                       <article
                         key={`${packedCarton.carton.id}-${index}`}
                         className="pm-summary-box-row"
                       >
                         <div>
                           <strong>
-                            Box {index + 1}
-                            {packedCarton.carton
+                            Box{' '}
+                            {
+                              index +
+                              1
+                            }
+                            {packedCarton
+                              .carton
                               .name
                               ? ` — ${packedCarton.carton.name}`
                               : ''}
@@ -277,7 +500,8 @@ export default function ResultSummary({
                             }{' '}
                             {packedCarton
                               .metrics
-                              .itemCount === 1
+                              .itemCount ===
+                            1
                               ? 'item'
                               : 'items'}
                           </span>
@@ -298,13 +522,15 @@ export default function ResultSummary({
               </section>
             )}
 
-            {plan.unplacedItems.length > 0 && (
+            {plan.unplacedItems
+              .length > 0 && (
               <section
                 aria-labelledby="unpacked-heading"
                 className="pm-summary-detail-section"
               >
                 <h3 id="unpacked-heading">
-                  Items not packed
+                  Items not
+                  packed
                 </h3>
 
                 <ul className="pm-summary-issue-list">
@@ -322,8 +548,12 @@ export default function ResultSummary({
                           key={`${item.itemId}-${item.instanceIndex}`}
                         >
                           <strong>
-                            {label} #
-                            {item.instanceIndex + 1}
+                            {
+                              label
+                            }{' '}
+                            #
+                            {item.instanceIndex +
+                              1}
                           </strong>
 
                           <span>
@@ -339,7 +569,8 @@ export default function ResultSummary({
               </section>
             )}
 
-            {plan.explanations.length > 0 && (
+            {plan.explanations
+              .length > 0 && (
               <section
                 aria-labelledby="explanations-heading"
                 className="pm-summary-detail-section"
@@ -354,7 +585,9 @@ export default function ResultSummary({
                       <li
                         key={`${explanation.code}-${explanation.message}`}
                       >
-                        {explanation.message}
+                        {
+                          explanation.message
+                        }
                       </li>
                     )
                   )}
@@ -363,7 +596,8 @@ export default function ResultSummary({
             )}
 
             <p className="pm-summary-verification">
-              Independently verified by the
+              Independently
+              verified by the
               Packmetry core.
             </p>
           </div>
