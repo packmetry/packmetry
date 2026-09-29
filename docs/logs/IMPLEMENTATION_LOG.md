@@ -668,3 +668,33 @@ Phase 7 complete
 
 ### Next planned phase
 Phase 8 — Personal UX
+
+## 2026-09-29 — Phase 8 Personal UX progress
+
+### Completed
+- Personal item names added to PackingWorkspace
+- Personal item names propagated to PackingVisualization legend
+- Personal item names propagated to ResultSummary
+- Optional personal item weight added using existing canonical unitWeightG
+- Duplicate item action added with unique stable internal IDs
+- Metric/imperial UI switching added while preserving canonical mm/g internally
+- Keep Upright added using canonical rotationPolicy: 'upright'
+
+### Deferred
+- Fragile UI intentionally deferred
+- Canonical fragile field exists
+- Current baseline solver and verifier do not yet enforce fragile-specific behavior
+- UI should not imply enforcement until that core behavior exists
+
+### Validation Results
+- GitHub Actions CI run for commit 68b9ae9 passed
+- 80 files checked
+- 0 errors
+- 0 warnings
+- 0 hints
+- 41 test files passed
+- 675 tests passed
+- Production build passed
+
+### Current dependency-aware stage
+Phase 8 — Personal UX in progress

@@ -58,8 +58,19 @@ Phase 7 complete: Three Box-Availability Workflows implemented and validated.
 - Multiple different item types and independent quantities supported across all three workflows.
 - Canonical verified planning remains the single source of truth for all workflows.
 
-**Test baseline**: 637 tests passing.
+**Test baseline**: 675 tests passing.
 
 ## Next planned product phase
 
-Phase 8 — Personal UX
+Phase 8 — Personal UX in progress.
+
+Phase 8 progress:
+- Personal item names added to PackingWorkspace
+- Personal item names in PackingVisualization legend
+- Personal item names in ResultSummary
+- Optional personal item weight using existing canonical unitWeightG
+- Duplicate item action with unique stable internal IDs
+- Metric/imperial UI unit switching while preserving canonical mm/g internally
+- Keep Upright preference using canonical rotationPolicy: 'upright'
+
+**Note**: Fragile UI intentionally deferred — canonical `fragile` field exists, but current baseline solver and verifier do not yet enforce fragile-specific behavior; UI should not imply enforcement until core behavior exists.
