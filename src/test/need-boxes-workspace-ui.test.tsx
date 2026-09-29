@@ -13,7 +13,7 @@ describe('PackingWorkspace need-boxes mode', () => {
     expect(html).toContain('I Need Boxes');
     expect(html).toContain('I Already Have Boxes');
     expect(html).toContain('No box dimensions needed.');
-    expect(html).toContain('Calculate packing');
+    expect(html).toContain('Find my packing plan');
   });
 
   it('plans successfully without using caller box dimensions', async () => {

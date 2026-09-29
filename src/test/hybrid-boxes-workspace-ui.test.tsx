@@ -36,7 +36,7 @@ describe('PackingWorkspace hybrid boxes mode', () => {
     expect(html).toContain('Available quantity');
     expect(html).toContain('Add another box type');
     expect(html).toContain('Use existing boxes first.');
-    expect(html).toContain('Calculate packing');
+    expect(html).toContain('Find my packing plan');
   });
 
   it('stops after existing inventory when it covers the complete request', async () => {
