@@ -52,6 +52,7 @@ export interface WorkspaceItemValues {
   heightMm: number;
   quantity: number;
   unitWeightG?: number;
+  keepUpright?: boolean;
 }
 
 export interface WorkspaceCartonValues {
@@ -106,6 +107,7 @@ export const DEFAULT_WORKSPACE_ITEMS: WorkspaceItemValues[] = [
     widthMm: 80,
     heightMm: 80,
     quantity: 1,
+    keepUpright: false,
   },
 ];
 
@@ -226,8 +228,16 @@ function createWorkspaceItems(
       },
       quantity: item.quantity,
       ...(item.unitWeightG !== undefined
-        ? { unitWeightG: item.unitWeightG }
+        ? {
+            unitWeightG: item.unitWeightG,
+          }
         : {}),
+      constraints: {
+        rotationPolicy:
+          item.keepUpright === true
+            ? 'upright'
+            : 'any',
+      },
     })
   );
 }
@@ -459,7 +469,10 @@ export async function runHybridBoxesWorkspaceItems(
     PurchaseCartonRecommendation[] = [];
 
   if (result.supplemental !== null) {
-    if (result.supplemental.planningResult.kind !== 'planned') {
+    if (
+      result.supplemental.planningResult.kind !==
+      'planned'
+    ) {
       throw selectionError(
         'No independently verified supplemental-box stage was produced',
         result.supplemental.planningResult.selection
@@ -497,13 +510,16 @@ export async function runHybridBoxesWorkspaceItems(
   }
 
   return {
-    existingPlan: result.existing.planningResult.plan,
-    existingInventoryUsage: result.existing.inventoryUsage,
-    remainderItemCount: result.remainderItems.reduce(
-      (sum, remainderItem) =>
-        sum + remainderItem.quantity,
-      0
-    ),
+    existingPlan:
+      result.existing.planningResult.plan,
+    existingInventoryUsage:
+      result.existing.inventoryUsage,
+    remainderItemCount:
+      result.remainderItems.reduce(
+        (sum, remainderItem) =>
+          sum + remainderItem.quantity,
+        0
+      ),
     remainderInstanceMapping:
       result.remainderInstanceMapping.map(entry => ({
         ...entry,
@@ -540,7 +556,9 @@ function NumberField({
 }) {
   return (
     <label className="pm-field">
-      <span className="pm-field-label">{label}</span>
+      <span className="pm-field-label">
+        {label}
+      </span>
 
       <input
         className="pm-number-input"
@@ -549,7 +567,9 @@ function NumberField({
         min={min}
         step={step}
         onChange={event =>
-          onChange(Number(event.target.value))
+          onChange(
+            Number(event.target.value)
+          )
         }
       />
     </label>
@@ -562,7 +582,8 @@ function PurchaseRecommendationSummary({
   note,
 }: {
   title: string;
-  recommendations: readonly PurchaseCartonRecommendation[];
+  recommendations:
+    readonly PurchaseCartonRecommendation[];
   note: string;
 }) {
   return (
@@ -585,36 +606,48 @@ function PurchaseRecommendationSummary({
       </div>
 
       <div className="pm-recommendation-list">
-        {recommendations.map(recommendation => {
-          const dimensions =
-            recommendation.carton.internalDimensions;
+        {recommendations.map(
+          recommendation => {
+            const dimensions =
+              recommendation.carton
+                .internalDimensions;
 
-          return (
-            <div
-              key={recommendation.cartonId}
-              className="pm-recommendation-row"
-            >
-              <div>
-                <span className="pm-recommendation-quantity">
-                  {recommendation.quantity} ×
-                </span>{' '}
+            return (
+              <div
+                key={
+                  recommendation.cartonId
+                }
+                className="pm-recommendation-row"
+              >
+                <div>
+                  <span className="pm-recommendation-quantity">
+                    {
+                      recommendation.quantity
+                    }{' '}
+                    ×
+                  </span>{' '}
 
-                <strong>
-                  {recommendation.carton.name ??
-                    'Recommended box'}
-                </strong>
+                  <strong>
+                    {recommendation.carton
+                      .name ??
+                      'Recommended box'}
+                  </strong>
+                </div>
+
+                <span className="pm-dimension-value">
+                  {dimensions.length} ×{' '}
+                  {dimensions.width} ×{' '}
+                  {dimensions.height} mm
+                </span>
               </div>
-
-              <span className="pm-dimension-value">
-                {dimensions.length} × {dimensions.width} ×{' '}
-                {dimensions.height} mm
-              </span>
-            </div>
-          );
-        })}
+            );
+          }
+        )}
       </div>
 
-      <p className="pm-fine-print">{note}</p>
+      <p className="pm-fine-print">
+        {note}
+      </p>
     </section>
   );
 }
@@ -626,10 +659,12 @@ function InventoryUsageSummary({
   usage: HaveBoxesInventoryUsage;
   note?: string;
 }) {
-  const totalUsed = usage.usedCartons.reduce(
-    (sum, entry) => sum + entry.usedQuantity,
-    0
-  );
+  const totalUsed =
+    usage.usedCartons.reduce(
+      (sum, entry) =>
+        sum + entry.usedQuantity,
+      0
+    );
 
   return (
     <section
@@ -646,14 +681,16 @@ function InventoryUsageSummary({
         </h2>
 
         <span className="pm-count-summary">
-          {totalUsed} box{totalUsed === 1 ? '' : 'es'}
+          {totalUsed} box
+          {totalUsed === 1 ? '' : 'es'}
         </span>
       </div>
 
       <div className="pm-inventory-result-list">
         {usage.usedCartons.map(entry => {
           const dimensions =
-            entry.carton.internalDimensions;
+            entry.carton
+              .internalDimensions;
 
           return (
             <div
@@ -662,25 +699,30 @@ function InventoryUsageSummary({
             >
               <div className="pm-inventory-result-main">
                 <strong>
-                  {entry.carton.name ?? entry.cartonId}
+                  {entry.carton.name ??
+                    entry.cartonId}
                 </strong>
 
                 <span className="pm-dimension-value">
-                  {dimensions.length} × {dimensions.width} ×{' '}
+                  {dimensions.length} ×{' '}
+                  {dimensions.width} ×{' '}
                   {dimensions.height} mm
                 </span>
               </div>
 
               <div className="pm-inventory-result-count">
                 <strong>
-                  Used {entry.usedQuantity}
-                  {entry.effectiveAvailability !== undefined
+                  Used{' '}
+                  {entry.usedQuantity}
+                  {entry.effectiveAvailability !==
+                  undefined
                     ? ` of ${entry.effectiveAvailability}`
                     : ''}
                 </strong>
 
                 <span>
-                  {entry.remainingQuantity !== undefined
+                  {entry.remainingQuantity !==
+                  undefined
                     ? `${entry.remainingQuantity} remaining`
                     : 'Availability not limited'}
                 </span>
@@ -690,50 +732,78 @@ function InventoryUsageSummary({
         })}
       </div>
 
-      {usage.unusedCartons.length > 0 && (
+      {usage.unusedCartons.length >
+        0 && (
         <details className="pm-details">
           <summary>
-            Unused box types ({usage.unusedCartons.length})
+            Unused box types (
+            {
+              usage.unusedCartons
+                .length
+            }
+            )
           </summary>
 
           <div className="pm-details-body">
-            {usage.unusedCartons.map(entry => {
-              const dimensions =
-                entry.carton.internalDimensions;
+            {usage.unusedCartons.map(
+              entry => {
+                const dimensions =
+                  entry.carton
+                    .internalDimensions;
 
-              return (
-                <div
-                  key={entry.cartonId}
-                  className="pm-inventory-result-row"
-                >
-                  <div className="pm-inventory-result-main">
-                    <strong>
-                      {entry.carton.name ?? entry.cartonId}
-                    </strong>
+                return (
+                  <div
+                    key={
+                      entry.cartonId
+                    }
+                    className="pm-inventory-result-row"
+                  >
+                    <div className="pm-inventory-result-main">
+                      <strong>
+                        {entry.carton
+                          .name ??
+                          entry.cartonId}
+                      </strong>
 
-                    <span className="pm-dimension-value">
-                      {dimensions.length} × {dimensions.width} ×{' '}
-                      {dimensions.height} mm
-                    </span>
+                      <span className="pm-dimension-value">
+                        {
+                          dimensions.length
+                        }{' '}
+                        ×{' '}
+                        {
+                          dimensions.width
+                        }{' '}
+                        ×{' '}
+                        {
+                          dimensions.height
+                        }{' '}
+                        mm
+                      </span>
+                    </div>
+
+                    <div className="pm-inventory-result-count">
+                      <strong>
+                        Used 0
+                      </strong>
+
+                      <span>
+                        {entry.effectiveAvailability !==
+                        undefined
+                          ? `${entry.effectiveAvailability} available`
+                          : 'Availability not limited'}
+                      </span>
+                    </div>
                   </div>
-
-                  <div className="pm-inventory-result-count">
-                    <strong>Used 0</strong>
-
-                    <span>
-                      {entry.effectiveAvailability !== undefined
-                        ? `${entry.effectiveAvailability} available`
-                        : 'Availability not limited'}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              }
+            )}
           </div>
         </details>
       )}
 
-      <p className="pm-fine-print">{note}</p>
+      <p className="pm-fine-print">
+        {note}
+      </p>
     </section>
   );
 }
@@ -748,28 +818,40 @@ function HybridResult({
   itemLabels,
 }: {
   result: HybridBoxesWorkspaceResult;
-  itemLabels: Readonly<Record<string, string>>;
+  itemLabels: Readonly<
+    Record<string, string>
+  >;
 }) {
   const preferredView: HybridView =
     result.supplementalPlan !== null
       ? 'supplemental'
       : 'existing';
 
-  const [requestedView, setRequestedView] =
-    useState<HybridView>(preferredView);
+  const [
+    requestedView,
+    setRequestedView,
+  ] =
+    useState<HybridView>(
+      preferredView
+    );
 
   useEffect(() => {
-    setRequestedView(preferredView);
+    setRequestedView(
+      preferredView
+    );
   }, [result, preferredView]);
 
   const existingPacked =
-    result.existingPlan.metrics.placedItemCount;
+    result.existingPlan.metrics
+      .placedItemCount;
 
   const activeView: HybridView =
-    requestedView === 'supplemental' &&
+    requestedView ===
+      'supplemental' &&
     result.supplementalPlan === null
       ? 'existing'
-      : requestedView === 'replacement' &&
+      : requestedView ===
+            'replacement' &&
           result.replacementPlan === null
         ? 'existing'
         : requestedView;
@@ -778,7 +860,8 @@ function HybridResult({
     activeView === 'supplemental'
       ? result.supplementalPlan ??
         result.existingPlan
-      : activeView === 'replacement'
+      : activeView ===
+          'replacement'
         ? result.replacementPlan ??
           result.existingPlan
         : result.existingPlan;
@@ -786,14 +869,16 @@ function HybridResult({
   const activeTitle =
     activeView === 'existing'
       ? 'Existing boxes'
-      : activeView === 'supplemental'
+      : activeView ===
+          'supplemental'
         ? 'Buy for the remainder'
         : 'Buy boxes for everything instead';
 
   const activeDescription =
     activeView === 'existing'
       ? 'This verified plan uses only the box inventory and quantities you entered.'
-      : activeView === 'supplemental'
+      : activeView ===
+          'supplemental'
         ? 'This is a separate verified plan for the exact remainder left after existing inventory was used.'
         : 'Comparison only. This separate verified plan ignores existing inventory and packs the complete request with generated purchase boxes.';
 
@@ -808,23 +893,31 @@ function HybridResult({
         </div>
 
         <h2 className="pm-result-headline">
-          Use what you have, then buy only what is still needed
+          Use what you have, then buy
+          only what is still needed
         </h2>
 
-        {result.remainderItemCount === 0 ? (
+        {result.remainderItemCount ===
+        0 ? (
           <p className="pm-result-copy">
-            Your existing box inventory covers every requested item.
-            Nothing additional needs to be purchased.
+            Your existing box inventory
+            covers every requested item.
+            Nothing additional needs to
+            be purchased.
           </p>
         ) : (
           <p className="pm-result-copy">
-            Existing inventory packs {existingPacked}{' '}
+            Existing inventory packs{' '}
+            {existingPacked}{' '}
             {existingPacked === 1
               ? 'item'
               : 'items'}
             . Buy boxes only for the{' '}
-            {result.remainderItemCount}{' '}
-            {result.remainderItemCount === 1
+            {
+              result.remainderItemCount
+            }{' '}
+            {result.remainderItemCount ===
+            1
               ? 'item'
               : 'items'}{' '}
             in the verified remainder.
@@ -833,29 +926,40 @@ function HybridResult({
 
         <details className="pm-details pm-technical-details">
           <summary>
-            How this result is verified
+            How this result is
+            verified
           </summary>
 
           <div className="pm-details-body">
-            The existing, supplemental, and replacement results remain
-            separate independently verified canonical plans. Packmetry
-            does not fabricate one merged PackingPlan.
+            The existing,
+            supplemental, and
+            replacement results remain
+            separate independently
+            verified canonical plans.
+            Packmetry does not
+            fabricate one merged
+            PackingPlan.
           </div>
         </details>
       </section>
 
       <InventoryUsageSummary
-        usage={result.existingInventoryUsage}
+        usage={
+          result.existingInventoryUsage
+        }
         note={
-          result.remainderItemCount === 0
+          result.remainderItemCount ===
+          0
             ? 'These existing boxes cover the complete request, so no supplemental purchase stage was needed.'
             : 'These existing boxes are used first. Purchase recommendations cover only the verified remainder.'
         }
       />
 
-      {result.supplementalPlan !== null &&
-        result.supplementalPurchaseRecommendations.length >
-          0 && (
+      {result.supplementalPlan !==
+        null &&
+        result
+          .supplementalPurchaseRecommendations
+          .length > 0 && (
           <PurchaseRecommendationSummary
             title="What to buy for the remainder"
             recommendations={
@@ -881,8 +985,10 @@ function HybridResult({
             </p>
           </div>
 
-          {(result.supplementalPlan !== null ||
-            result.replacementPlan !== null) && (
+          {(result.supplementalPlan !==
+            null ||
+            result.replacementPlan !==
+              null) && (
             <div
               className="pm-result-tabs"
               role="group"
@@ -891,37 +997,48 @@ function HybridResult({
               <button
                 type="button"
                 aria-pressed={
-                  activeView === 'existing'
+                  activeView ===
+                  'existing'
                 }
                 onClick={() =>
-                  setRequestedView('existing')
+                  setRequestedView(
+                    'existing'
+                  )
                 }
               >
                 Existing
               </button>
 
-              {result.supplementalPlan !== null && (
+              {result.supplementalPlan !==
+                null && (
                 <button
                   type="button"
                   aria-pressed={
-                    activeView === 'supplemental'
+                    activeView ===
+                    'supplemental'
                   }
                   onClick={() =>
-                    setRequestedView('supplemental')
+                    setRequestedView(
+                      'supplemental'
+                    )
                   }
                 >
                   Buy remainder
                 </button>
               )}
 
-              {result.replacementPlan !== null && (
+              {result.replacementPlan !==
+                null && (
                 <button
                   type="button"
                   aria-pressed={
-                    activeView === 'replacement'
+                    activeView ===
+                    'replacement'
                   }
                   onClick={() =>
-                    setRequestedView('replacement')
+                    setRequestedView(
+                      'replacement'
+                    )
                   }
                 >
                   Compare
@@ -931,8 +1048,10 @@ function HybridResult({
           )}
         </div>
 
-        {activeView === 'replacement' &&
-          result.replacementPurchaseRecommendations
+        {activeView ===
+          'replacement' &&
+          result
+            .replacementPurchaseRecommendations
             .length > 0 && (
             <div className="pm-inline-comparison">
               <span className="pm-section-kicker">
@@ -941,13 +1060,16 @@ function HybridResult({
 
               <span>
                 {result.replacementPurchaseRecommendations
-                  .map(recommendation => {
-                    const dimensions =
-                      recommendation.carton
-                        .internalDimensions;
+                  .map(
+                    recommendation => {
+                      const dimensions =
+                        recommendation
+                          .carton
+                          .internalDimensions;
 
-                    return `${recommendation.quantity} × ${dimensions.length} × ${dimensions.width} × ${dimensions.height} mm`;
-                  })
+                      return `${recommendation.quantity} × ${dimensions.length} × ${dimensions.width} × ${dimensions.height} mm`;
+                    }
+                  )
                   .join(' · ')}
               </span>
             </div>
@@ -977,7 +1099,8 @@ function nextItemId(
   while (
     items.some(
       item =>
-        item.id === `workspace-item-${index}`
+        item.id ===
+        `workspace-item-${index}`
     )
   ) {
     index++;
@@ -990,9 +1113,10 @@ export function duplicateWorkspaceItem(
   items: readonly WorkspaceItemValues[],
   itemId: string
 ): WorkspaceItemValues[] {
-  const sourceIndex = items.findIndex(
-    item => item.id === itemId
-  );
+  const sourceIndex =
+    items.findIndex(
+      item => item.id === itemId
+    );
 
   if (sourceIndex < 0) {
     return items.map(item => ({
@@ -1000,22 +1124,29 @@ export function duplicateWorkspaceItem(
     }));
   }
 
-  const source = items[sourceIndex]!;
+  const source =
+    items[sourceIndex]!;
 
-  const duplicate: WorkspaceItemValues = {
-    ...source,
-    id: nextItemId(items),
-  };
+  const duplicate: WorkspaceItemValues =
+    {
+      ...source,
+      id: nextItemId(items),
+    };
 
   return [
     ...items
-      .slice(0, sourceIndex + 1)
+      .slice(
+        0,
+        sourceIndex + 1
+      )
       .map(item => ({
         ...item,
       })),
     duplicate,
     ...items
-      .slice(sourceIndex + 1)
+      .slice(
+        sourceIndex + 1
+      )
       .map(item => ({
         ...item,
       })),
@@ -1023,14 +1154,16 @@ export function duplicateWorkspaceItem(
 }
 
 function nextCartonId(
-  cartons: readonly WorkspaceCartonValues[]
+  cartons:
+    readonly WorkspaceCartonValues[]
 ): string {
   let index = 1;
 
   while (
     cartons.some(
       carton =>
-        carton.id === `workspace-carton-${index}`
+        carton.id ===
+        `workspace-carton-${index}`
     )
   ) {
     index++;
@@ -1044,59 +1177,81 @@ export default function PackingWorkspace({
   initialUnitSystem = 'metric',
 }: PackingWorkspaceProps = {}) {
   const [mode, setMode] =
-    useState<WorkspaceMode>(initialMode);
+    useState<WorkspaceMode>(
+      initialMode
+    );
 
-  const [unitSystem, setUnitSystem] =
+  const [
+    unitSystem,
+    setUnitSystem,
+  ] =
     useState<WorkspaceUnitSystem>(
       initialUnitSystem
     );
 
   const [items, setItems] =
-    useState<WorkspaceItemValues[]>(
-      () =>
-        DEFAULT_WORKSPACE_ITEMS.map(item => ({
+    useState<
+      WorkspaceItemValues[]
+    >(() =>
+      DEFAULT_WORKSPACE_ITEMS.map(
+        item => ({
           ...item,
-        }))
+        })
+      )
     );
 
   const [cartons, setCartons] =
-    useState<WorkspaceCartonValues[]>(
-      () =>
-        DEFAULT_WORKSPACE_CARTONS.map(
-          carton => ({
-            ...carton,
-          })
-        )
+    useState<
+      WorkspaceCartonValues[]
+    >(() =>
+      DEFAULT_WORKSPACE_CARTONS.map(
+        carton => ({
+          ...carton,
+        })
+      )
     );
 
   const [plan, setPlan] =
-    useState<PackingPlan | null>(null);
+    useState<PackingPlan | null>(
+      null
+    );
 
   const [
     purchaseRecommendations,
     setPurchaseRecommendations,
-  ] = useState<
-    PurchaseCartonRecommendation[]
-  >([]);
+  ] =
+    useState<
+      PurchaseCartonRecommendation[]
+    >([]);
 
-  const [inventoryUsage, setInventoryUsage] =
+  const [
+    inventoryUsage,
+    setInventoryUsage,
+  ] =
     useState<HaveBoxesInventoryUsage | null>(
       null
     );
 
-  const [hybridResult, setHybridResult] =
+  const [
+    hybridResult,
+    setHybridResult,
+  ] =
     useState<HybridBoxesWorkspaceResult | null>(
       null
     );
 
   const [error, setError] =
-    useState<string | null>(null);
+    useState<string | null>(
+      null
+    );
 
   const [running, setRunning] =
     useState(false);
 
   const itemLabels =
-    createWorkspaceItemLabels(items);
+    createWorkspaceItemLabels(
+      items
+    );
 
   const lengthUnit =
     unitSystem === 'metric'
@@ -1112,7 +1267,10 @@ export default function PackingWorkspace({
     id: string,
     key: Exclude<
       keyof WorkspaceItemValues,
-      'id' | 'name' | 'unitWeightG'
+      | 'id'
+      | 'name'
+      | 'unitWeightG'
+      | 'keepUpright'
     >,
     value: number
   ) => {
@@ -1146,7 +1304,9 @@ export default function PackingWorkspace({
 
   const updateItemWeight = (
     id: string,
-    unitWeightG: number | undefined
+    unitWeightG:
+      | number
+      | undefined
   ) => {
     setItems(current =>
       current.map(item => {
@@ -1154,9 +1314,13 @@ export default function PackingWorkspace({
           return item;
         }
 
-        if (unitWeightG === undefined) {
+        if (
+          unitWeightG ===
+          undefined
+        ) {
           const {
-            unitWeightG: _unitWeightG,
+            unitWeightG:
+              _unitWeightG,
             ...rest
           } = item;
 
@@ -1171,21 +1335,43 @@ export default function PackingWorkspace({
     );
   };
 
+  const updateItemKeepUpright =
+    (
+      id: string,
+      keepUpright: boolean
+    ) => {
+      setItems(current =>
+        current.map(item =>
+          item.id === id
+            ? {
+                ...item,
+                keepUpright,
+              }
+            : item
+        )
+      );
+    };
+
   const addItem = () => {
     setItems(current => [
       ...current,
       {
-        id: nextItemId(current),
+        id: nextItemId(
+          current
+        ),
         name: '',
         lengthMm: 80,
         widthMm: 80,
         heightMm: 80,
         quantity: 1,
+        keepUpright: false,
       },
     ]);
   };
 
-  const duplicateItem = (id: string) => {
+  const duplicateItem = (
+    id: string
+  ) => {
     setItems(current =>
       duplicateWorkspaceItem(
         current,
@@ -1194,9 +1380,13 @@ export default function PackingWorkspace({
     );
   };
 
-  const removeItem = (id: string) => {
+  const removeItem = (
+    id: string
+  ) => {
     setItems(current => {
-      if (current.length <= 1) {
+      if (
+        current.length <= 1
+      ) {
         return current;
       }
 
@@ -1230,7 +1420,9 @@ export default function PackingWorkspace({
     setCartons(current => [
       ...current,
       {
-        id: nextCartonId(current),
+        id: nextCartonId(
+          current
+        ),
         lengthMm: 100,
         widthMm: 100,
         heightMm: 100,
@@ -1239,21 +1431,28 @@ export default function PackingWorkspace({
     ]);
   };
 
-  const removeCarton = (id: string) => {
+  const removeCarton = (
+    id: string
+  ) => {
     setCartons(current => {
-      if (current.length <= 1) {
+      if (
+        current.length <= 1
+      ) {
         return current;
       }
 
       return current.filter(
-        carton => carton.id !== id
+        carton =>
+          carton.id !== id
       );
     });
   };
 
   const clearResult = () => {
     setPlan(null);
-    setPurchaseRecommendations([]);
+    setPurchaseRecommendations(
+      []
+    );
     setInventoryUsage(null);
     setHybridResult(null);
     setError(null);
@@ -1275,7 +1474,9 @@ export default function PackingWorkspace({
     clearResult();
 
     try {
-      if (mode === 'need-boxes') {
+      if (
+        mode === 'need-boxes'
+      ) {
         const result =
           await runNeedBoxesWorkspaceItems(
             items
@@ -1286,7 +1487,9 @@ export default function PackingWorkspace({
         setPurchaseRecommendations(
           result.purchaseRecommendations
         );
-      } else if (mode === 'have-boxes') {
+      } else if (
+        mode === 'have-boxes'
+      ) {
         const result =
           await runHaveBoxesWorkspaceItems(
             items,
@@ -1305,7 +1508,9 @@ export default function PackingWorkspace({
             cartons
           );
 
-        setHybridResult(result);
+        setHybridResult(
+          result
+        );
       }
     } catch (caught) {
       setError(
@@ -1331,14 +1536,16 @@ export default function PackingWorkspace({
           </p>
 
           <h1>
-            Pack items into the right boxes
+            Pack items into the
+            right boxes
           </h1>
         </div>
 
         <p className="pm-app-intro">
-          Enter your items, choose how boxes
-          are sourced, and inspect the verified
-          packing result in 3D.
+          Enter your items, choose
+          how boxes are sourced, and
+          inspect the verified packing
+          result in 3D.
         </p>
       </header>
 
@@ -1354,20 +1561,26 @@ export default function PackingWorkspace({
               </p>
 
               <h2>
-                What are you packing?
+                What are you
+                packing?
               </h2>
             </div>
 
             <div className="pm-unit-note">
               <label>
-                <span>Units </span>
+                <span>
+                  Units{' '}
+                </span>
 
                 <select
                   aria-label="Unit system"
-                  value={unitSystem}
+                  value={
+                    unitSystem
+                  }
                   onChange={event =>
                     setUnitSystem(
-                      event.target.value as WorkspaceUnitSystem
+                      event.target
+                        .value as WorkspaceUnitSystem
                     )
                   }
                 >
@@ -1383,7 +1596,8 @@ export default function PackingWorkspace({
 
               <span>
                 {' '}
-                {lengthUnit} / {weightUnit}
+                {lengthUnit} /{' '}
+                {weightUnit}
               </span>
             </div>
           </div>
@@ -1403,28 +1617,42 @@ export default function PackingWorkspace({
                   key={option}
                   type="button"
                   aria-label={
-                    MODE_COPY[option].full
+                    MODE_COPY[
+                      option
+                    ].full
                   }
                   aria-pressed={
                     mode === option
                   }
                   onClick={() =>
-                    chooseMode(option)
+                    chooseMode(
+                      option
+                    )
                   }
                   className="pm-mode-option"
                 >
-                  {MODE_COPY[option].short}
+                  {
+                    MODE_COPY[
+                      option
+                    ].short
+                  }
                 </button>
               ))}
             </div>
 
             <div className="pm-mode-explainer">
               <strong>
-                {MODE_COPY[mode].full}
+                {
+                  MODE_COPY[mode]
+                    .full
+                }
               </strong>
 
               <span>
-                {MODE_COPY[mode].description}
+                {
+                  MODE_COPY[mode]
+                    .description
+                }
               </span>
             </div>
           </section>
@@ -1436,11 +1664,14 @@ export default function PackingWorkspace({
               </span>
 
               <div>
-                <h3>Items to pack</h3>
+                <h3>
+                  Items to pack
+                </h3>
 
                 <p>
-                  Add each item once, then set
-                  how many of that item you need
+                  Add each item once,
+                  then set how many of
+                  that item you need
                   to pack.
                 </p>
               </div>
@@ -1448,9 +1679,14 @@ export default function PackingWorkspace({
 
             <div className="pm-carton-list">
               {items.map(
-                (item, index) => (
+                (
+                  item,
+                  index
+                ) => (
                   <section
-                    key={item.id}
+                    key={
+                      item.id
+                    }
                     aria-label={`Item ${
                       index + 1
                     }`}
@@ -1460,7 +1696,8 @@ export default function PackingWorkspace({
                       <div>
                         <span className="pm-carton-index">
                           {String(
-                            index + 1
+                            index +
+                              1
                           ).padStart(
                             2,
                             '0'
@@ -1470,7 +1707,8 @@ export default function PackingWorkspace({
                         <strong>
                           {item.name?.trim() ||
                             `Item ${
-                              index + 1
+                              index +
+                              1
                             }`}
                         </strong>
                       </div>
@@ -1488,7 +1726,8 @@ export default function PackingWorkspace({
                           Duplicate
                         </button>
 
-                        {items.length > 1 && (
+                        {items.length >
+                          1 && (
                           <button
                             type="button"
                             onClick={() =>
@@ -1507,20 +1746,24 @@ export default function PackingWorkspace({
                     <div className="pm-carton-fields">
                       <label className="pm-field">
                         <span className="pm-field-label">
-                          Item name (optional)
+                          Item name
+                          (optional)
                         </span>
 
                         <input
                           className="pm-number-input"
                           type="text"
                           value={
-                            item.name ?? ''
+                            item.name ??
+                            ''
                           }
                           placeholder="e.g. Books"
                           onChange={event =>
                             updateItemName(
                               item.id,
-                              event.target.value
+                              event
+                                .target
+                                .value
                             )
                           }
                         />
@@ -1532,8 +1775,12 @@ export default function PackingWorkspace({
                           item.lengthMm,
                           unitSystem
                         )}
-                        min={0.001}
-                        step={0.001}
+                        min={
+                          0.001
+                        }
+                        step={
+                          0.001
+                        }
                         onChange={value =>
                           updateItem(
                             item.id,
@@ -1552,8 +1799,12 @@ export default function PackingWorkspace({
                           item.widthMm,
                           unitSystem
                         )}
-                        min={0.001}
-                        step={0.001}
+                        min={
+                          0.001
+                        }
+                        step={
+                          0.001
+                        }
                         onChange={value =>
                           updateItem(
                             item.id,
@@ -1572,8 +1823,12 @@ export default function PackingWorkspace({
                           item.heightMm,
                           unitSystem
                         )}
-                        min={0.001}
-                        step={0.001}
+                        min={
+                          0.001
+                        }
+                        step={
+                          0.001
+                        }
                         onChange={value =>
                           updateItem(
                             item.id,
@@ -1588,34 +1843,48 @@ export default function PackingWorkspace({
 
                       <label className="pm-field">
                         <span className="pm-field-label">
-                          Weight per item ({weightUnit}) (optional)
+                          Weight per
+                          item (
+                          {
+                            weightUnit
+                          }
+                          ) (optional)
                         </span>
 
                         <input
                           className="pm-number-input"
                           type="number"
                           value={
-                            item.unitWeightG === undefined
+                            item.unitWeightG ===
+                            undefined
                               ? ''
                               : workspaceWeightToDisplay(
                                   item.unitWeightG,
                                   unitSystem
                                 )
                           }
-                          min={0.001}
-                          step={0.001}
+                          min={
+                            0.001
+                          }
+                          step={
+                            0.001
+                          }
                           placeholder={
-                            unitSystem === 'metric'
+                            unitSystem ===
+                            'metric'
                               ? 'e.g. 500'
                               : 'e.g. 16'
                           }
                           onChange={event => {
                             const nextValue =
-                              event.target.value;
+                              event
+                                .target
+                                .value;
 
                             updateItemWeight(
                               item.id,
-                              nextValue === ''
+                              nextValue ===
+                                ''
                                 ? undefined
                                 : workspaceWeightToCanonical(
                                     Number(
@@ -1643,6 +1912,48 @@ export default function PackingWorkspace({
                         }
                       />
                     </div>
+
+                    <details className="pm-details pm-technical-details">
+                      <summary>
+                        Handling
+                        preferences
+                      </summary>
+
+                      <div className="pm-details-body">
+                        <label className="pm-field">
+                          <span className="pm-field-label">
+                            Keep
+                            upright
+                          </span>
+
+                          <input
+                            type="checkbox"
+                            checked={
+                              item.keepUpright ??
+                              false
+                            }
+                            onChange={event =>
+                              updateItemKeepUpright(
+                                item.id,
+                                event
+                                  .target
+                                  .checked
+                              )
+                            }
+                          />
+                        </label>
+
+                        <p className="pm-fine-print">
+                          Keep the
+                          item's
+                          original
+                          height axis
+                          vertical
+                          while
+                          packing.
+                        </p>
+                      </div>
+                    </details>
                   </section>
                 )
               )}
@@ -1658,17 +1969,21 @@ export default function PackingWorkspace({
             </button>
           </section>
 
-          {mode === 'need-boxes' && (
+          {mode ===
+            'need-boxes' && (
             <div className="pm-context-note">
               <strong>
-                No box dimensions needed.
+                No box dimensions
+                needed.
               </strong>
 
               <span>
-                Packmetry generates box
-                candidates and recommends the
-                internal dimensions used by the
-                verified plan.
+                Packmetry generates
+                box candidates and
+                recommends the
+                internal dimensions
+                used by the verified
+                plan.
               </span>
             </div>
           )}
@@ -1686,8 +2001,9 @@ export default function PackingWorkspace({
                   </h3>
 
                   <p>
-                    Add each box type Packmetry
-                    may use and how many are
+                    Add each box type
+                    Packmetry may use
+                    and how many are
                     available.
                   </p>
                 </div>
@@ -1695,11 +2011,17 @@ export default function PackingWorkspace({
 
               <div className="pm-carton-list">
                 {cartons.map(
-                  (carton, index) => (
+                  (
+                    carton,
+                    index
+                  ) => (
                     <section
-                      key={carton.id}
+                      key={
+                        carton.id
+                      }
                       aria-label={`Box type ${
-                        index + 1
+                        index +
+                        1
                       }`}
                       className="pm-carton-row"
                     >
@@ -1707,7 +2029,8 @@ export default function PackingWorkspace({
                         <div>
                           <span className="pm-carton-index">
                             {String(
-                              index + 1
+                              index +
+                                1
                             ).padStart(
                               2,
                               '0'
@@ -1716,7 +2039,8 @@ export default function PackingWorkspace({
 
                           <strong>
                             Box type{' '}
-                            {index + 1}
+                            {index +
+                              1}
                           </strong>
                         </div>
 
@@ -1743,8 +2067,12 @@ export default function PackingWorkspace({
                             carton.lengthMm,
                             unitSystem
                           )}
-                          min={0.001}
-                          step={0.001}
+                          min={
+                            0.001
+                          }
+                          step={
+                            0.001
+                          }
                           onChange={value =>
                             updateCarton(
                               carton.id,
@@ -1763,8 +2091,12 @@ export default function PackingWorkspace({
                             carton.widthMm,
                             unitSystem
                           )}
-                          min={0.001}
-                          step={0.001}
+                          min={
+                            0.001
+                          }
+                          step={
+                            0.001
+                          }
                           onChange={value =>
                             updateCarton(
                               carton.id,
@@ -1783,8 +2115,12 @@ export default function PackingWorkspace({
                             carton.heightMm,
                             unitSystem
                           )}
-                          min={0.001}
-                          step={0.001}
+                          min={
+                            0.001
+                          }
+                          step={
+                            0.001
+                          }
                           onChange={value =>
                             updateCarton(
                               carton.id,
@@ -1819,40 +2155,50 @@ export default function PackingWorkspace({
 
               <button
                 type="button"
-                onClick={addCarton}
+                onClick={
+                  addCarton
+                }
                 className="pm-add-button"
               >
                 <span>+</span>
                 Add another box type
               </button>
 
-              {mode === 'have-boxes' ? (
+              {mode ===
+              'have-boxes' ? (
                 <div className="pm-context-note">
                   <strong>
-                    Inventory limits are
-                    enforced.
+                    Inventory limits
+                    are enforced.
                   </strong>
 
                   <span>
-                    Packmetry will not invent
-                    or purchase extra boxes in
-                    this mode. A zero available
-                    quantity means that box
-                    type cannot be opened.
+                    Packmetry will not
+                    invent or purchase
+                    extra boxes in
+                    this mode. A zero
+                    available quantity
+                    means that box
+                    type cannot be
+                    opened.
                   </span>
                 </div>
               ) : (
                 <div className="pm-context-note">
                   <strong>
-                    Use existing boxes first.
+                    Use existing boxes
+                    first.
                   </strong>
 
                   <span>
-                    Packmetry verifies what
-                    your inventory can pack,
-                    then recommends purchase
-                    boxes only for the exact
-                    remainder.
+                    Packmetry verifies
+                    what your
+                    inventory can
+                    pack, then
+                    recommends
+                    purchase boxes
+                    only for the
+                    exact remainder.
                   </span>
                 </div>
               )}
@@ -1871,8 +2217,10 @@ export default function PackingWorkspace({
             </button>
 
             <span className="pm-submit-note">
-              Result is independently verified
-              by the Packmetry core.
+              Result is
+              independently
+              verified by the
+              Packmetry core.
             </span>
           </div>
         </form>
@@ -1892,7 +2240,8 @@ export default function PackingWorkspace({
                     </p>
 
                     <h2>
-                      Ready when you are.
+                      Ready when you
+                      are.
                     </h2>
                   </div>
 
@@ -1911,8 +2260,9 @@ export default function PackingWorkspace({
                 </div>
 
                 <p>
-                  Run a calculation to see the
-                  verified result.
+                  Run a calculation
+                  to see the verified
+                  result.
                 </p>
               </div>
             )}
@@ -1924,7 +2274,8 @@ export default function PackingWorkspace({
               </p>
 
               <h2>
-                Check the packing inputs.
+                Check the packing
+                inputs.
               </h2>
 
               <div
@@ -1938,7 +2289,8 @@ export default function PackingWorkspace({
 
           {plan && (
             <div className="pm-standard-result">
-              {mode === 'need-boxes' &&
+              {mode ===
+                'need-boxes' &&
                 purchaseRecommendations.length >
                   0 && (
                   <PurchaseRecommendationSummary
@@ -1950,7 +2302,8 @@ export default function PackingWorkspace({
                   />
                 )}
 
-              {mode === 'have-boxes' &&
+              {mode ===
+                'have-boxes' &&
                 inventoryUsage !==
                   null && (
                   <InventoryUsageSummary
@@ -1963,22 +2316,32 @@ export default function PackingWorkspace({
               <div className="pm-plan-output">
                 <ResultSummary
                   plan={plan}
-                  itemLabels={itemLabels}
+                  itemLabels={
+                    itemLabels
+                  }
                 />
 
                 <PackingVisualization
                   plan={plan}
-                  itemLabels={itemLabels}
+                  itemLabels={
+                    itemLabels
+                  }
                 />
               </div>
             </div>
           )}
 
-          {mode === 'hybrid-boxes' &&
-            hybridResult !== null && (
+          {mode ===
+            'hybrid-boxes' &&
+            hybridResult !==
+              null && (
               <HybridResult
-                result={hybridResult}
-                itemLabels={itemLabels}
+                result={
+                  hybridResult
+                }
+                itemLabels={
+                  itemLabels
+                }
               />
             )}
         </section>
