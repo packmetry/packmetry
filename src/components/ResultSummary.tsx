@@ -28,39 +28,31 @@ const STATUS_COPY: Record<
   }
 > = {
   feasible: {
-    heading:
-      'Everything fits.',
+    heading: 'Everything fits.',
     detail:
       'All requested items were packed into the box plan below.',
-    badge:
-      'Verified fit',
+    badge: 'Verified fit',
   },
 
   partial: {
-    heading:
-      'Some items still need a box.',
+    heading: 'Some items still need a box.',
     detail:
       'Packmetry found a verified partial plan, but not every requested item could be placed.',
-    badge:
-      'Partial fit',
+    badge: 'Partial fit',
   },
 
   infeasible: {
-    heading:
-      'This box setup cannot pack the items.',
+    heading: 'This box setup cannot pack the items.',
     detail:
       'No requested item could be placed with the currently available box setup.',
-    badge:
-      'Does not fit',
+    badge: 'Does not fit',
   },
 
   limit_reached: {
-    heading:
-      'Packing stopped before a complete answer.',
+    heading: 'Packing stopped before a complete answer.',
     detail:
       'The solver reached its current limit before it could finish the packing search.',
-    badge:
-      'Search stopped',
+    badge: 'Search stopped',
   },
 };
 
@@ -112,12 +104,62 @@ export function describeObjectiveRationale(
   }
 }
 
+function formatNumber(
+  value: number,
+  fractionDigits: number
+): string {
+  return value
+    .toFixed(fractionDigits)
+    .replace(/\.?0+$/, '');
+}
+
 function formatPercent(
   value: number
 ): string {
-  return `${(
-    value * 100
-  ).toFixed(1)}%`;
+  return `${(value * 100).toFixed(1)}%`;
+}
+
+export function formatPackedWeight(
+  valueG: number | undefined
+): string {
+  if (valueG === undefined) {
+    return 'Not provided';
+  }
+
+  if (valueG >= 1000) {
+    return `${formatNumber(
+      valueG / 1000,
+      2
+    )} kg`;
+  }
+
+  return `${formatNumber(
+    valueG,
+    1
+  )} g`;
+}
+
+export function formatEmptySpace(
+  valueMm3: number
+): string {
+  if (valueMm3 >= 1_000_000) {
+    return `${formatNumber(
+      valueMm3 / 1_000_000,
+      1
+    )} L`;
+  }
+
+  if (valueMm3 >= 1000) {
+    return `${formatNumber(
+      valueMm3 / 1000,
+      1
+    )} cm³`;
+  }
+
+  return `${formatNumber(
+    valueMm3,
+    0
+  )} mm³`;
 }
 
 function formatDimensions(
@@ -130,24 +172,14 @@ function formatDimensions(
 
 function buildItemIndexes(
   plan: PackingPlan
-): ReadonlyMap<
-  string,
-  number
-> {
+): ReadonlyMap<string, number> {
   const indexes =
-    new Map<
-      string,
-      number
-    >();
+    new Map<string, number>();
 
   const registerItem = (
     itemId: string
   ) => {
-    if (
-      !indexes.has(
-        itemId
-      )
-    ) {
+    if (!indexes.has(itemId)) {
       indexes.set(
         itemId,
         indexes.size
@@ -180,37 +212,22 @@ function buildItemIndexes(
 
 function itemDisplayName(
   itemId: string,
-  itemLabels: Readonly<
-    Record<
-      string,
-      string
-    >
-  >,
-  itemIndexes: ReadonlyMap<
-    string,
-    number
-  >
+  itemLabels: Readonly<Record<string, string>>,
+  itemIndexes: ReadonlyMap<string, number>
 ): string {
   const suppliedLabel =
-    itemLabels[
-      itemId
-    ]?.trim();
+    itemLabels[itemId]?.trim();
 
   if (suppliedLabel) {
     return suppliedLabel;
   }
 
   const itemIndex =
-    itemIndexes.get(
-      itemId
-    );
+    itemIndexes.get(itemId);
 
-  return itemIndex ===
-    undefined
+  return itemIndex === undefined
     ? 'Item'
-    : `Item ${
-        itemIndex + 1
-      }`;
+    : `Item ${itemIndex + 1}`;
 }
 
 export default function ResultSummary({
@@ -218,14 +235,10 @@ export default function ResultSummary({
   itemLabels = EMPTY_ITEM_LABELS,
 }: ResultSummaryProps) {
   const statusCopy =
-    STATUS_COPY[
-      plan.status
-    ];
+    STATUS_COPY[plan.status];
 
   const itemIndexes =
-    buildItemIndexes(
-      plan
-    );
+    buildItemIndexes(plan);
 
   const [
     actionMessage,
@@ -238,9 +251,7 @@ export default function ResultSummary({
   const handleSavePlan =
     () => {
       const saved =
-        savePackingPlan(
-          plan
-        );
+        savePackingPlan(plan);
 
       setActionMessage(
         saved
@@ -295,24 +306,18 @@ export default function ResultSummary({
           </p>
 
           <h2 id="packing-result-heading">
-            {
-              statusCopy.heading
-            }
+            {statusCopy.heading}
           </h2>
 
           <p>
-            {
-              statusCopy.detail
-            }
+            {statusCopy.detail}
           </p>
         </div>
 
         <span
           className={`pm-summary-status pm-summary-status-${statusCopy.badge}`}
         >
-          {
-            statusCopy.badge
-          }
+          {statusCopy.badge}
         </span>
       </div>
 
@@ -323,10 +328,7 @@ export default function ResultSummary({
           </dt>
 
           <dd>
-            {
-              plan.metrics
-                .cartonCount
-            }
+            {plan.metrics.cartonCount}
           </dd>
         </div>
 
@@ -336,10 +338,7 @@ export default function ResultSummary({
           </dt>
 
           <dd>
-            {
-              plan.metrics
-                .placedItemCount
-            }
+            {plan.metrics.placedItemCount}
           </dd>
         </div>
 
@@ -349,10 +348,7 @@ export default function ResultSummary({
           </dt>
 
           <dd>
-            {
-              plan.metrics
-                .unplacedItemCount
-            }
+            {plan.metrics.unplacedItemCount}
           </dd>
         </div>
 
@@ -363,8 +359,31 @@ export default function ResultSummary({
 
           <dd>
             {formatPercent(
-              plan.metrics
-                .utilization
+              plan.metrics.utilization
+            )}
+          </dd>
+        </div>
+
+        <div className="pm-summary-metric">
+          <dt>
+            Packed weight
+          </dt>
+
+          <dd>
+            {formatPackedWeight(
+              plan.metrics.totalContentsWeightG
+            )}
+          </dd>
+        </div>
+
+        <div className="pm-summary-metric">
+          <dt>
+            Empty space
+          </dt>
+
+          <dd>
+            {formatEmptySpace(
+              plan.metrics.emptyVolumeMm3
             )}
           </dd>
         </div>
@@ -379,14 +398,12 @@ export default function ResultSummary({
         </p>
 
         <h3 id="packing-rationale-heading">
-          Chosen for your
-          packing goal
+          Chosen for your packing goal
         </h3>
 
         <p>
           {describeObjectiveRationale(
-            plan.objective
-              .kind
+            plan.objective.kind
           )}
         </p>
       </section>
@@ -419,33 +436,26 @@ export default function ResultSummary({
           </button>
         </div>
 
-        {actionMessage !==
-          null && (
+        {actionMessage !== null && (
           <p
             role="status"
             className="pm-fine-print"
           >
-            {
-              actionMessage
-            }
+            {actionMessage}
           </p>
         )}
       </section>
 
-      {(plan.cartons.length >
-        0 ||
-        plan.unplacedItems
-          .length > 0 ||
-        plan.explanations
-          .length > 0) && (
+      {(plan.cartons.length > 0 ||
+        plan.unplacedItems.length > 0 ||
+        plan.explanations.length > 0) && (
         <details className="pm-summary-details">
           <summary>
             Plan details
           </summary>
 
           <div className="pm-summary-details-body">
-            {plan.cartons
-              .length > 0 && (
+            {plan.cartons.length > 0 && (
               <section
                 aria-labelledby="box-plan-heading"
               >
@@ -465,11 +475,7 @@ export default function ResultSummary({
                       >
                         <div>
                           <strong>
-                            Box{' '}
-                            {
-                              index +
-                              1
-                            }
+                            Box {index + 1}
                             {packedCarton
                               .carton
                               .name
@@ -500,8 +506,7 @@ export default function ResultSummary({
                             }{' '}
                             {packedCarton
                               .metrics
-                              .itemCount ===
-                            1
+                              .itemCount === 1
                               ? 'item'
                               : 'items'}
                           </span>
@@ -522,15 +527,13 @@ export default function ResultSummary({
               </section>
             )}
 
-            {plan.unplacedItems
-              .length > 0 && (
+            {plan.unplacedItems.length > 0 && (
               <section
                 aria-labelledby="unpacked-heading"
                 className="pm-summary-detail-section"
               >
                 <h3 id="unpacked-heading">
-                  Items not
-                  packed
+                  Items not packed
                 </h3>
 
                 <ul className="pm-summary-issue-list">
@@ -548,12 +551,8 @@ export default function ResultSummary({
                           key={`${item.itemId}-${item.instanceIndex}`}
                         >
                           <strong>
-                            {
-                              label
-                            }{' '}
-                            #
-                            {item.instanceIndex +
-                              1}
+                            {label} #
+                            {item.instanceIndex + 1}
                           </strong>
 
                           <span>
@@ -569,8 +568,7 @@ export default function ResultSummary({
               </section>
             )}
 
-            {plan.explanations
-              .length > 0 && (
+            {plan.explanations.length > 0 && (
               <section
                 aria-labelledby="explanations-heading"
                 className="pm-summary-detail-section"
@@ -585,9 +583,7 @@ export default function ResultSummary({
                       <li
                         key={`${explanation.code}-${explanation.message}`}
                       >
-                        {
-                          explanation.message
-                        }
+                        {explanation.message}
                       </li>
                     )
                   )}
@@ -596,9 +592,7 @@ export default function ResultSummary({
             )}
 
             <p className="pm-summary-verification">
-              Independently
-              verified by the
-              Packmetry core.
+              Independently verified by the Packmetry core.
             </p>
           </div>
         </details>
