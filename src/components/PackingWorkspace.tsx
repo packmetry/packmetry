@@ -41,6 +41,7 @@ export interface WorkspaceItemValues {
   widthMm: number;
   heightMm: number;
   quantity: number;
+  unitWeightG?: number;
 }
 
 export interface WorkspaceCartonValues {
@@ -161,6 +162,9 @@ function createWorkspaceItems(
         height: item.heightMm,
       },
       quantity: item.quantity,
+      ...(item.unitWeightG !== undefined
+        ? { unitWeightG: item.unitWeightG }
+        : {}),
     })
   );
 }
@@ -400,6 +404,7 @@ export async function runHybridBoxesWorkspaceItems(
 
     supplementalPlan =
       result.supplemental.planningResult.plan;
+
     supplementalPurchaseRecommendations =
       result.supplemental.purchaseRecommendations;
   }
@@ -421,6 +426,7 @@ export async function runHybridBoxesWorkspaceItems(
 
     replacementPlan =
       result.replacementAlternative.planningResult.plan;
+
     replacementPurchaseRecommendations =
       result.replacementAlternative.purchaseRecommendations;
   }
@@ -469,6 +475,7 @@ function NumberField({
   return (
     <label className="pm-field">
       <span className="pm-field-label">{label}</span>
+
       <input
         className="pm-number-input"
         type="number"
@@ -505,6 +512,7 @@ function PurchaseRecommendationSummary({
         <h2 className="pm-result-section-title">
           {title}
         </h2>
+
         <span className="pm-verified-mark">
           Verified plan
         </span>
@@ -524,6 +532,7 @@ function PurchaseRecommendationSummary({
                 <span className="pm-recommendation-quantity">
                   {recommendation.quantity} ×
                 </span>{' '}
+
                 <strong>
                   {recommendation.carton.name ??
                     'Recommended box'}
@@ -884,6 +893,7 @@ function HybridResult({
             plan={activePlan}
             itemLabels={itemLabels}
           />
+
           <PackingVisualization
             plan={activePlan}
             itemLabels={itemLabels}
@@ -984,7 +994,7 @@ export default function PackingWorkspace({
     id: string,
     key: Exclude<
       keyof WorkspaceItemValues,
-      'id' | 'name'
+      'id' | 'name' | 'unitWeightG'
     >,
     value: number
   ) => {
@@ -1013,6 +1023,33 @@ export default function PackingWorkspace({
             }
           : item
       )
+    );
+  };
+
+  const updateItemWeight = (
+    id: string,
+    unitWeightG: number | undefined
+  ) => {
+    setItems(current =>
+      current.map(item => {
+        if (item.id !== id) {
+          return item;
+        }
+
+        if (unitWeightG === undefined) {
+          const {
+            unitWeightG: _unitWeightG,
+            ...rest
+          } = item;
+
+          return rest;
+        }
+
+        return {
+          ...item,
+          unitWeightG,
+        };
+      })
     );
   };
 
@@ -1106,6 +1143,7 @@ export default function PackingWorkspace({
     event: SyntheticEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
+
     setRunning(true);
     clearResult();
 
@@ -1316,8 +1354,7 @@ export default function PackingWorkspace({
                           onChange={event =>
                             updateItemName(
                               item.id,
-                              event.target
-                                .value
+                              event.target.value
                             )
                           }
                         />
@@ -1370,6 +1407,34 @@ export default function PackingWorkspace({
                           )
                         }
                       />
+
+                      <label className="pm-field">
+                        <span className="pm-field-label">
+                          Weight per item (g) (optional)
+                        </span>
+
+                        <input
+                          className="pm-number-input"
+                          type="number"
+                          value={item.unitWeightG ?? ''}
+                          min={0.001}
+                          step={0.001}
+                          placeholder="e.g. 500"
+                          onChange={event => {
+                            const nextValue =
+                              event.target.value;
+
+                            updateItemWeight(
+                              item.id,
+                              nextValue === ''
+                                ? undefined
+                                : Number(
+                                    nextValue
+                                  )
+                            );
+                          }}
+                        />
+                      </label>
 
                       <NumberField
                         label="Quantity"
