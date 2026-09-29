@@ -2274,7 +2274,7 @@ export default function PackingWorkspace({
             >
               {running
                 ? 'Calculating…'
-                : 'Calculate packing'}
+                : 'Find my packing plan'}
             </button>
 
             <span className="pm-submit-note">

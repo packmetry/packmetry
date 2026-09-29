@@ -11,8 +11,10 @@ describe('PackingWorkspace', () => {
     const html = renderToStaticMarkup(<PackingWorkspace />);
 
     expect(html).toContain('Pack items into the right boxes');
-    expect(html).toContain('Calculate packing');
-    expect(html).toContain('Run a calculation to see the verified result.');
+    expect(html).toContain('Find my packing plan');
+    expect(html).toContain(
+      'Run a calculation to see the verified result.'
+    );
   });
 
   it('solves and constructs a verified feasible plan', async () => {
@@ -31,7 +33,9 @@ describe('PackingWorkspace', () => {
     expect(plan.metrics.placedItemCount).toBe(1);
     expect(plan.metrics.unplacedItemCount).toBe(0);
     expect(plan.metrics.utilization).toBe(1);
-    expect(plan.solverMeta.solverId).toBe('packmetry-baseline');
+    expect(plan.solverMeta.solverId).toBe(
+      'packmetry-baseline'
+    );
   });
 
   it('returns an infeasible canonical result when the item cannot fit', async () => {
@@ -49,7 +53,9 @@ describe('PackingWorkspace', () => {
     expect(plan.metrics.cartonCount).toBe(0);
     expect(plan.metrics.placedItemCount).toBe(0);
     expect(plan.metrics.unplacedItemCount).toBe(1);
-    expect(plan.unplacedItems[0]?.reason).toBe('no-fitting-carton');
+    expect(plan.unplacedItems[0]?.reason).toBe(
+      'no-fitting-carton'
+    );
   });
 
   it('supports multiple item instances', async () => {
