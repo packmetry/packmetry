@@ -1,4 +1,5 @@
 import type { PackingPlan } from '../core/domain/packing-plan.js';
+import type { ObjectiveKind } from '../core/domain/objectives.js';
 import type { PlanStatus } from '../core/domain/result.js';
 import type { UnplacedReason } from '../core/domain/plan-contracts.js';
 
@@ -19,18 +20,21 @@ const STATUS_COPY: Record<
       'All requested items were packed into the box plan below.',
     badge: 'Verified fit',
   },
+
   partial: {
     heading: 'Some items still need a box.',
     detail:
       'Packmetry found a verified partial plan, but not every requested item could be placed.',
     badge: 'Partial fit',
   },
+
   infeasible: {
     heading: 'This box setup cannot pack the items.',
     detail:
       'No requested item could be placed with the currently available box setup.',
     badge: 'Does not fit',
   },
+
   limit_reached: {
     heading: 'Packing stopped before a complete answer.',
     detail:
@@ -57,6 +61,33 @@ export function describeUnplacedReason(
 
     case 'solver-limit-reached':
       return 'The solver stopped before it could place this item.';
+  }
+}
+
+export function describeObjectiveRationale(
+  objective: ObjectiveKind
+): string {
+  switch (objective) {
+    case 'balanced':
+      return 'This plan prioritizes fewer boxes first, then less empty space and higher space utilization.';
+
+    case 'fewest-cartons':
+      return 'This plan prioritizes using fewer boxes, then breaks ties using less empty space and higher space utilization.';
+
+    case 'least-wasted-volume':
+      return 'This plan prioritizes less empty space, then smaller total box volume, fewer boxes, and higher space utilization.';
+
+    case 'easier-to-carry':
+      return 'This plan prioritizes a lower heaviest-box weight, then lower total packed weight, fewer boxes, and less empty space.';
+
+    case 'existing-inventory-first':
+      return 'This plan records using existing box inventory first as its packing objective.';
+
+    case 'min-dim-weight':
+      return 'This plan records minimizing dimensional-weight impact as its packing objective.';
+
+    case 'min-carton-cost':
+      return 'This plan prioritizes lower box cost, then fewer boxes and less empty space.';
   }
 }
 
@@ -172,6 +203,25 @@ export default function ResultSummary({
           </dd>
         </div>
       </dl>
+
+      <section
+        aria-labelledby="packing-rationale-heading"
+        className="pm-summary-rationale"
+      >
+        <p className="pm-section-kicker">
+          Why this plan?
+        </p>
+
+        <h3 id="packing-rationale-heading">
+          Chosen for your packing goal
+        </h3>
+
+        <p>
+          {describeObjectiveRationale(
+            plan.objective.kind
+          )}
+        </p>
+      </section>
 
       {(plan.cartons.length > 0 ||
         plan.unplacedItems.length > 0 ||
