@@ -11,6 +11,12 @@ import {
   type SolverInput,
 } from '../core/solver/index.js';
 import {
+  fromGrams,
+  fromMillimeters,
+  toGrams,
+  toMillimeters,
+} from '../core/units/index.js';
+import {
   planHaveBoxes,
   planHybridBoxes,
   planNeedBoxes,
@@ -23,6 +29,10 @@ export type WorkspaceMode =
   | 'need-boxes'
   | 'have-boxes'
   | 'hybrid-boxes';
+
+export type WorkspaceUnitSystem =
+  | 'metric'
+  | 'imperial';
 
 export interface WorkspaceValues {
   itemLengthMm: number;
@@ -75,6 +85,7 @@ export interface HybridBoxesWorkspaceResult {
 
 export interface PackingWorkspaceProps {
   initialMode?: WorkspaceMode;
+  initialUnitSystem?: WorkspaceUnitSystem;
 }
 
 export const DEFAULT_WORKSPACE_VALUES: WorkspaceValues = {
@@ -135,6 +146,58 @@ const MODE_COPY: Record<
       'Use your existing inventory first, then recommend purchase boxes only for the verified remainder.',
   },
 };
+
+function roundDisplayValue(value: number): number {
+  return Number(value.toFixed(6));
+}
+
+export function workspaceLengthToDisplay(
+  valueMm: number,
+  unitSystem: WorkspaceUnitSystem
+): number {
+  if (unitSystem === 'metric') {
+    return valueMm;
+  }
+
+  return roundDisplayValue(
+    fromMillimeters(valueMm, 'in')
+  );
+}
+
+export function workspaceLengthToCanonical(
+  value: number,
+  unitSystem: WorkspaceUnitSystem
+): number {
+  if (unitSystem === 'metric') {
+    return value;
+  }
+
+  return toMillimeters(value, 'in');
+}
+
+export function workspaceWeightToDisplay(
+  valueG: number,
+  unitSystem: WorkspaceUnitSystem
+): number {
+  if (unitSystem === 'metric') {
+    return valueG;
+  }
+
+  return roundDisplayValue(
+    fromGrams(valueG, 'oz')
+  );
+}
+
+export function workspaceWeightToCanonical(
+  value: number,
+  unitSystem: WorkspaceUnitSystem
+): number {
+  if (unitSystem === 'metric') {
+    return value;
+  }
+
+  return toGrams(value, 'oz');
+}
 
 function createWorkspaceItem(values: WorkspaceValues) {
   return createItem({
@@ -978,9 +1041,15 @@ function nextCartonId(
 
 export default function PackingWorkspace({
   initialMode = 'need-boxes',
+  initialUnitSystem = 'metric',
 }: PackingWorkspaceProps = {}) {
   const [mode, setMode] =
     useState<WorkspaceMode>(initialMode);
+
+  const [unitSystem, setUnitSystem] =
+    useState<WorkspaceUnitSystem>(
+      initialUnitSystem
+    );
 
   const [items, setItems] =
     useState<WorkspaceItemValues[]>(
@@ -1028,6 +1097,16 @@ export default function PackingWorkspace({
 
   const itemLabels =
     createWorkspaceItemLabels(items);
+
+  const lengthUnit =
+    unitSystem === 'metric'
+      ? 'mm'
+      : 'in';
+
+  const weightUnit =
+    unitSystem === 'metric'
+      ? 'g'
+      : 'oz';
 
   const updateItem = (
     id: string,
@@ -1279,9 +1358,34 @@ export default function PackingWorkspace({
               </h2>
             </div>
 
-            <span className="pm-unit-note">
-              Measurements in mm
-            </span>
+            <div className="pm-unit-note">
+              <label>
+                <span>Units </span>
+
+                <select
+                  aria-label="Unit system"
+                  value={unitSystem}
+                  onChange={event =>
+                    setUnitSystem(
+                      event.target.value as WorkspaceUnitSystem
+                    )
+                  }
+                >
+                  <option value="metric">
+                    Metric
+                  </option>
+
+                  <option value="imperial">
+                    Imperial
+                  </option>
+                </select>
+              </label>
+
+              <span>
+                {' '}
+                {lengthUnit} / {weightUnit}
+              </span>
+            </div>
           </div>
 
           <section className="pm-form-section pm-mode-section">
@@ -1423,67 +1527,88 @@ export default function PackingWorkspace({
                       </label>
 
                       <NumberField
-                        label="Length (mm)"
-                        value={
-                          item.lengthMm
-                        }
+                        label={`Length (${lengthUnit})`}
+                        value={workspaceLengthToDisplay(
+                          item.lengthMm,
+                          unitSystem
+                        )}
                         min={0.001}
                         step={0.001}
                         onChange={value =>
                           updateItem(
                             item.id,
                             'lengthMm',
-                            value
+                            workspaceLengthToCanonical(
+                              value,
+                              unitSystem
+                            )
                           )
                         }
                       />
 
                       <NumberField
-                        label="Width (mm)"
-                        value={
-                          item.widthMm
-                        }
+                        label={`Width (${lengthUnit})`}
+                        value={workspaceLengthToDisplay(
+                          item.widthMm,
+                          unitSystem
+                        )}
                         min={0.001}
                         step={0.001}
                         onChange={value =>
                           updateItem(
                             item.id,
                             'widthMm',
-                            value
+                            workspaceLengthToCanonical(
+                              value,
+                              unitSystem
+                            )
                           )
                         }
                       />
 
                       <NumberField
-                        label="Height (mm)"
-                        value={
-                          item.heightMm
-                        }
+                        label={`Height (${lengthUnit})`}
+                        value={workspaceLengthToDisplay(
+                          item.heightMm,
+                          unitSystem
+                        )}
                         min={0.001}
                         step={0.001}
                         onChange={value =>
                           updateItem(
                             item.id,
                             'heightMm',
-                            value
+                            workspaceLengthToCanonical(
+                              value,
+                              unitSystem
+                            )
                           )
                         }
                       />
 
                       <label className="pm-field">
                         <span className="pm-field-label">
-                          Weight per item (g) (optional)
+                          Weight per item ({weightUnit}) (optional)
                         </span>
 
                         <input
                           className="pm-number-input"
                           type="number"
                           value={
-                            item.unitWeightG ?? ''
+                            item.unitWeightG === undefined
+                              ? ''
+                              : workspaceWeightToDisplay(
+                                  item.unitWeightG,
+                                  unitSystem
+                                )
                           }
                           min={0.001}
                           step={0.001}
-                          placeholder="e.g. 500"
+                          placeholder={
+                            unitSystem === 'metric'
+                              ? 'e.g. 500'
+                              : 'e.g. 16'
+                          }
                           onChange={event => {
                             const nextValue =
                               event.target.value;
@@ -1492,8 +1617,11 @@ export default function PackingWorkspace({
                               item.id,
                               nextValue === ''
                                 ? undefined
-                                : Number(
-                                    nextValue
+                                : workspaceWeightToCanonical(
+                                    Number(
+                                      nextValue
+                                    ),
+                                    unitSystem
                                   )
                             );
                           }}
@@ -1610,49 +1738,61 @@ export default function PackingWorkspace({
 
                       <div className="pm-carton-fields">
                         <NumberField
-                          label="Length (mm)"
-                          value={
-                            carton.lengthMm
-                          }
+                          label={`Length (${lengthUnit})`}
+                          value={workspaceLengthToDisplay(
+                            carton.lengthMm,
+                            unitSystem
+                          )}
                           min={0.001}
                           step={0.001}
                           onChange={value =>
                             updateCarton(
                               carton.id,
                               'lengthMm',
-                              value
+                              workspaceLengthToCanonical(
+                                value,
+                                unitSystem
+                              )
                             )
                           }
                         />
 
                         <NumberField
-                          label="Width (mm)"
-                          value={
-                            carton.widthMm
-                          }
+                          label={`Width (${lengthUnit})`}
+                          value={workspaceLengthToDisplay(
+                            carton.widthMm,
+                            unitSystem
+                          )}
                           min={0.001}
                           step={0.001}
                           onChange={value =>
                             updateCarton(
                               carton.id,
                               'widthMm',
-                              value
+                              workspaceLengthToCanonical(
+                                value,
+                                unitSystem
+                              )
                             )
                           }
                         />
 
                         <NumberField
-                          label="Height (mm)"
-                          value={
-                            carton.heightMm
-                          }
+                          label={`Height (${lengthUnit})`}
+                          value={workspaceLengthToDisplay(
+                            carton.heightMm,
+                            unitSystem
+                          )}
                           min={0.001}
                           step={0.001}
                           onChange={value =>
                             updateCarton(
                               carton.id,
                               'heightMm',
-                              value
+                              workspaceLengthToCanonical(
+                                value,
+                                unitSystem
+                              )
                             )
                           }
                         />
