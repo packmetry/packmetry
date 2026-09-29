@@ -53,6 +53,7 @@ export interface WorkspaceItemValues {
   quantity: number;
   unitWeightG?: number;
   keepUpright?: boolean;
+  allowRotation?: boolean;
 }
 
 export interface WorkspaceCartonValues {
@@ -108,6 +109,7 @@ export const DEFAULT_WORKSPACE_ITEMS: WorkspaceItemValues[] = [
     heightMm: 80,
     quantity: 1,
     keepUpright: false,
+    allowRotation: true,
   },
 ];
 
@@ -234,9 +236,11 @@ function createWorkspaceItems(
         : {}),
       constraints: {
         rotationPolicy:
-          item.keepUpright === true
-            ? 'upright'
-            : 'any',
+          item.allowRotation === false
+            ? 'fixed'
+            : item.keepUpright === true
+              ? 'upright'
+              : 'any',
       },
     })
   );
@@ -1271,6 +1275,7 @@ export default function PackingWorkspace({
       | 'name'
       | 'unitWeightG'
       | 'keepUpright'
+      | 'allowRotation'
     >,
     value: number
   ) => {
@@ -1352,6 +1357,22 @@ export default function PackingWorkspace({
       );
     };
 
+  const updateItemAllowRotation = (
+    id: string,
+    allowRotation: boolean
+  ) => {
+    setItems(current =>
+      current.map(item =>
+        item.id === id
+          ? {
+              ...item,
+              allowRotation,
+            }
+          : item
+      )
+    );
+  };
+
   const addItem = () => {
     setItems(current => [
       ...current,
@@ -1365,6 +1386,7 @@ export default function PackingWorkspace({
         heightMm: 80,
         quantity: 1,
         keepUpright: false,
+        allowRotation: true,
       },
     ]);
   };
@@ -1922,6 +1944,38 @@ export default function PackingWorkspace({
                       <div className="pm-details-body">
                         <label className="pm-field">
                           <span className="pm-field-label">
+                            Allow
+                            rotation
+                          </span>
+
+                          <input
+                            type="checkbox"
+                            checked={
+                              item.allowRotation ??
+                              true
+                            }
+                            onChange={event =>
+                              updateItemAllowRotation(
+                                item.id,
+                                event
+                                  .target
+                                  .checked
+                              )
+                            }
+                          />
+                        </label>
+
+                        <p className="pm-fine-print">
+                          Allow Packmetry
+                          to rotate this
+                          item when another
+                          orientation
+                          produces a valid
+                          fit.
+                        </p>
+
+                        <label className="pm-field">
+                          <span className="pm-field-label">
                             Keep
                             upright
                           </span>
@@ -1930,6 +1984,10 @@ export default function PackingWorkspace({
                             type="checkbox"
                             checked={
                               item.keepUpright ??
+                              false
+                            }
+                            disabled={
+                              item.allowRotation ===
                               false
                             }
                             onChange={event =>
@@ -1944,13 +2002,16 @@ export default function PackingWorkspace({
                         </label>
 
                         <p className="pm-fine-print">
-                          Keep the
-                          item's
-                          original
-                          height axis
-                          vertical
-                          while
-                          packing.
+                          Keep the item's
+                          original height
+                          axis vertical
+                          while rotation
+                          is allowed. If
+                          rotation is
+                          disabled, the
+                          complete entered
+                          orientation
+                          remains fixed.
                         </p>
                       </div>
                     </details>
