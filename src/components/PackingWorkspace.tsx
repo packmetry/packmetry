@@ -391,6 +391,7 @@ export async function runHybridBoxesWorkspaceItems(
   }
 
   let supplementalPlan: PackingPlan | null = null;
+
   let supplementalPurchaseRecommendations:
     PurchaseCartonRecommendation[] = [];
 
@@ -410,6 +411,7 @@ export async function runHybridBoxesWorkspaceItems(
   }
 
   let replacementPlan: PackingPlan | null = null;
+
   let replacementPurchaseRecommendations:
     PurchaseCartonRecommendation[] = [];
 
@@ -435,7 +437,8 @@ export async function runHybridBoxesWorkspaceItems(
     existingPlan: result.existing.planningResult.plan,
     existingInventoryUsage: result.existing.inventoryUsage,
     remainderItemCount: result.remainderItems.reduce(
-      (sum, remainderItem) => sum + remainderItem.quantity,
+      (sum, remainderItem) =>
+        sum + remainderItem.quantity,
       0
     ),
     remainderInstanceMapping:
@@ -834,8 +837,7 @@ function HybridResult({
                 Existing
               </button>
 
-              {result.supplementalPlan !==
-                null && (
+              {result.supplementalPlan !== null && (
                 <button
                   type="button"
                   aria-pressed={
@@ -921,6 +923,42 @@ function nextItemId(
   return `workspace-item-${index}`;
 }
 
+export function duplicateWorkspaceItem(
+  items: readonly WorkspaceItemValues[],
+  itemId: string
+): WorkspaceItemValues[] {
+  const sourceIndex = items.findIndex(
+    item => item.id === itemId
+  );
+
+  if (sourceIndex < 0) {
+    return items.map(item => ({
+      ...item,
+    }));
+  }
+
+  const source = items[sourceIndex]!;
+
+  const duplicate: WorkspaceItemValues = {
+    ...source,
+    id: nextItemId(items),
+  };
+
+  return [
+    ...items
+      .slice(0, sourceIndex + 1)
+      .map(item => ({
+        ...item,
+      })),
+    duplicate,
+    ...items
+      .slice(sourceIndex + 1)
+      .map(item => ({
+        ...item,
+      })),
+  ];
+}
+
 function nextCartonId(
   cartons: readonly WorkspaceCartonValues[]
 ): string {
@@ -988,7 +1026,8 @@ export default function PackingWorkspace({
   const [running, setRunning] =
     useState(false);
 
-  const itemLabels = createWorkspaceItemLabels(items);
+  const itemLabels =
+    createWorkspaceItemLabels(items);
 
   const updateItem = (
     id: string,
@@ -1065,6 +1104,15 @@ export default function PackingWorkspace({
         quantity: 1,
       },
     ]);
+  };
+
+  const duplicateItem = (id: string) => {
+    setItems(current =>
+      duplicateWorkspaceItem(
+        current,
+        id
+      )
+    );
   };
 
   const removeItem = (id: string) => {
@@ -1323,19 +1371,33 @@ export default function PackingWorkspace({
                         </strong>
                       </div>
 
-                      {items.length > 1 && (
+                      <div>
                         <button
                           type="button"
                           onClick={() =>
-                            removeItem(
+                            duplicateItem(
                               item.id
                             )
                           }
                           className="pm-remove-button"
                         >
-                          Remove
+                          Duplicate
                         </button>
-                      )}
+
+                        {items.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              removeItem(
+                                item.id
+                              )
+                            }
+                            className="pm-remove-button"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     <div className="pm-carton-fields">
@@ -1416,7 +1478,9 @@ export default function PackingWorkspace({
                         <input
                           className="pm-number-input"
                           type="number"
-                          value={item.unitWeightG ?? ''}
+                          value={
+                            item.unitWeightG ?? ''
+                          }
                           min={0.001}
                           step={0.001}
                           placeholder="e.g. 500"
