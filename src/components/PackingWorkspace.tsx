@@ -12,6 +12,12 @@ import {
   saveRecentPersonalPlan,
   type RecentPersonalPlan,
 } from '../browser/personal-recent-plans.js';
+import {
+  listRecentPersonalItems,
+  saveRecentPersonalItems,
+  type RecentPersonalItem,
+  type RecentPersonalItemInput,
+} from '../browser/personal-recent-items.js';
 import { createCarton } from '../core/domain/carton.js';
 import { createItem } from '../core/domain/item.js';
 import type { PackingPlan } from '../core/domain/packing-plan.js';
@@ -1185,6 +1191,99 @@ function nextCartonId(
   return `workspace-carton-${index}`;
 }
 
+export function RecentPersonalItems({
+  items,
+  unitSystem,
+  onAdd,
+}: {
+  items: readonly RecentPersonalItem[];
+  unitSystem: WorkspaceUnitSystem;
+  onAdd: (item: RecentPersonalItem) => void;
+}) {
+  if (items.length === 0) {
+    return null;
+  }
+
+  const lengthUnit =
+    unitSystem === 'metric'
+      ? 'mm'
+      : 'in';
+
+  const weightUnit =
+    unitSystem === 'metric'
+      ? 'g'
+      : 'oz';
+
+  return (
+    <details className="pm-details">
+      <summary>
+        Recent items ({items.length})
+      </summary>
+
+      <div className="pm-details-body">
+        <div className="pm-inventory-result-list">
+          {items.map((record, index) => (
+            <div
+              key={`${record.fingerprint}-${record.savedAt}-${index}`}
+              className="pm-inventory-result-row"
+            >
+              <div className="pm-inventory-result-main">
+                <strong>
+                  {record.name?.trim() ||
+                    'Unnamed item'}
+                </strong>
+
+                <span className="pm-dimension-value">
+                  {workspaceLengthToDisplay(
+                    record.lengthMm,
+                    unitSystem
+                  )}{' '}
+                  ×{' '}
+                  {workspaceLengthToDisplay(
+                    record.widthMm,
+                    unitSystem
+                  )}{' '}
+                  ×{' '}
+                  {workspaceLengthToDisplay(
+                    record.heightMm,
+                    unitSystem
+                  )}{' '}
+                  {lengthUnit}
+                  {' · '}Qty {record.quantity}
+                  {record.unitWeightG !==
+                  undefined
+                    ? ` · ${workspaceWeightToDisplay(
+                        record.unitWeightG,
+                        unitSystem
+                      )} ${weightUnit}`
+                    : ''}
+                </span>
+              </div>
+
+              <div className="pm-inventory-result-count">
+                <div className="pm-result-tabs">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onAdd(record)
+                    }
+                  >
+                    Add item
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <p className="pm-fine-print">
+          Your recent items stay in this browser.
+        </p>
+      </div>
+    </details>
+  );
+}
+
 export function RecentPersonalPlans({
   plans,
   onOpen,
@@ -1296,6 +1395,15 @@ export default function PackingWorkspace(
       []
     );
 
+
+  const [
+    recentItems,
+    setRecentItems,
+  ] =
+    useState<RecentPersonalItem[]>(
+      []
+    );
+
   useEffect(() => {
     if (
       initialUnitSystem !== undefined
@@ -1327,6 +1435,27 @@ export default function PackingWorkspace(
       .catch(() => {
         if (active) {
           setRecentPlans([]);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+
+  useEffect(() => {
+    let active = true;
+
+    void listRecentPersonalItems()
+      .then(items => {
+        if (active) {
+          setRecentItems(items);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setRecentItems([]);
         }
       });
 
@@ -1630,6 +1759,56 @@ export default function PackingWorkspace(
     });
   };
 
+  const recentItemInput = (
+    item: WorkspaceItemValues
+  ): RecentPersonalItemInput => ({
+    ...(item.name !== undefined
+      ? { name: item.name }
+      : {}),
+    lengthMm: item.lengthMm,
+    widthMm: item.widthMm,
+    heightMm: item.heightMm,
+    quantity: item.quantity,
+    ...(item.unitWeightG !== undefined
+      ? { unitWeightG: item.unitWeightG }
+      : {}),
+    ...(item.keepUpright !== undefined
+      ? { keepUpright: item.keepUpright }
+      : {}),
+    ...(item.allowRotation !== undefined
+      ? { allowRotation: item.allowRotation }
+      : {}),
+  });
+
+  const rememberRecentItems = (
+    nextItems: readonly WorkspaceItemValues[]
+  ) => {
+    void (async () => {
+      try {
+        const saved =
+          await saveRecentPersonalItems(
+            nextItems.map(
+              recentItemInput
+            )
+          );
+
+        if (!saved) {
+          return;
+        }
+
+        const nextRecentItems =
+          await listRecentPersonalItems();
+
+        setRecentItems(
+          nextRecentItems
+        );
+      } catch {
+        // Browser persistence is optional.
+        // A storage failure must never fail packing.
+      }
+    })();
+  };
+
   const rememberRecentPlan = (
     nextPlan: PackingPlan,
     nextMode: WorkspaceMode
@@ -1677,6 +1856,73 @@ export default function PackingWorkspace(
     setMode(recentPlan.mode);
     setViewingRecentPlan(true);
     setPlan(recentPlan.plan);
+  };
+
+
+  const addRecentItem = (
+    recentItem: RecentPersonalItem
+  ) => {
+    setItems(current => {
+      const firstItem = current[0];
+
+      const replacesUntouchedDefault =
+        current.length === 1 &&
+        firstItem !== undefined &&
+        (firstItem.name ?? '') === '' &&
+        firstItem.lengthMm === 80 &&
+        firstItem.widthMm === 80 &&
+        firstItem.heightMm === 80 &&
+        firstItem.quantity === 1 &&
+        firstItem.unitWeightG === undefined &&
+        (firstItem.keepUpright ?? false) === false &&
+        (firstItem.allowRotation ?? true) === true;
+
+      const nextItem: WorkspaceItemValues = {
+        id: replacesUntouchedDefault
+          ? firstItem.id
+          : nextItemId(
+    current
+  ),
+        ...(recentItem.name !== undefined
+          ? { name: recentItem.name }
+          : {}),
+        lengthMm:
+          recentItem.lengthMm,
+        widthMm:
+          recentItem.widthMm,
+        heightMm:
+          recentItem.heightMm,
+        quantity:
+          recentItem.quantity,
+        ...(recentItem.unitWeightG !==
+        undefined
+          ? {
+              unitWeightG:
+                recentItem.unitWeightG,
+            }
+          : {}),
+        ...(recentItem.keepUpright !==
+        undefined
+          ? {
+              keepUpright:
+                recentItem.keepUpright,
+            }
+          : {}),
+        ...(recentItem.allowRotation !==
+        undefined
+          ? {
+              allowRotation:
+                recentItem.allowRotation,
+            }
+          : {}),
+      };
+
+      return replacesUntouchedDefault
+        ? [nextItem]
+        : [...current, nextItem];
+    });
+
+    clearResult();
   };
 
   const chooseMode = (
@@ -1749,6 +1995,8 @@ export default function PackingWorkspace(
           'hybrid-boxes'
         );
       }
+
+      rememberRecentItems(items);
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -1913,6 +2161,12 @@ export default function PackingWorkspace(
                 </p>
               </div>
             </div>
+
+            <RecentPersonalItems
+              items={recentItems}
+              unitSystem={unitSystem}
+              onAdd={addRecentItem}
+            />
 
             <div className="pm-carton-list">
               {items.map(
