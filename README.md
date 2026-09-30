@@ -58,7 +58,7 @@ Phase 7 complete: Three Box-Availability Workflows implemented and validated.
 - Multiple different item types and independent quantities supported across all three workflows.
 - Canonical verified planning remains the single source of truth for all workflows.
 
-**Test baseline**: 675 tests passing.
+**Test baseline**: 707 tests passing.
 
 ## Next planned product phase
 
@@ -72,5 +72,18 @@ Phase 8 progress:
 - Duplicate item action with unique stable internal IDs
 - Metric/imperial UI unit switching while preserving canonical mm/g internally
 - Keep Upright preference using canonical rotationPolicy: 'upright'
+- Allow Rotation preference using canonical rotation behavior
+- Personal primary CTA: Find my packing plan
+- Personal result selection rationale: Why this plan?
+- Personal result Save plan action
+- Personal result Share plan action
+- Personal result Packed weight metric
+- Personal result Empty space metric
 
-**Note**: Fragile UI intentionally deferred — canonical `fragile` field exists, but current baseline solver and verifier do not yet enforce fragile-specific behavior; UI should not imply enforcement until core behavior exists.
+**Intentional deferrals / limitations**:
+- Fragile UI deferred: canonical `fragile` field exists but current solver/verifier do not enforce fragile behavior.
+- Extra Padding UI deferred: canonical `paddingAllowanceMm` exists but current solver/verifier do not enforce padding geometry.
+- Lighter boxes preference deferred: easier-to-carry objective requires complete weight data not guaranteed in current personal workflow.
+- Fewer boxes preference not exposed as separate toggle: current personal planning already uses fewest-cartons.
+- General 2–3 "best alternatives" UI deferred: BaselineSolver returns only one solver candidate.
+- Print intentionally NOT part of Personal Results: current product decision is Save + Share only.
