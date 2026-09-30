@@ -711,3 +711,53 @@ Phase 8 — Personal UX
 
 ### Current stage
 Phase 8 — Personal UX in progress
+
+## 2026-09-30 — Phase 8 Personal UX complete
+
+### Completed
+
+Summarize the final Phase 8 capabilities:
+- plain-language personal workspace
+- multiple named items and quantities
+- optional item weight
+- item duplication/removal
+- Metric / Imperial UI switching
+- persisted unit preference
+- three box-availability workflows
+- Keep Upright / Allow Rotation
+- Find my packing plan CTA
+- understandable verified results
+- 3D visualization
+- utilization / packed weight / empty space
+- Why this plan? rationale
+- Save / Share
+- Recent Personal plans
+- Recent Personal items
+- browser-first / account-free Personal experience
+
+### Validated deferrals
+
+Record the six existing intentional deferrals without changing their meaning:
+- Fragile UI deferred because solver/verifier do not enforce fragile behavior
+- Extra Padding deferred because padding geometry is not currently enforced
+- Lighter boxes preference deferred because complete weight data is not guaranteed
+- Fewer boxes preference not separately exposed because current personal planning already prioritizes fewest cartons
+- General 2–3 best alternatives deferred because BaselineSolver returns one candidate
+- Print intentionally excluded from Personal Results; Save + Share remain the product decision
+
+### Final validation
+
+Record:
+- latest accepted implementation baseline: 738 tests passing
+- 49 test files passing
+- GitHub Actions run #45: SUCCESS
+- production build passed
+- no Phase 8 blockers remain
+
+### Current dependency-aware stage
+
+Phase 8 complete.
+
+### Next planned phase
+
+Phase 9 — Business UX

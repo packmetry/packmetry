@@ -46,47 +46,36 @@ See `docs/process/AI_IMPLEMENTATION_WORKFLOW.md`.
 
 ## Current state
 
-Phase 7 complete: Three Box-Availability Workflows implemented and validated.
+Phase 8 complete: Personal UX implemented and validated.
 
-- ADR-010 accepted and implemented.
-- Purchase-carton candidate generation implemented.
-- I Need Boxes workflow fully integrated into PackingWorkspace.
-- I Already Have Boxes workflow with inventory-aware workspace integration.
-- Hybrid existing-first + buy-remainder workflow integrated into PackingWorkspace.
-- Packmetry workspace UI redesigned and compacted.
-- Result presentation streamlined (nested result scrolling removed).
-- Multiple different item types and independent quantities supported across all three workflows.
-- Canonical verified planning remains the single source of truth for all workflows.
+**Personal UX core capabilities**:
+- Personal item names
+- Personal item names in visualization/result summary
+- Optional personal item weight
+- Duplicate item
+- Metric / Imperial switching
+- Persisted Metric / Imperial unit preference
+- Keep Upright
+- Allow Rotation
+- Personal CTA: Find my packing plan
+- Why this plan? rationale
+- Save plan
+- Share plan
+- Packed weight
+- Empty space
+- Recent Personal packing plans
+- Recent Personal items
 
 **Test baseline**: 738 tests passing.
 
+**Intentional deferrals / limitations (these do not prevent Phase 8 from being complete)**:
+- Fragile UI deferred because solver/verifier do not enforce fragile behavior
+- Extra Padding deferred because padding geometry is not currently enforced
+- Lighter boxes preference deferred because complete weight data is not guaranteed
+- Fewer boxes preference not separately exposed because current personal planning already prioritizes fewest cartons
+- General 2–3 best alternatives deferred because BaselineSolver returns one candidate
+- Print intentionally excluded from Personal Results; Save + Share remain the product decision
+
 ## Next planned product phase
 
-Phase 8 — Personal UX in progress.
-
-Phase 8 progress:
-- Personal item names added to PackingWorkspace
-- Personal item names in PackingVisualization legend
-- Personal item names in ResultSummary
-- Optional personal item weight using existing canonical unitWeightG
-- Duplicate item action with unique stable internal IDs
-- Metric/imperial UI unit switching while preserving canonical mm/g internally
-- Keep Upright preference using canonical rotationPolicy: 'upright'
-- Allow Rotation preference using canonical rotation behavior
-- Personal primary CTA: Find my packing plan
-- Personal result selection rationale: Why this plan?
-- Personal result Save plan action
-- Personal result Share plan action
-- Personal result Packed weight metric
-- Personal result Empty space metric
-- Persisted Metric / Imperial unit preference using browser localStorage
-- Recent Personal packing plans using IndexedDB
-- Recent Personal items using IndexedDB
-
-**Intentional deferrals / limitations**:
-- Fragile UI deferred: canonical `fragile` field exists but current solver/verifier do not enforce fragile behavior.
-- Extra Padding UI deferred: canonical `paddingAllowanceMm` exists but current solver/verifier do not enforce padding geometry.
-- Lighter boxes preference deferred: easier-to-carry objective requires complete weight data not guaranteed in current personal workflow.
-- Fewer boxes preference not exposed as separate toggle: current personal planning already uses fewest-cartons.
-- General 2–3 "best alternatives" UI deferred: BaselineSolver returns only one solver candidate.
-- Print intentionally NOT part of Personal Results: current product decision is Save + Share only.
+Phase 9 — Business UX
