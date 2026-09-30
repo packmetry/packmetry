@@ -2,6 +2,11 @@ import { useEffect, useState, type SyntheticEvent } from 'react';
 
 import PackingVisualization from './PackingVisualization.js';
 import ResultSummary from './ResultSummary.js';
+import {
+  readPersonalUnitPreference,
+  writePersonalUnitPreference,
+  type PersonalUnitPreference,
+} from '../browser/personal-unit-preference.js';
 import { createCarton } from '../core/domain/carton.js';
 import { createItem } from '../core/domain/item.js';
 import type { PackingPlan } from '../core/domain/packing-plan.js';
@@ -31,8 +36,7 @@ export type WorkspaceMode =
   | 'hybrid-boxes';
 
 export type WorkspaceUnitSystem =
-  | 'metric'
-  | 'imperial';
+  PersonalUnitPreference;
 
 export interface WorkspaceValues {
   itemLengthMm: number;
@@ -1176,10 +1180,13 @@ function nextCartonId(
   return `workspace-carton-${index}`;
 }
 
-export default function PackingWorkspace({
-  initialMode = 'need-boxes',
-  initialUnitSystem = 'metric',
-}: PackingWorkspaceProps = {}) {
+export default function PackingWorkspace(
+  props: PackingWorkspaceProps = {}
+) {
+  const {
+    initialMode = 'need-boxes',
+    initialUnitSystem,
+  } = props;
   const [mode, setMode] =
     useState<WorkspaceMode>(
       initialMode
@@ -1190,8 +1197,27 @@ export default function PackingWorkspace({
     setUnitSystem,
   ] =
     useState<WorkspaceUnitSystem>(
-      initialUnitSystem
+      initialUnitSystem ?? 'metric'
     );
+
+  useEffect(() => {
+    if (
+      initialUnitSystem !== undefined
+    ) {
+      return;
+    }
+
+    const savedUnitSystem =
+      readPersonalUnitPreference();
+
+    if (
+      savedUnitSystem !== undefined
+    ) {
+      setUnitSystem(
+        savedUnitSystem
+      );
+    }
+  }, [initialUnitSystem]);
 
   const [items, setItems] =
     useState<
@@ -1370,6 +1396,18 @@ export default function PackingWorkspace({
             }
           : item
       )
+    );
+  };
+
+  const changeUnitSystem = (
+    nextUnitSystem: WorkspaceUnitSystem
+  ) => {
+    setUnitSystem(
+      nextUnitSystem
+    );
+
+    writePersonalUnitPreference(
+      nextUnitSystem
     );
   };
 
@@ -1600,7 +1638,7 @@ export default function PackingWorkspace({
                     unitSystem
                   }
                   onChange={event =>
-                    setUnitSystem(
+                    changeUnitSystem(
                       event.target
                         .value as WorkspaceUnitSystem
                     )
