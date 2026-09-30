@@ -5,6 +5,7 @@ import ResultSummary from './ResultSummary.js';
 import { createCarton, type Carton } from '../core/domain/carton.js';
 import { createItem, type Item } from '../core/domain/item.js';
 import type { PackingPlan } from '../core/domain/packing-plan.js';
+import type { ObjectiveKind } from '../core/domain/objectives.js';
 import { BaselineSolver } from '../core/solver/index.js';
 import {
   planHaveBoxes,
@@ -35,6 +36,19 @@ export interface BusinessCartonValues {
   costPerBox: number | undefined;
 }
 
+export type BusinessObjectiveKind = Extract<
+  ObjectiveKind,
+  | 'balanced'
+  | 'fewest-cartons'
+  | 'least-wasted-volume'
+>;
+
+export interface BusinessObjectiveOption {
+  kind: BusinessObjectiveKind;
+  label: string;
+  description: string;
+}
+
 export interface BusinessWorkspaceResult {
   plan: PackingPlan;
   inventoryUsage: HaveBoxesInventoryUsage;
@@ -43,7 +57,30 @@ export interface BusinessWorkspaceResult {
 export interface BusinessWorkspaceProps {
   initialProducts?: readonly BusinessProductValues[];
   initialCartons?: readonly BusinessCartonValues[];
+  initialObjective?: BusinessObjectiveKind;
 }
+
+export const BUSINESS_OBJECTIVE_OPTIONS:
+  readonly BusinessObjectiveOption[] = [
+    {
+      kind: 'balanced',
+      label: 'Balanced',
+      description:
+        'Prefer fewer cartons first, then reduce empty space.',
+    },
+    {
+      kind: 'fewest-cartons',
+      label: 'Fewest boxes',
+      description:
+        'Prioritize using the fewest cartons for the order.',
+    },
+    {
+      kind: 'least-wasted-volume',
+      label: 'Least empty space',
+      description:
+        'Prioritize lower empty volume across the selected cartons.',
+    },
+  ];
 
 export const DEFAULT_BUSINESS_PRODUCTS: BusinessProductValues[] = [
   {
@@ -255,7 +292,8 @@ export function createBusinessItemLabels(
 
 export async function runBusinessWorkspace(
   products: readonly BusinessProductValues[],
-  cartons: readonly BusinessCartonValues[]
+  cartons: readonly BusinessCartonValues[],
+  objective: BusinessObjectiveKind = 'balanced'
 ): Promise<BusinessWorkspaceResult> {
   const result =
     await planHaveBoxes(
@@ -271,7 +309,7 @@ export async function runBusinessWorkspace(
             cartons
           ),
         objective: {
-          kind: 'balanced',
+          kind: objective,
         },
       }
     );
@@ -326,6 +364,7 @@ function cartonDisplayName(
 export default function BusinessWorkspace({
   initialProducts,
   initialCartons,
+  initialObjective = 'balanced',
 }: BusinessWorkspaceProps) {
   const [
     products,
@@ -375,6 +414,20 @@ export default function BusinessWorkspace({
 
   const [running, setRunning] =
     useState(false);
+
+  const [
+    objective,
+    setObjective,
+  ] =
+    useState<BusinessObjectiveKind>(
+      initialObjective
+    );
+
+  const objectiveCopy =
+    BUSINESS_OBJECTIVE_OPTIONS.find(
+      option =>
+        option.kind === objective
+    )!;
 
   const updateProduct = (
     id: string,
@@ -486,6 +539,18 @@ export default function BusinessWorkspace({
     });
   };
 
+  const chooseObjective = (
+    nextObjective:
+      BusinessObjectiveKind
+  ) => {
+    setObjective(
+      nextObjective
+    );
+    setPlan(null);
+    setInventoryUsage(null);
+    setError(null);
+  };
+
   const submit = async (
     event:
       SyntheticEvent<HTMLFormElement>
@@ -501,7 +566,8 @@ export default function BusinessWorkspace({
       const result =
         await runBusinessWorkspace(
           products,
-          cartons
+          cartons,
+          objective
         );
 
       setPlan(result.plan);
@@ -564,22 +630,21 @@ export default function BusinessWorkspace({
             </div>
 
             <span className="pm-status-label">
-              Balanced
+              {objectiveCopy.label}
             </span>
           </div>
 
           <div className="pm-context-note">
             <strong>
-              First Business UX slice
+              Business optimization
             </strong>
 
             <span>
-              Manual order entry,
-              carton inventory and a
-              balanced verified packing
-              result. Objective
-              selection comes in a
-              later Phase 9 slice.
+              Enter this order and the
+              cartons available to it,
+              then choose how Packmetry
+              should rank verified
+              packing candidates.
             </span>
           </div>
 
@@ -1221,6 +1286,60 @@ export default function BusinessWorkspace({
             >
               + Add another carton
             </button>
+          </section>
+
+          <section className="pm-form-section">
+            <div className="pm-form-section-heading">
+              <span className="pm-section-number">
+                03
+              </span>
+
+              <div>
+                <h3>
+                  Optimization objective
+                </h3>
+
+                <p>
+                  Choose the business
+                  goal used to rank
+                  verified packing
+                  candidates.
+                </p>
+              </div>
+            </div>
+
+            <div className="pm-mode-selector">
+              {BUSINESS_OBJECTIVE_OPTIONS.map(
+                option => (
+                  <button
+                    key={option.kind}
+                    type="button"
+                    className="pm-mode-option"
+                    aria-pressed={
+                      objective ===
+                      option.kind
+                    }
+                    onClick={() =>
+                      chooseObjective(
+                        option.kind
+                      )
+                    }
+                  >
+                    {option.label}
+                  </button>
+                )
+              )}
+            </div>
+
+            <div className="pm-mode-explainer">
+              <strong>
+                {objectiveCopy.label}
+              </strong>
+
+              <span>
+                {objectiveCopy.description}
+              </span>
+            </div>
           </section>
 
           <div className="pm-submit-area">
