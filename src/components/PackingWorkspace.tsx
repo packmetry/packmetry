@@ -7,6 +7,11 @@ import {
   writePersonalUnitPreference,
   type PersonalUnitPreference,
 } from '../browser/personal-unit-preference.js';
+import {
+  listRecentPersonalPlans,
+  saveRecentPersonalPlan,
+  type RecentPersonalPlan,
+} from '../browser/personal-recent-plans.js';
 import { createCarton } from '../core/domain/carton.js';
 import { createItem } from '../core/domain/item.js';
 import type { PackingPlan } from '../core/domain/packing-plan.js';
@@ -1180,6 +1185,89 @@ function nextCartonId(
   return `workspace-carton-${index}`;
 }
 
+export function RecentPersonalPlans({
+  plans,
+  onOpen,
+}: {
+  plans: readonly RecentPersonalPlan[];
+  onOpen: (plan: RecentPersonalPlan) => void;
+}) {
+  if (plans.length === 0) {
+    return null;
+  }
+
+  return (
+    <details className="pm-details">
+      <summary>
+        Recent plans ({plans.length})
+      </summary>
+
+      <div className="pm-details-body">
+        <div className="pm-inventory-result-list">
+          {plans.map((record, index) => {
+            const metrics =
+              record.plan.metrics;
+
+            return (
+              <div
+                key={`${record.savedAt}-${record.plan.id}-${index}`}
+                className="pm-inventory-result-row"
+              >
+                <div className="pm-inventory-result-main">
+                  <strong>
+                    {
+                      MODE_COPY[
+                        record.mode
+                      ].short
+                    }
+                  </strong>
+
+                  <span className="pm-dimension-value">
+                    {metrics.cartonCount}{' '}
+                    {metrics.cartonCount ===
+                    1
+                      ? 'box'
+                      : 'boxes'}
+                    {' · '}
+                    {metrics.placedItemCount}{' '}
+                    {metrics.placedItemCount ===
+                    1
+                      ? 'item'
+                      : 'items'}
+                    {' · '}
+                    {(
+                      metrics.utilization *
+                      100
+                    ).toFixed(1)}
+                    % used
+                  </span>
+                </div>
+
+                <div className="pm-inventory-result-count">
+                  <div className="pm-result-tabs">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onOpen(record)
+                      }
+                    >
+                      View plan
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="pm-fine-print">
+          Your recent plans stay in this browser.
+        </p>
+      </div>
+    </details>
+  );
+}
+
 export default function PackingWorkspace(
   props: PackingWorkspaceProps = {}
 ) {
@@ -1200,6 +1288,14 @@ export default function PackingWorkspace(
       initialUnitSystem ?? 'metric'
     );
 
+  const [
+    recentPlans,
+    setRecentPlans,
+  ] =
+    useState<RecentPersonalPlan[]>(
+      []
+    );
+
   useEffect(() => {
     if (
       initialUnitSystem !== undefined
@@ -1218,6 +1314,26 @@ export default function PackingWorkspace(
       );
     }
   }, [initialUnitSystem]);
+
+  useEffect(() => {
+    let active = true;
+
+    void listRecentPersonalPlans()
+      .then(plans => {
+        if (active) {
+          setRecentPlans(plans);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setRecentPlans([]);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const [items, setItems] =
     useState<
@@ -1245,6 +1361,12 @@ export default function PackingWorkspace(
     useState<PackingPlan | null>(
       null
     );
+
+  const [
+    viewingRecentPlan,
+    setViewingRecentPlan,
+  ] =
+    useState(false);
 
   const [
     purchaseRecommendations,
@@ -1508,14 +1630,53 @@ export default function PackingWorkspace(
     });
   };
 
+  const rememberRecentPlan = (
+    nextPlan: PackingPlan,
+    nextMode: WorkspaceMode
+  ) => {
+    void (async () => {
+      try {
+        const saved =
+          await saveRecentPersonalPlan(
+            nextPlan,
+            nextMode
+          );
+
+        if (!saved) {
+          return;
+        }
+
+        const nextRecentPlans =
+          await listRecentPersonalPlans();
+
+        setRecentPlans(
+          nextRecentPlans
+        );
+      } catch {
+        // Browser persistence is optional.
+        // A storage failure must never fail packing.
+      }
+    })();
+  };
+
   const clearResult = () => {
     setPlan(null);
+    setViewingRecentPlan(false);
     setPurchaseRecommendations(
       []
     );
     setInventoryUsage(null);
     setHybridResult(null);
     setError(null);
+  };
+
+  const openRecentPlan = (
+    recentPlan: RecentPersonalPlan
+  ) => {
+    clearResult();
+    setMode(recentPlan.mode);
+    setViewingRecentPlan(true);
+    setPlan(recentPlan.plan);
   };
 
   const chooseMode = (
@@ -1547,6 +1708,11 @@ export default function PackingWorkspace(
         setPurchaseRecommendations(
           result.purchaseRecommendations
         );
+
+        rememberRecentPlan(
+          result.plan,
+          'need-boxes'
+        );
       } else if (
         mode === 'have-boxes'
       ) {
@@ -1561,6 +1727,11 @@ export default function PackingWorkspace(
         setInventoryUsage(
           result.inventoryUsage
         );
+
+        rememberRecentPlan(
+          result.plan,
+          'have-boxes'
+        );
       } else {
         const result =
           await runHybridBoxesWorkspaceItems(
@@ -1570,6 +1741,12 @@ export default function PackingWorkspace(
 
         setHybridResult(
           result
+        );
+
+        rememberRecentPlan(
+          result.supplementalPlan ??
+            result.existingPlan,
+          'hybrid-boxes'
         );
       }
     } catch (caught) {
@@ -2328,6 +2505,11 @@ export default function PackingWorkspace(
           className="pm-pane pm-result-pane"
           aria-live="polite"
         >
+          <RecentPersonalPlans
+            plans={recentPlans}
+            onOpen={openRecentPlan}
+          />
+
           {!plan &&
             !hybridResult &&
             !error && (
@@ -2416,14 +2598,18 @@ export default function PackingWorkspace(
                 <ResultSummary
                   plan={plan}
                   itemLabels={
-                    itemLabels
+                    viewingRecentPlan
+                      ? undefined
+                      : itemLabels
                   }
                 />
 
                 <PackingVisualization
                   plan={plan}
                   itemLabels={
-                    itemLabels
+                    viewingRecentPlan
+                      ? undefined
+                      : itemLabels
                   }
                 />
               </div>
