@@ -58,7 +58,7 @@ Phase 7 complete: Three Box-Availability Workflows implemented and validated.
 - Multiple different item types and independent quantities supported across all three workflows.
 - Canonical verified planning remains the single source of truth for all workflows.
 
-**Test baseline**: 707 tests passing.
+**Test baseline**: 738 tests passing.
 
 ## Next planned product phase
 
@@ -79,6 +79,9 @@ Phase 8 progress:
 - Personal result Share plan action
 - Personal result Packed weight metric
 - Personal result Empty space metric
+- Persisted Metric / Imperial unit preference using browser localStorage
+- Recent Personal packing plans using IndexedDB
+- Recent Personal items using IndexedDB
 
 **Intentional deferrals / limitations**:
 - Fragile UI deferred: canonical `fragile` field exists but current solver/verifier do not enforce fragile behavior.

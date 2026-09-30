@@ -686,6 +686,9 @@ Phase 8 — Personal UX
 - Personal result Share plan action
 - Personal result Packed weight metric
 - Personal result Empty space metric
+- Persisted Metric / Imperial unit preference using browser localStorage
+- Recent Personal packing plans using IndexedDB
+- Recent Personal items using IndexedDB
 
 ### Intentional deferrals / limitations
 - Fragile UI deferred: canonical `fragile` field exists but current solver/verifier do not enforce fragile behavior
@@ -696,14 +699,14 @@ Phase 8 — Personal UX
 - Print intentionally NOT part of Personal Results: current product decision is Save + Share only
 
 ### Current CI validation
-- Latest main commit: 3c0326c
-- GitHub Actions CI run #40: SUCCESS
-- 86 files checked
+- Latest main commit: 82130a9
+- GitHub Actions CI run #44: SUCCESS
+- 92 files checked
 - 0 errors
 - 0 warnings
 - 0 hints
-- 46 test files passed
-- 707 tests passed
+- 49 test files passed
+- 738 tests passed
 - Production build passed
 
 ### Current stage
