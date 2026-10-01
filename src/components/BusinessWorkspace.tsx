@@ -1,9 +1,18 @@
-import { useState, type SyntheticEvent } from 'react';
+import { useEffect, useState, type SyntheticEvent } from 'react';
 
 import PackingVisualization from './PackingVisualization.js';
 import ResultSummary, {
   formatPackedWeight,
 } from './ResultSummary.js';
+import {
+  createSavedBusinessCarton,
+  deleteSavedBusinessCarton,
+  listSavedBusinessCartons,
+  orderSavedBusinessCartons,
+  saveBusinessCarton,
+  type SavedBusinessCarton,
+  type SavedBusinessCartonInput,
+} from '../browser/business-carton-library.js';
 import { createCarton, type Carton } from '../core/domain/carton.js';
 import { createItem, type Item } from '../core/domain/item.js';
 import type { RotationPolicy } from '../core/domain/constraints.js';
@@ -29,6 +38,7 @@ export interface BusinessProductValues {
 
 export interface BusinessCartonValues {
   id: string;
+  libraryId?: string;
   name: string;
   cartonCode: string;
   lengthMm: number;
@@ -98,6 +108,17 @@ export interface BusinessResultMetrics {
   totalCartonCost?: number;
   usedCartonCount: number;
   remainingCartonCount?: number;
+}
+
+export interface SavedBusinessCartonLibraryProps {
+  cartons: readonly SavedBusinessCarton[];
+  message: string | null;
+  onUse: (
+    carton: SavedBusinessCarton
+  ) => void;
+  onDelete: (
+    carton: SavedBusinessCarton
+  ) => void;
 }
 
 export interface BusinessWorkspaceProps {
@@ -207,6 +228,72 @@ function nextCartonId(
   }
 
   return `business-carton-${index}`;
+}
+
+export function businessCartonFromSavedCarton(
+  savedCarton: SavedBusinessCarton,
+  currentCartons: readonly BusinessCartonValues[]
+): BusinessCartonValues {
+  const id =
+    currentCartons.some(
+      carton =>
+        carton.id ===
+        savedCarton.id
+    )
+      ? nextCartonId(
+          currentCartons
+        )
+      : savedCarton.id;
+
+  return {
+    id,
+    libraryId:
+      savedCarton.id,
+    name: savedCarton.name,
+    cartonCode:
+      savedCarton.cartonCode,
+    lengthMm:
+      savedCarton.lengthMm,
+    widthMm:
+      savedCarton.widthMm,
+    heightMm:
+      savedCarton.heightMm,
+    quantityAvailable:
+      savedCarton.quantityAvailable,
+    maxGrossWeightG:
+      savedCarton.maxGrossWeightG,
+    emptyBoxWeightG:
+      savedCarton.emptyBoxWeightG,
+    costPerBox:
+      savedCarton.costPerBox,
+  };
+}
+
+export function savedBusinessCartonInputFromBusinessCarton(
+  carton: BusinessCartonValues
+): SavedBusinessCartonInput {
+  return {
+    id:
+      carton.libraryId ??
+      carton.id,
+    name: carton.name,
+    cartonCode:
+      carton.cartonCode,
+    lengthMm:
+      carton.lengthMm,
+    widthMm:
+      carton.widthMm,
+    heightMm:
+      carton.heightMm,
+    quantityAvailable:
+      carton.quantityAvailable,
+    maxGrossWeightG:
+      carton.maxGrossWeightG,
+    emptyBoxWeightG:
+      carton.emptyBoxWeightG,
+    costPerBox:
+      carton.costPerBox,
+  };
 }
 
 function optionalNumber(
@@ -505,6 +592,107 @@ function cartonDisplayName(
   return carton.id;
 }
 
+export function SavedBusinessCartonLibrary({
+  cartons,
+  message,
+  onUse,
+  onDelete,
+}: SavedBusinessCartonLibraryProps) {
+  return (
+    <>
+      <div className="pm-context-note">
+        <strong>
+          Saved carton library
+        </strong>
+
+        <span>
+          Your saved cartons stay in
+          this browser.
+        </span>
+
+        {message !== null && (
+          <span>
+            {message}
+          </span>
+        )}
+      </div>
+
+      {cartons.length === 0 ? (
+        <p className="pm-submit-note">
+          No saved cartons yet.
+        </p>
+      ) : (
+        <div className="pm-carton-list">
+          {cartons.map(
+            carton => {
+              const displayName =
+                carton.name.trim() !== ''
+                  ? carton.name
+                  : carton.cartonCode.trim() !==
+                      ''
+                    ? carton.cartonCode
+                    : carton.id;
+
+              return (
+                <div
+                  key={carton.id}
+                  className="pm-carton-row"
+                >
+                  <div className="pm-carton-row-header">
+                    <div>
+                      <strong>
+                        {displayName}
+                      </strong>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="pm-remove-button"
+                      onClick={() =>
+                        onDelete(
+                          carton
+                        )
+                      }
+                    >
+                      Delete saved
+                    </button>
+                  </div>
+
+                  <span className="pm-submit-note">
+                    {carton.lengthMm} ×{' '}
+                    {carton.widthMm} ×{' '}
+                    {carton.heightMm} mm
+                    {' · '}Qty{' '}
+                    {
+                      carton.quantityAvailable
+                    }
+                    {carton.cartonCode
+                      .trim() !== ''
+                      ? ` · ${carton.cartonCode}`
+                      : ''}
+                  </span>
+
+                  <button
+                    type="button"
+                    className="pm-add-button"
+                    onClick={() =>
+                      onUse(
+                        carton
+                      )
+                    }
+                  >
+                    Use carton
+                  </button>
+                </div>
+              );
+            }
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function BusinessWorkspace({
   initialProducts,
   initialCartons,
@@ -539,6 +727,41 @@ export default function BusinessWorkspace({
         cloneBusinessCarton
       )
     );
+
+  const [
+    savedCartons,
+    setSavedCartons,
+  ] =
+    useState<
+      SavedBusinessCarton[]
+    >([]);
+
+  const [
+    cartonLibraryMessage,
+    setCartonLibraryMessage,
+  ] =
+    useState<string | null>(
+      null
+    );
+
+  useEffect(() => {
+    let active = true;
+
+    void listSavedBusinessCartons()
+      .then(
+        loadedCartons => {
+          if (active) {
+            setSavedCartons(
+              loadedCartons
+            );
+          }
+        }
+      );
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const [plan, setPlan] =
     useState<PackingPlan | null>(
@@ -683,6 +906,104 @@ export default function BusinessWorkspace({
       );
     });
   };
+
+  const saveCartonToLibrary =
+    async (
+      carton:
+        BusinessCartonValues
+    ) => {
+      setCartonLibraryMessage(
+        null
+      );
+
+      const libraryCarton =
+        savedBusinessCartonInputFromBusinessCarton(
+          carton
+        );
+
+      const saved =
+        await saveBusinessCarton(
+          libraryCarton
+        );
+
+      if (!saved) {
+        setCartonLibraryMessage(
+          'Could not save this carton in this browser.'
+        );
+        return;
+      }
+
+      const savedCarton =
+        createSavedBusinessCarton(
+          libraryCarton
+        );
+
+      setSavedCartons(
+        current =>
+          orderSavedBusinessCartons(
+            [
+              savedCarton,
+              ...current,
+            ]
+          )
+      );
+
+      setCartonLibraryMessage(
+        'Carton saved in this browser.'
+      );
+    };
+
+  const useSavedCarton = (
+    savedCarton:
+      SavedBusinessCarton
+  ) => {
+    setCartons(current => [
+      ...current,
+      businessCartonFromSavedCarton(
+        savedCarton,
+        current
+      ),
+    ]);
+
+    setCartonLibraryMessage(
+      'Saved carton added to this order.'
+    );
+  };
+
+  const deleteCartonFromLibrary =
+    async (
+      savedCarton:
+        SavedBusinessCarton
+    ) => {
+      setCartonLibraryMessage(
+        null
+      );
+
+      const deleted =
+        await deleteSavedBusinessCarton(
+          savedCarton.id
+        );
+
+      if (!deleted) {
+        setCartonLibraryMessage(
+          'Could not delete this saved carton in this browser.'
+        );
+        return;
+      }
+
+      setSavedCartons(
+        current =>
+          current.filter(
+            carton =>
+              carton.id !==
+              savedCarton.id
+          )
+      );
+
+      setCartonLibraryMessage(
+        'Saved carton deleted from this browser.'
+      );
+    };
 
   const chooseObjective = (
     nextObjective:
@@ -1490,6 +1811,18 @@ export default function BusinessWorkspace({
                         />
                       </label>
                     </div>
+
+                    <button
+                      type="button"
+                      className="pm-add-button"
+                      onClick={() => {
+                        void saveCartonToLibrary(
+                          carton
+                        );
+                      }}
+                    >
+                      Save to library
+                    </button>
                   </div>
                 )
               )}
@@ -1502,6 +1835,25 @@ export default function BusinessWorkspace({
             >
               + Add another carton
             </button>
+
+            <SavedBusinessCartonLibrary
+              cartons={
+                savedCartons
+              }
+              message={
+                cartonLibraryMessage
+              }
+              onUse={
+                useSavedCarton
+              }
+              onDelete={
+                savedCarton => {
+                  void deleteCartonFromLibrary(
+                    savedCarton
+                  );
+                }
+              }
+            />
           </section>
 
           <section className="pm-form-section">
