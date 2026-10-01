@@ -360,18 +360,12 @@ describe(
     );
 
     it(
-      'keeps this slice limited to carton-library integration',
+      'keeps carton-library integration separate from later persistence slices',
       () => {
         expect(
           workspaceSource
         ).not.toContain(
           'business-project'
-        );
-
-        expect(
-          workspaceSource
-        ).not.toContain(
-          'business-objective-preference'
         );
 
         expect(

@@ -13,6 +13,10 @@ import {
   type SavedBusinessCarton,
   type SavedBusinessCartonInput,
 } from '../browser/business-carton-library.js';
+import {
+  readBusinessObjectivePreference,
+  writeBusinessObjectivePreference,
+} from '../browser/business-objective-preference.js';
 import { createCarton, type Carton } from '../core/domain/carton.js';
 import { createItem, type Item } from '../core/domain/item.js';
 import type { RotationPolicy } from '../core/domain/constraints.js';
@@ -696,7 +700,7 @@ export function SavedBusinessCartonLibrary({
 export default function BusinessWorkspace({
   initialProducts,
   initialCartons,
-  initialObjective = 'balanced',
+  initialObjective,
 }: BusinessWorkspaceProps) {
   const [
     products,
@@ -787,8 +791,30 @@ export default function BusinessWorkspace({
     setObjective,
   ] =
     useState<BusinessObjectiveKind>(
-      initialObjective
+      initialObjective ??
+        'balanced'
     );
+
+  useEffect(() => {
+    if (
+      initialObjective !==
+      undefined
+    ) {
+      return;
+    }
+
+    const savedObjective =
+      readBusinessObjectivePreference();
+
+    if (
+      savedObjective !==
+      undefined
+    ) {
+      setObjective(
+        savedObjective
+      );
+    }
+  }, [initialObjective]);
 
   const objectiveCopy =
     BUSINESS_OBJECTIVE_OPTIONS.find(
@@ -1010,6 +1036,9 @@ export default function BusinessWorkspace({
       BusinessObjectiveKind
   ) => {
     setObjective(
+      nextObjective
+    );
+    writeBusinessObjectivePreference(
       nextObjective
     );
     setPlan(null);
