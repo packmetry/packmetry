@@ -14,6 +14,10 @@ import {
   type SavedBusinessCartonInput,
 } from '../browser/business-carton-library.js';
 import {
+  readBusinessHandlingPreference,
+  writeBusinessHandlingPreference,
+} from '../browser/business-handling-preference.js';
+import {
   readBusinessObjectivePreference,
   writeBusinessObjectivePreference,
 } from '../browser/business-objective-preference.js';
@@ -718,6 +722,50 @@ export default function BusinessWorkspace({
     );
 
   const [
+    handlingPreference,
+    setHandlingPreference,
+  ] =
+    useState<BusinessHandlingPolicy>(
+      'any'
+    );
+
+  useEffect(() => {
+    const savedHandling =
+      readBusinessHandlingPreference();
+
+    if (
+      savedHandling ===
+      undefined
+    ) {
+      return;
+    }
+
+    setHandlingPreference(
+      savedHandling
+    );
+
+    if (
+      initialProducts !==
+      undefined
+    ) {
+      return;
+    }
+
+    setProducts(current =>
+      current.map(
+        (product, index) =>
+          index === 0
+            ? {
+                ...product,
+                rotationPolicy:
+                  savedHandling,
+              }
+            : product
+      )
+    );
+  }, [initialProducts]);
+
+  const [
     cartons,
     setCartons,
   ] =
@@ -839,6 +887,26 @@ export default function BusinessWorkspace({
     );
   };
 
+  const chooseHandling = (
+    id: string,
+    nextHandling:
+      BusinessHandlingPolicy
+  ) => {
+    updateProduct(
+      id,
+      {
+        rotationPolicy:
+          nextHandling,
+      }
+    );
+    setHandlingPreference(
+      nextHandling
+    );
+    writeBusinessHandlingPreference(
+      nextHandling
+    );
+  };
+
   const updateCarton = (
     id: string,
     updates:
@@ -871,7 +939,8 @@ export default function BusinessWorkspace({
         quantity: 1,
         unitWeightG:
           undefined,
-        rotationPolicy: 'any',
+        rotationPolicy:
+          handlingPreference,
       },
     ]);
   };
@@ -1447,12 +1516,9 @@ export default function BusinessWorkspace({
                                 option.policy
                               }
                               onClick={() =>
-                                updateProduct(
+                                chooseHandling(
                                   product.id,
-                                  {
-                                    rotationPolicy:
-                                      option.policy,
-                                  }
+                                  option.policy
                                 )
                               }
                             >

@@ -217,18 +217,12 @@ describe(
     );
 
     it(
-      'keeps later Business persistence slices out of this integration',
+      'keeps objective-preference integration separate from later persistence slices',
       () => {
         expect(
           workspaceSource
         ).not.toContain(
           'business-project'
-        );
-
-        expect(
-          workspaceSource
-        ).not.toContain(
-          'business-handling-preference'
         );
 
         expect(

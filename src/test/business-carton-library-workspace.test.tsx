@@ -371,12 +371,6 @@ describe(
         expect(
           workspaceSource
         ).not.toContain(
-          'business-handling-preference'
-        );
-
-        expect(
-          workspaceSource
-        ).not.toContain(
           'saved-product-catalog'
         );
       }
