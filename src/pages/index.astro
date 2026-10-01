@@ -1,9 +1,89 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import PackingWorkspace from '../components/PackingWorkspace';
 import '../styles/packmetry-workspace.css';
 ---
 
 <BaseLayout>
-  <PackingWorkspace client:load />
+  <main class="pm-workspace">
+    <header class="pm-app-header">
+      <p class="pm-app-kicker">
+        Packmetry
+      </p>
+
+      <h1>
+        Find the right way to pack it.
+      </h1>
+
+      <p class="pm-app-intro">
+        Tell us what you are packing and we will help you choose the right boxes,
+        use the ones you already have, and pack the space efficiently.
+      </p>
+
+      <p class="pm-status-label">
+        Free · No signup required · Runs in your browser
+      </p>
+    </header>
+
+    <section
+      class="pm-workbench"
+      aria-label="Choose your packing experience"
+    >
+      <article class="pm-pane">
+        <div class="pm-pane-header">
+          <div>
+            <p class="pm-pane-kicker">
+              Home &amp; Personal
+            </p>
+
+            <h2>
+              Pack occasional shipments and everyday items
+            </h2>
+          </div>
+        </div>
+
+        <p>
+          Moving, gifts, storage, household items and occasional shipping.
+        </p>
+
+        <div class="pm-submit-area">
+          <a
+            class="pm-primary-button"
+            href="/personal/"
+            style="display:flex;align-items:center;justify-content:center;text-decoration:none;"
+          >
+            Pack my items
+          </a>
+        </div>
+      </article>
+
+      <article class="pm-pane">
+        <div class="pm-pane-header">
+          <div>
+            <p class="pm-pane-kicker">
+              Business
+            </p>
+
+            <h2>
+              Optimize repeat packing against carton inventory
+            </h2>
+          </div>
+        </div>
+
+        <p>
+          Ecommerce orders, carton inventory, packaging efficiency and repeat
+          workflows.
+        </p>
+
+        <div class="pm-submit-area">
+          <a
+            class="pm-primary-button"
+            href="/business/"
+            style="display:flex;align-items:center;justify-content:center;text-decoration:none;"
+          >
+            Optimize my packing
+          </a>
+        </div>
+      </article>
+    </section>
+  </main>
 </BaseLayout>
