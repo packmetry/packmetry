@@ -1,7 +1,9 @@
 import { useState, type SyntheticEvent } from 'react';
 
 import PackingVisualization from './PackingVisualization.js';
-import ResultSummary from './ResultSummary.js';
+import ResultSummary, {
+  formatPackedWeight,
+} from './ResultSummary.js';
 import { createCarton, type Carton } from '../core/domain/carton.js';
 import { createItem, type Item } from '../core/domain/item.js';
 import type { RotationPolicy } from '../core/domain/constraints.js';
@@ -89,6 +91,13 @@ export interface BusinessObjectiveOption {
 export interface BusinessWorkspaceResult {
   plan: PackingPlan;
   inventoryUsage: HaveBoxesInventoryUsage;
+}
+
+export interface BusinessResultMetrics {
+  grossPackedWeightG?: number;
+  totalCartonCost?: number;
+  usedCartonCount: number;
+  remainingCartonCount?: number;
 }
 
 export interface BusinessWorkspaceProps {
@@ -382,6 +391,98 @@ export async function runBusinessWorkspace(
   };
 }
 
+export function buildBusinessResultMetrics(
+  plan: PackingPlan,
+  inventoryUsage: HaveBoxesInventoryUsage
+): BusinessResultMetrics {
+  const inventoryEntries = [
+    ...inventoryUsage.usedCartons,
+    ...inventoryUsage.unusedCartons,
+  ];
+
+  const usedCartonCount =
+    inventoryUsage.usedCartons.reduce(
+      (sum, entry) =>
+        sum + entry.usedQuantity,
+      0
+    );
+
+  const remainingKnown =
+    inventoryEntries.every(
+      entry =>
+        entry.remainingQuantity !==
+        undefined
+    );
+
+  return {
+    ...(plan.metrics
+      .totalGrossWeightG !==
+    undefined
+      ? {
+          grossPackedWeightG:
+            plan.metrics
+              .totalGrossWeightG,
+        }
+      : {}),
+    ...(plan.metrics
+      .totalCartonCost !==
+    undefined
+      ? {
+          totalCartonCost:
+            plan.metrics
+              .totalCartonCost,
+        }
+      : {}),
+    usedCartonCount,
+    ...(remainingKnown
+      ? {
+          remainingCartonCount:
+            inventoryEntries.reduce(
+              (sum, entry) =>
+                sum +
+                (entry.remainingQuantity ??
+                  0),
+              0
+            ),
+        }
+      : {}),
+  };
+}
+
+function formatMetricNumber(
+  value: number
+): string {
+  return value
+    .toFixed(2)
+    .replace(/\.00$/, '')
+    .replace(/(\.\d)0$/, '$1');
+}
+
+export function formatBusinessCartonCost(
+  value: number | undefined
+): string {
+  if (value === undefined) {
+    return 'Not provided';
+  }
+
+  return `${formatMetricNumber(
+    value
+  )} entered cost units`;
+}
+
+export function formatBusinessStockImpact(
+  metrics: BusinessResultMetrics
+): string {
+  if (
+    metrics.remainingCartonCount ===
+    undefined
+  ) {
+    return `${metrics.usedCartonCount} used · remaining stock not fully known`;
+  }
+
+  return `${metrics.usedCartonCount} used · ${metrics.remainingCartonCount} remaining`;
+}
+
 function cartonDisplayName(
   carton: Carton
 ): string {
@@ -633,6 +734,15 @@ export default function BusinessWorkspace({
     createBusinessItemLabels(
       products
     );
+
+  const businessResultMetrics =
+    plan !== null &&
+    inventoryUsage !== null
+      ? buildBusinessResultMetrics(
+          plan,
+          inventoryUsage
+        )
+      : null;
 
   return (
     <main className="pm-workspace">
@@ -1518,6 +1628,38 @@ export default function BusinessWorkspace({
 
           {plan !== null && (
             <>
+              {businessResultMetrics !==
+                null && (
+                <div className="pm-context-note">
+                  <strong>
+                    Business metrics
+                  </strong>
+
+                  <span>
+                    Gross packed weight:{' '}
+                    {formatPackedWeight(
+                      businessResultMetrics
+                        .grossPackedWeightG
+                    )}
+                  </span>
+
+                  <span>
+                    Carton cost:{' '}
+                    {formatBusinessCartonCost(
+                      businessResultMetrics
+                        .totalCartonCost
+                    )}
+                  </span>
+
+                  <span>
+                    Stock impact:{' '}
+                    {formatBusinessStockImpact(
+                      businessResultMetrics
+                    )}
+                  </span>
+                </div>
+              )}
+
               {inventoryUsage !==
                 null && (
                 <div className="pm-context-note">
