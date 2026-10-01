@@ -4,6 +4,7 @@ import PackingVisualization from './PackingVisualization.js';
 import ResultSummary from './ResultSummary.js';
 import { createCarton, type Carton } from '../core/domain/carton.js';
 import { createItem, type Item } from '../core/domain/item.js';
+import type { RotationPolicy } from '../core/domain/constraints.js';
 import type { PackingPlan } from '../core/domain/packing-plan.js';
 import type { ObjectiveKind } from '../core/domain/objectives.js';
 import { BaselineSolver } from '../core/solver/index.js';
@@ -21,6 +22,7 @@ export interface BusinessProductValues {
   heightMm: number;
   quantity: number;
   unitWeightG: number | undefined;
+  rotationPolicy?: BusinessHandlingPolicy;
 }
 
 export interface BusinessCartonValues {
@@ -35,6 +37,41 @@ export interface BusinessCartonValues {
   emptyBoxWeightG: number | undefined;
   costPerBox: number | undefined;
 }
+
+export type BusinessHandlingPolicy = Extract<
+  RotationPolicy,
+  | 'any'
+  | 'upright'
+  | 'fixed'
+>;
+
+export interface BusinessHandlingOption {
+  policy: BusinessHandlingPolicy;
+  label: string;
+  description: string;
+}
+
+export const BUSINESS_HANDLING_OPTIONS:
+  readonly BusinessHandlingOption[] = [
+    {
+      policy: 'any',
+      label: 'Any rotation',
+      description:
+        'Allow all solver-supported orientations for this product.',
+    },
+    {
+      policy: 'upright',
+      label: 'Keep upright',
+      description:
+        'Keep the product height axis vertical while allowing horizontal turning.',
+    },
+    {
+      policy: 'fixed',
+      label: 'Fixed orientation',
+      description:
+        'Keep the product in the exact length × width × height orientation entered.',
+    },
+  ];
 
 export type BusinessObjectiveKind = Extract<
   ObjectiveKind,
@@ -92,6 +129,7 @@ export const DEFAULT_BUSINESS_PRODUCTS: BusinessProductValues[] = [
     heightMm: 80,
     quantity: 1,
     unitWeightG: undefined,
+    rotationPolicy: 'any',
   },
 ];
 
@@ -205,6 +243,11 @@ export function buildBusinessItems(
                 product.unitWeightG,
             }
           : {}),
+        constraints: {
+          rotationPolicy:
+            product.rotationPolicy ??
+            'any',
+        },
       });
     }
   );
@@ -478,6 +521,7 @@ export default function BusinessWorkspace({
         quantity: 1,
         unitWeightG:
           undefined,
+        rotationPolicy: 'any',
       },
     ]);
   };
@@ -662,9 +706,10 @@ export default function BusinessWorkspace({
 
                 <p>
                   Add product identity,
-                  dimensions, quantity
-                  and optional unit
-                  weight.
+                  dimensions, quantity,
+                  optional unit weight
+                  and supported handling
+                  behavior.
                 </p>
               </div>
             </div>
@@ -919,6 +964,67 @@ export default function BusinessWorkspace({
                           }
                         />
                       </label>
+                    </div>
+
+                    <div className="pm-field">
+                      <span className="pm-field-label">
+                        Handling
+                      </span>
+
+                      <div
+                        className="pm-mode-selector"
+                        aria-label={`Handling for Product ${index + 1}`}
+                      >
+                        {BUSINESS_HANDLING_OPTIONS.map(
+                          option => (
+                            <button
+                              key={option.policy}
+                              type="button"
+                              className="pm-mode-option"
+                              aria-pressed={
+                                (product.rotationPolicy ??
+                                  'any') ===
+                                option.policy
+                              }
+                              onClick={() =>
+                                updateProduct(
+                                  product.id,
+                                  {
+                                    rotationPolicy:
+                                      option.policy,
+                                  }
+                                )
+                              }
+                            >
+                              {option.label}
+                            </button>
+                          )
+                        )}
+                      </div>
+
+                      <div className="pm-mode-explainer">
+                        <strong>
+                          {
+                            BUSINESS_HANDLING_OPTIONS.find(
+                              option =>
+                                option.policy ===
+                                (product.rotationPolicy ??
+                                  'any')
+                            )!.label
+                          }
+                        </strong>
+
+                        <span>
+                          {
+                            BUSINESS_HANDLING_OPTIONS.find(
+                              option =>
+                                option.policy ===
+                                (product.rotationPolicy ??
+                                  'any')
+                            )!.description
+                          }
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )
