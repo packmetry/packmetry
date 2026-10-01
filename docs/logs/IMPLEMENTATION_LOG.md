@@ -761,3 +761,77 @@ Phase 8 complete.
 ### Next planned phase
 
 Phase 9 — Business UX
+
+## 2026-10-01 — Phase 9 Business UX complete
+
+### Completed
+- Dedicated Business workspace implemented using the existing shared packing engine
+- Multiple Business products supported with:
+  - product name
+  - optional SKU
+  - dimensions
+  - quantity
+  - optional unit weight
+  - supported rotation/handling policy
+- Business carton inventory supported with:
+  - carton name
+  - carton code
+  - internal dimensions
+  - quantity available
+  - optional maximum gross weight
+  - optional empty carton weight
+  - optional carton cost
+- Business objective selection implemented for:
+  - Balanced
+  - Fewest boxes
+  - Least empty space
+- Business planning continues to use the existing verified `planHaveBoxes` workflow and canonical PackingPlan
+- Business-specific result metrics added:
+  - gross packed weight from canonical plan metrics
+  - carton cost from canonical plan metrics
+  - stock impact from existing inventory usage
+- Existing shared ResultSummary and PackingVisualization remain reused
+- Dedicated `/business/` route implemented
+- Dedicated `/personal/` route implemented without duplicating the Personal workspace
+- Root `/` converted to Personal-vs-Business intention classification
+- Homepage provides direct entry to both `/personal/` and `/business/`
+- No separate Business solver or packing engine introduced
+
+### Constraint truthfulness
+- Business UI exposes only handling semantics currently enforced by the solver:
+  - Any rotation
+  - Keep upright
+  - Fixed orientation
+- Fragile, padding, spacing, and stackability controls remain unexposed because their full solver/verifier semantics are not currently enforced
+
+### Validated later-phase deferrals
+- Local Business persistence belongs to Phase 10
+- Alternatives and broader objective-scoring UX belong to Phase 11
+- DIM weight and chargeable-weight modules belong to Phase 12
+- CSV import/export belongs to Phase 14
+- Batch workflows belong to Phase 15
+- Saved product catalog belongs to Phase 16
+- Analytics, accounts/cloud, and integrations/API remain later roadmap work
+
+### Final validation
+- 102 files checked
+- 0 errors
+- 0 warnings
+- 0 hints
+- 56 test files passing
+- 789 tests passing
+- Production build passed
+- Generated routes:
+  - `/`
+  - `/personal/`
+  - `/business/`
+- GitHub Actions run #53: SUCCESS
+- No Phase 9 blockers remain
+
+### Current dependency-aware stage
+
+Phase 9 complete.
+
+### Next planned phase
+
+Phase 10 — Local Persistence
