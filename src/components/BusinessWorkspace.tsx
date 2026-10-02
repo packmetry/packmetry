@@ -1,4 +1,4 @@
-import { useEffect, useState, type SyntheticEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type SyntheticEvent } from 'react';
 
 import PackingVisualization from './PackingVisualization.js';
 import ResultSummary, {
@@ -17,6 +17,13 @@ import {
   readBusinessHandlingPreference,
   writeBusinessHandlingPreference,
 } from '../browser/business-handling-preference.js';
+import {
+  downloadBusinessProjectJson,
+  readBusinessProjectJsonFile,
+} from '../browser/business-project-json-actions.js';
+import {
+  parseBusinessProjectJson,
+} from '../browser/business-project-json.js';
 import {
   readBusinessObjectivePreference,
   writeBusinessObjectivePreference,
@@ -1391,6 +1398,135 @@ export default function BusinessWorkspace({
     );
   };
 
+  const exportCurrentProject = () => {
+    const trimmedName =
+      projectName.trim();
+
+    if (trimmedName === '') {
+      setProjectMessage(
+        'Enter a project name before exporting.'
+      );
+      return;
+    }
+
+    const nextProjectId =
+      projectId ??
+      nextBusinessProjectId(
+        recentProjects
+      );
+
+    const projectInput =
+      businessProjectInputFromWorkspace(
+        nextProjectId,
+        trimmedName,
+        products,
+        cartons,
+        objective
+      );
+
+    const exportProject =
+      createRecentBusinessProject(
+        projectInput
+      );
+
+    const downloaded =
+      downloadBusinessProjectJson(
+        exportProject
+      );
+
+    if (!downloaded) {
+      setProjectMessage(
+        'Could not export this project from this browser.'
+      );
+      return;
+    }
+
+    setProjectId(
+      nextProjectId
+    );
+    setProjectName(
+      trimmedName
+    );
+    setProjectMessage(
+      'Project JSON downloaded.'
+    );
+  };
+
+  const importProjectJson =
+    async (
+      event:
+        ChangeEvent<HTMLInputElement>
+    ) => {
+      const input =
+        event.currentTarget;
+
+      const file =
+        input.files?.[0];
+
+      if (file === undefined) {
+        return;
+      }
+
+      input.value = '';
+
+      setProjectMessage(
+        null
+      );
+
+      const readResult =
+        await readBusinessProjectJsonFile(
+          file
+        );
+
+      if (!readResult.ok) {
+        setProjectMessage(
+          'Could not read this project file.'
+        );
+        return;
+      }
+
+      const parsed =
+        parseBusinessProjectJson(
+          readResult.text
+        );
+
+      if (!parsed.ok) {
+        setProjectMessage(
+          `Could not import project: ${parsed.error.message}`
+        );
+        return;
+      }
+
+      const importedProject =
+        parsed.project;
+
+      setProjectId(
+        importedProject.id
+      );
+      setProjectName(
+        importedProject.name
+      );
+      setProducts(
+        importedProject.products.map(
+          cloneBusinessProduct
+        )
+      );
+      setCartons(
+        importedProject.cartons.map(
+          cloneBusinessCarton
+        )
+      );
+      setObjective(
+        importedProject.objective
+      );
+      setPlan(null);
+      setInventoryUsage(null);
+      setError(null);
+      setProjectMessage(
+        'Project imported. Save project to keep it in this browser.'
+      );
+    };
+
   const chooseObjective = (
     nextObjective:
       BusinessObjectiveKind
@@ -2309,8 +2445,10 @@ export default function BusinessWorkspace({
 
                 <p>
                   Save this Business setup
-                  in this browser, or reopen
-                  a recent project.
+                  in this browser, export a
+                  JSON backup, import a
+                  backup, or reopen a recent
+                  project.
                 </p>
               </div>
             </div>
@@ -2346,6 +2484,43 @@ export default function BusinessWorkspace({
             >
               Save project
             </button>
+
+            <div className="pm-carton-fields">
+              <button
+                type="button"
+                className="pm-add-button"
+                onClick={
+                  exportCurrentProject
+                }
+              >
+                Export project JSON
+              </button>
+
+              <label className="pm-field">
+                <span className="pm-field-label">
+                  Import project JSON
+                </span>
+
+                <input
+                  className="pm-number-input"
+                  type="file"
+                  accept=".json,application/json"
+                  onChange={event => {
+                    void importProjectJson(
+                      event
+                    );
+                  }}
+                />
+              </label>
+            </div>
+
+            <p className="pm-submit-note">
+              Imported projects are
+              restored to this workspace
+              only. Use Save project to
+              keep one in recent
+              projects.
+            </p>
 
             <BusinessRecentProjects
               projects={
