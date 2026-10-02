@@ -21,6 +21,14 @@ import {
   readBusinessObjectivePreference,
   writeBusinessObjectivePreference,
 } from '../browser/business-objective-preference.js';
+import {
+  createRecentBusinessProject,
+  listRecentBusinessProjects,
+  orderRecentBusinessProjects,
+  saveRecentBusinessProject,
+  type RecentBusinessProject,
+  type RecentBusinessProjectInput,
+} from '../browser/business-recent-projects.js';
 import { createCarton, type Carton } from '../core/domain/carton.js';
 import { createItem, type Item } from '../core/domain/item.js';
 import type { RotationPolicy } from '../core/domain/constraints.js';
@@ -126,6 +134,15 @@ export interface SavedBusinessCartonLibraryProps {
   ) => void;
   onDelete: (
     carton: SavedBusinessCarton
+  ) => void;
+}
+
+export interface BusinessRecentProjectsProps {
+  projects:
+    readonly RecentBusinessProject[];
+  message: string | null;
+  onOpen: (
+    project: RecentBusinessProject
   ) => void;
 }
 
@@ -302,6 +319,50 @@ export function savedBusinessCartonInputFromBusinessCarton(
     costPerBox:
       carton.costPerBox,
   };
+}
+
+export function businessProjectInputFromWorkspace(
+  id: string,
+  name: string,
+  products:
+    readonly BusinessProductValues[],
+  cartons:
+    readonly BusinessCartonValues[],
+  objective:
+    BusinessObjectiveKind
+): RecentBusinessProjectInput {
+  return {
+    id,
+    name,
+    products:
+      products.map(
+        cloneBusinessProduct
+      ),
+    cartons:
+      cartons.map(
+        cloneBusinessCarton
+      ),
+    objective,
+  };
+}
+
+function nextBusinessProjectId(
+  projects:
+    readonly RecentBusinessProject[]
+): string {
+  let index = 1;
+
+  while (
+    projects.some(
+      project =>
+        project.id ===
+        `business-project-${index}`
+    )
+  ) {
+    index++;
+  }
+
+  return `business-project-${index}`;
 }
 
 function optionalNumber(
@@ -701,6 +762,90 @@ export function SavedBusinessCartonLibrary({
   );
 }
 
+export function BusinessRecentProjects({
+  projects,
+  message,
+  onOpen,
+}: BusinessRecentProjectsProps) {
+  return (
+    <>
+      <div className="pm-context-note">
+        <strong>
+          Recent projects
+        </strong>
+
+        <span>
+          Your recent projects stay in
+          this browser.
+        </span>
+
+        {message !== null && (
+          <span>
+            {message}
+          </span>
+        )}
+      </div>
+
+      {projects.length === 0 ? (
+        <p className="pm-submit-note">
+          No recent projects yet.
+        </p>
+      ) : (
+        <div className="pm-carton-list">
+          {projects.map(
+            project => (
+              <div
+                key={project.id}
+                className="pm-carton-row"
+              >
+                <div className="pm-carton-row-header">
+                  <div>
+                    <strong>
+                      {project.name}
+                    </strong>
+                  </div>
+                </div>
+
+                <span className="pm-submit-note">
+                  {
+                    project.products.length
+                  }{' '}
+                  product
+                  {project.products.length ===
+                  1
+                    ? ''
+                    : 's'}
+                  {' · '}
+                  {
+                    project.cartons.length
+                  }{' '}
+                  carton
+                  {project.cartons.length ===
+                  1
+                    ? ''
+                    : 's'}
+                </span>
+
+                <button
+                  type="button"
+                  className="pm-add-button"
+                  onClick={() =>
+                    onOpen(
+                      project
+                    )
+                  }
+                >
+                  Open project
+                </button>
+              </div>
+            )
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function BusinessWorkspace({
   initialProducts,
   initialCartons,
@@ -805,6 +950,55 @@ export default function BusinessWorkspace({
           if (active) {
             setSavedCartons(
               loadedCartons
+            );
+          }
+        }
+      );
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const [
+    recentProjects,
+    setRecentProjects,
+  ] =
+    useState<
+      RecentBusinessProject[]
+    >([]);
+
+  const [
+    projectId,
+    setProjectId,
+  ] =
+    useState<string | null>(
+      null
+    );
+
+  const [
+    projectName,
+    setProjectName,
+  ] =
+    useState('');
+
+  const [
+    projectMessage,
+    setProjectMessage,
+  ] =
+    useState<string | null>(
+      null
+    );
+
+  useEffect(() => {
+    let active = true;
+
+    void listRecentBusinessProjects()
+      .then(
+        loadedProjects => {
+          if (active) {
+            setRecentProjects(
+              loadedProjects
             );
           }
         }
@@ -1099,6 +1293,103 @@ export default function BusinessWorkspace({
         'Saved carton deleted from this browser.'
       );
     };
+
+  const saveCurrentProject =
+    async () => {
+      const trimmedName =
+        projectName.trim();
+
+      if (trimmedName === '') {
+        setProjectMessage(
+          'Enter a project name before saving.'
+        );
+        return;
+      }
+
+      const nextProjectId =
+        projectId ??
+        nextBusinessProjectId(
+          recentProjects
+        );
+
+      const projectInput =
+        businessProjectInputFromWorkspace(
+          nextProjectId,
+          trimmedName,
+          products,
+          cartons,
+          objective
+        );
+
+      const saved =
+        await saveRecentBusinessProject(
+          projectInput
+        );
+
+      if (!saved) {
+        setProjectMessage(
+          'Could not save this project in this browser.'
+        );
+        return;
+      }
+
+      setProjectId(
+        nextProjectId
+      );
+      setProjectName(
+        trimmedName
+      );
+
+      const recentProject =
+        createRecentBusinessProject(
+          projectInput
+        );
+
+      setRecentProjects(
+        current =>
+          orderRecentBusinessProjects(
+            [
+              recentProject,
+              ...current,
+            ]
+          )
+      );
+
+      setProjectMessage(
+        'Project saved in this browser.'
+      );
+    };
+
+  const openRecentProject = (
+    project:
+      RecentBusinessProject
+  ) => {
+    setProjectId(
+      project.id
+    );
+    setProjectName(
+      project.name
+    );
+    setProducts(
+      project.products.map(
+        cloneBusinessProduct
+      )
+    );
+    setCartons(
+      project.cartons.map(
+        cloneBusinessCarton
+      )
+    );
+    setObjective(
+      project.objective
+    );
+    setPlan(null);
+    setInventoryUsage(null);
+    setError(null);
+    setProjectMessage(
+      'Project opened.'
+    );
+  };
 
   const chooseObjective = (
     nextObjective:
@@ -2003,6 +2294,70 @@ export default function BusinessWorkspace({
                 {objectiveCopy.description}
               </span>
             </div>
+          </section>
+
+          <section className="pm-form-section">
+            <div className="pm-form-section-heading">
+              <span className="pm-section-number">
+                04
+              </span>
+
+              <div>
+                <h3>
+                  Project
+                </h3>
+
+                <p>
+                  Save this Business setup
+                  in this browser, or reopen
+                  a recent project.
+                </p>
+              </div>
+            </div>
+
+            <label className="pm-field">
+              <span className="pm-field-label">
+                Project name
+              </span>
+
+              <input
+                className="pm-number-input"
+                type="text"
+                value={projectName}
+                placeholder="e.g. October orders"
+                onChange={event => {
+                  setProjectName(
+                    event.currentTarget
+                      .value
+                  );
+                  setProjectMessage(
+                    null
+                  );
+                }}
+              />
+            </label>
+
+            <button
+              type="button"
+              className="pm-add-button"
+              onClick={() => {
+                void saveCurrentProject();
+              }}
+            >
+              Save project
+            </button>
+
+            <BusinessRecentProjects
+              projects={
+                recentProjects
+              }
+              message={
+                projectMessage
+              }
+              onOpen={
+                openRecentProject
+              }
+            />
           </section>
 
           <div className="pm-submit-area">

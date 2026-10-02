@@ -222,12 +222,6 @@ describe(
         expect(
           workspaceSource
         ).not.toContain(
-          'business-project'
-        );
-
-        expect(
-          workspaceSource
-        ).not.toContain(
           'saved-product-catalog'
         );
       }
