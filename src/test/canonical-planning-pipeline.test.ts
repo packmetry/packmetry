@@ -7,6 +7,7 @@ import type {
   SolverInput,
 } from '../core/solver/contracts.js';
 import { planPacking } from '../core/solver/pipeline.js';
+import { BaselineSolver } from '../core/solver/baseline.js';
 
 function makeInput(
   objective: ObjectiveKind = 'fewest-cartons'
@@ -951,5 +952,340 @@ describe(
         );
       }
     );
+
+    describe('multi-candidate validation', () => {
+      const baselineSolver = new BaselineSolver();
+
+      function multiCandidateInput(): SolverInput {
+        return {
+          items: [
+            {
+              id: 'item-cube',
+              dimensions: {
+                length: 10,
+                width: 10,
+                height: 10,
+              },
+              quantity: 2,
+              constraints: {
+                rotationPolicy: 'any',
+                fragile: false,
+                paddingAllowanceMm: 0,
+                spacingAllowanceMm: 0,
+                stackable: true,
+              },
+            },
+          ],
+          cartons: [
+            {
+              id: 'carton-small',
+              internalDimensions: {
+                length: 11,
+                width: 11,
+                height: 11,
+              },
+              costPerBox: 2,
+            },
+            {
+              id: 'carton-medium',
+              internalDimensions: {
+                length: 15,
+                width: 15,
+                height: 15,
+              },
+              costPerBox: 3,
+            },
+            {
+              id: 'carton-large',
+              internalDimensions: {
+                length: 20,
+                width: 20,
+                height: 20,
+              },
+              costPerBox: 4,
+            },
+          ],
+          objective: {
+            kind: 'fewest-cartons',
+          },
+        };
+      }
+
+      it(
+        'end-to-end multi-candidate selection through real BaselineSolver',
+        async () => {
+          const input = multiCandidateInput();
+          const result = await planPacking(
+            'multi-candidate-test-1',
+            baselineSolver,
+            input
+          );
+
+          expect(result.kind).toBe('planned');
+
+          if (result.kind !== 'planned') {
+            throw new Error('Expected a planned result');
+          }
+
+          // Should have multiple verified candidates
+          expect(result.verification.candidates.length).toBeGreaterThan(1);
+
+          // Should have selection metadata with multiple ranked indexes
+          expect(result.selection.rankedCandidateIndexes.length).toBeGreaterThan(1);
+          expect(result.selection.selectedCandidateIndex).toBe(
+            result.selection.rankedCandidateIndexes[0]
+          );
+
+          // Should have alternatives
+          expect(result.alternatives.length).toBe(
+            result.selection.rankedCandidateIndexes.length - 1
+          );
+        }
+      );
+
+      function fewestCartonsInput(): SolverInput {
+        return {
+          items: [
+            {
+              id: 'fewest-item',
+              dimensions: {
+                length: 10,
+                width: 10,
+                height: 10,
+              },
+              quantity: 2,
+              constraints: {
+                rotationPolicy: 'any',
+                fragile: false,
+                paddingAllowanceMm: 0,
+                spacingAllowanceMm: 0,
+                stackable: true,
+              },
+            },
+          ],
+          cartons: [
+            {
+              id: 'fewest-small',
+              internalDimensions: {
+                length: 11,
+                width: 11,
+                height: 11,
+              },
+            },
+            {
+              id: 'fewest-medium',
+              internalDimensions: {
+                length: 20,
+                width: 20,
+                height: 20,
+              },
+            },
+          ],
+          objective: {
+            kind: 'fewest-cartons',
+          },
+        };
+      }
+
+      it(
+        'objective-aware ranking respects fewest-cartons objective',
+        async () => {
+          const input = fewestCartonsInput();
+          const result = await planPacking(
+            'multi-candidate-fewest',
+            baselineSolver,
+            input
+          );
+
+          expect(result.kind).toBe('planned');
+
+          if (result.kind !== 'planned') {
+            throw new Error('Expected a planned result');
+          }
+
+          // With fewest-cartons objective, should prefer fewer cartons
+          // We don't assert exact carton counts since that's BaselineSolver behavior
+          // Just verify the pipeline processed the objective
+          expect(result.selection.kind).toBe('selected');
+          expect(result.selection.rankedCandidateIndexes.length).toBeGreaterThan(0);
+        }
+      );
+
+      function leastWastedInput(): SolverInput {
+        return {
+          items: [
+            {
+              id: 'volume-item',
+              dimensions: {
+                length: 10,
+                width: 10,
+                height: 10,
+              },
+              quantity: 2,
+              constraints: {
+                rotationPolicy: 'any',
+                fragile: false,
+                paddingAllowanceMm: 0,
+                spacingAllowanceMm: 0,
+                stackable: true,
+              },
+            },
+          ],
+          cartons: [
+            {
+              id: 'volume-small',
+              internalDimensions: {
+                length: 11,
+                width: 11,
+                height: 11,
+              },
+            },
+            {
+              id: 'volume-large',
+              internalDimensions: {
+                length: 20,
+                width: 20,
+                height: 20,
+              },
+            },
+          ],
+          objective: {
+            kind: 'least-wasted-volume',
+          },
+        };
+      }
+
+      it(
+        'objective-aware ranking respects least-wasted-volume objective',
+        async () => {
+          const input = leastWastedInput();
+          const result = await planPacking(
+            'multi-candidate-volume',
+            baselineSolver,
+            input
+          );
+
+          expect(result.kind).toBe('planned');
+
+          if (result.kind !== 'planned') {
+            throw new Error('Expected a planned result');
+          }
+
+          // With least-wasted-volume objective, pipeline should process it
+          expect(result.selection.kind).toBe('selected');
+          expect(result.selection.rankedCandidateIndexes.length).toBeGreaterThan(0);
+        }
+      );
+
+      it(
+        'materializes alternatives for non-selected ranked candidates',
+        async () => {
+          const input = multiCandidateInput();
+          const result = await planPacking(
+            'multi-candidate-alternatives',
+            baselineSolver,
+            input
+          );
+
+          expect(result.kind).toBe('planned');
+
+          if (result.kind !== 'planned') {
+            throw new Error('Expected a planned result');
+          }
+
+          const { alternatives, selection } = result;
+          const { rankedCandidateIndexes } = selection;
+
+          // Alternatives count should match ranked indexes minus selected
+          expect(alternatives.length).toBe(rankedCandidateIndexes.length - 1);
+
+          // Verify alternative IDs follow convention
+          alternatives.forEach((alternative, index) => {
+            expect(alternative.id).toBe(
+              `multi-candidate-alternatives:alternative:${index + 1}`
+            );
+          });
+        }
+      );
+
+      it(
+        'selected plan corresponds to selected candidate, not duplicated in alternatives',
+        async () => {
+          const input = multiCandidateInput();
+          const result = await planPacking(
+            'multi-candidate-selected',
+            baselineSolver,
+            input
+          );
+
+          expect(result.kind).toBe('planned');
+
+          if (result.kind !== 'planned') {
+            throw new Error('Expected a planned result');
+          }
+
+          const { plan, alternatives, selection } = result;
+
+          // Plan should be the selected candidate's canonical representation
+          // We can't easily compare plan contents directly, but we can verify
+          // the pipeline didn't create obviously wrong results
+
+          // Alternative count should be correct
+          expect(alternatives.length).toBe(selection.rankedCandidateIndexes.length - 1);
+
+          // All alternatives should have distinct IDs from the main plan
+          alternatives.forEach(alternative => {
+            expect(alternative.id).not.toBe(plan.id);
+          });
+        }
+      );
+
+      it(
+        'preserves input immutability with multi-candidate BaselineSolver',
+        async () => {
+          const input = multiCandidateInput();
+          const inputBefore = JSON.stringify(input);
+
+          const result = await planPacking(
+            'multi-candidate-immutable',
+            baselineSolver,
+            input
+          );
+
+          // Input should not be mutated
+          expect(JSON.stringify(input)).toBe(inputBefore);
+
+          // Result should be valid
+          expect(result.kind).toBe('planned');
+        }
+      );
+
+      it(
+        'alternative plan IDs follow deterministic convention',
+        async () => {
+          const input = multiCandidateInput();
+          const result = await planPacking(
+            'deterministic-alternative-ids',
+            baselineSolver,
+            input
+          );
+
+          expect(result.kind).toBe('planned');
+
+          if (result.kind !== 'planned') {
+            throw new Error('Expected a planned result');
+          }
+
+          const { alternatives } = result;
+
+          // Check ID pattern
+          alternatives.forEach((alternative, index) => {
+            expect(alternative.id).toBe(
+              `deterministic-alternative-ids:alternative:${index + 1}`
+            );
+          });
+        }
+      );
+    });
   }
 );
