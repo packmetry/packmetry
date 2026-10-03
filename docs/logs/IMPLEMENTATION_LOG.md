@@ -935,3 +935,45 @@ Current dependency-aware stage
 Phase 10 complete.
 Next planned phase
 Phase 11 — Alternatives & Objective Scoring
+
+
+## 2026-10-03 — Phase 11 Alternatives & Objective Scoring complete
+
+### Completed
+- ADR-011 deterministic multi-candidate generation implemented
+- Three deterministic candidate-generation strategies:
+  - input-order candidate generation
+  - smallest-volume-first candidate generation
+  - largest-volume-first candidate generation
+- Exact candidate deduplication prevents duplicate canonical packing results
+- solverVersion 2 includes bounded candidate set generation
+- Canonical pipeline: solver → independent verification → ADR-008 ranking → canonical plan
+- Ranked alternative materialization for non-selected plans
+- Canonical pipeline and have-boxes integration validation
+- Shared PlanAlternatives component for unified alternatives UI
+- Personal have-boxes alternatives integration
+- Business alternatives integration throughout result display
+- Objective-ranking explanation UX with truthful heuristic wording
+- Current bounded candidate set ensures UI has at most two non-selected alternatives
+
+### Design Boundaries Preserved
+- No DIM/weight semantics added (deferred to Phase 12)
+- No new solver engine added (stayed within BaselineSolver capabilities)
+- No global-optimality claim introduced
+- Inventory usage remains tied to the recommended canonical plan
+- Three.js visualization continues to show canonical verified result, not separate calculations
+
+### Final validation
+- typecheck: 0 errors, 0 warnings, 0 hints
+- 991 tests passing across 69 test files
+- production build passed
+- routes /, /personal/, /business/ generated successfully
+- latest validated main commit: 1cfc34f
+- GitHub Actions run #75: SUCCESS
+- No Phase 11 blockers remain
+
+### Current dependency-aware stage
+Phase 11 complete.
+
+### Next planned phase
+Phase 12 — DIM / Weight Modules

@@ -32,7 +32,7 @@ For every meaningful task:
 7. Only after approval does the user commit and push.
 See docs/process/AI_IMPLEMENTATION_WORKFLOW.md.
 Current state
-Phase 10 complete: Local Persistence implemented and validated.
+Phase 11 complete: Alternatives & Objective Scoring implemented and validated.
 Personal and Business entry experience:
 - Root homepage classifies visitors by intention
 - Home & Personal entry at /personal/
@@ -78,17 +78,28 @@ Local persistence capabilities:
 - Imported projects restore workspace state without automatic persistence
 - Project identity allocation is guarded until recent-project history initialization completes
 - Browser-local messaging makes local-only storage behavior explicit
+Phase 11 capabilities:
+- deterministic bounded multi-candidate BaselineSolver generation
+- independent verification before ranking
+- ADR-008 objective-aware deterministic ranking
+- ranked non-selected canonical PackingPlan alternatives
+- Personal have-boxes alternatives UI
+- Business alternatives UI
+- shared PlanAlternatives comparison component
+- Recommended + alternative plan switching for result summary/3D visualization
+- inventory usage remains tied to the recommended canonical plan
+- explainable ranking for Balanced, Fewest boxes, and Least empty space
+- truthful "best plan found" / no guaranteed-global-optimality wording
 Validation baseline:
 - 120 files typechecked with 0 errors, 0 warnings, 0 hints
-- 68 test files passing
-- 952 tests passing
+- 69 test files passing
+- 991 tests passing
 - Production build passing
 - /, /personal/, and /business/ generated successfully
-- GitHub Actions run #66: SUCCESS
-- Latest validated main commit: 4abc20d
+- GitHub Actions run #75: SUCCESS
+- Latest validated main commit: 1cfc34f
 Intentional deferrals / later roadmap work:
 - Unsupported fragile, padding, spacing, and stackability controls remain unexposed until solver/verifier semantics support them
-- Alternatives and broader objective-scoring UX belong to Phase 11
 - DIM weight, chargeable-weight modules, and broader DIM settings belong to Phase 12
 - CSV import/export belongs to Phase 14
 - Batch processing belongs to Phase 15
@@ -96,6 +107,6 @@ Intentional deferrals / later roadmap work:
 - Analytics and carton-portfolio rationalization belong to Phase 17
 - Accounts/cloud belong to Phase 18
 - Integrations/API belong to Phase 19
-No Phase 10 blockers remain.
+No Phase 11 blockers remain.
 Next planned product phase
-Phase 11 — Alternatives & Objective Scoring
+Phase 12 — DIM / Weight Modules
