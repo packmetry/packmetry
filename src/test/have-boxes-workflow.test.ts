@@ -70,6 +70,31 @@ function makeInput(
   };
 }
 
+function makeMultiCandidateInput(): HaveBoxesWorkflowInput {
+  return {
+    items: [
+      createItem({
+        id: 'multi-item',
+        name: 'Multi Candidate Item',
+        dimensions: {
+          length: 10,
+          width: 10,
+          height: 10,
+        },
+        quantity: 2,
+      }),
+    ],
+    cartons: [
+      makeCarton('multi-small', 11),
+      makeCarton('multi-medium', 15),
+      makeCarton('multi-large', 20),
+    ],
+    objective: {
+      kind: 'fewest-cartons',
+    },
+  };
+}
+
 class CapturingBaselineSolver implements SolverAdapter {
   receivedInput: SolverInput | undefined;
 
@@ -473,5 +498,192 @@ describe('planHaveBoxes', () => {
     expect(
       input.cartons[0]!.quantityAvailable
     ).toBe(1);
+  });
+
+  describe('multi-candidate workflow integration', () => {
+    it('propagates canonical alternatives from the planning pipeline', async () => {
+      const result = await planHaveBoxes(
+        'have-boxes-multi',
+        new BaselineSolver(),
+        makeMultiCandidateInput()
+      );
+
+      expect(result.planningResult.kind).toBe('planned');
+
+      if (result.planningResult.kind !== 'planned') {
+        throw new Error('Expected a planned result');
+      }
+
+      expect(
+        result.planningResult.verification.candidates.length
+      ).toBeGreaterThan(1);
+
+      expect(
+        result.planningResult.selection.rankedCandidateIndexes.length
+      ).toBeGreaterThan(1);
+
+      expect(
+        result.planningResult.selection.selectedCandidateIndex
+      ).toBe(
+        result.planningResult.selection.rankedCandidateIndexes[0]
+      );
+
+      expect(
+        result.planningResult.alternatives.length
+      ).toBe(
+        result.planningResult.selection.rankedCandidateIndexes.length -
+          1
+      );
+
+      expect(result.planningResult.plan.id).toBe(
+        'have-boxes-multi:have'
+      );
+    });
+
+    it('derives inventory usage only from the selected canonical plan', async () => {
+      const result = await planHaveBoxes(
+        'have-boxes-inventory-selected',
+        new BaselineSolver(),
+        makeMultiCandidateInput()
+      );
+
+      expect(result.planningResult.kind).toBe('planned');
+
+      if (result.planningResult.kind !== 'planned') {
+        throw new Error('Expected a planned result');
+      }
+
+      expect(result.inventoryUsage).not.toBeNull();
+
+      if (result.inventoryUsage === null) {
+        throw new Error('Expected inventory usage');
+      }
+
+      const selectedUsage = new Map<string, number>();
+
+      for (const packedCarton of result.planningResult.plan.cartons) {
+        const cartonId = packedCarton.carton.id;
+
+        selectedUsage.set(
+          cartonId,
+          (selectedUsage.get(cartonId) ?? 0) + 1
+        );
+      }
+
+      const workflowUsage = [
+        ...result.inventoryUsage.usedCartons,
+        ...result.inventoryUsage.unusedCartons,
+      ];
+
+      for (const suppliedCarton of result.suppliedCartons) {
+        const usage = workflowUsage.find(
+          entry => entry.cartonId === suppliedCarton.id
+        );
+
+        expect(usage).toBeDefined();
+        expect(usage?.usedQuantity).toBe(
+          selectedUsage.get(suppliedCarton.id) ?? 0
+        );
+      }
+
+      const alternativeCartonIds = new Set(
+        result.planningResult.alternatives.flatMap(
+          alternative =>
+            alternative.cartons.map(
+              packedCarton => packedCarton.carton.id
+            )
+        )
+      );
+
+      const alternativeOnlyCartonIds = [
+        ...alternativeCartonIds,
+      ].filter(
+        cartonId => !selectedUsage.has(cartonId)
+      );
+
+      expect(
+        alternativeOnlyCartonIds.length
+      ).toBeGreaterThan(0);
+
+      for (const cartonId of alternativeOnlyCartonIds) {
+        const usage = workflowUsage.find(
+          entry => entry.cartonId === cartonId
+        );
+
+        expect(usage?.usedQuantity).toBe(0);
+      }
+    });
+
+    it('keeps the selected plan distinct from alternatives and preserves deterministic alternative ids', async () => {
+      const result = await planHaveBoxes(
+        'have-boxes-alternative-ids',
+        new BaselineSolver(),
+        makeMultiCandidateInput()
+      );
+
+      expect(result.planningResult.kind).toBe('planned');
+
+      if (result.planningResult.kind !== 'planned') {
+        throw new Error('Expected a planned result');
+      }
+
+      const {
+        plan,
+        alternatives,
+        selection,
+      } = result.planningResult;
+
+      expect(plan.id).toBe(
+        'have-boxes-alternative-ids:have'
+      );
+
+      expect(alternatives.length).toBe(
+        selection.rankedCandidateIndexes.length - 1
+      );
+
+      alternatives.forEach((alternative, index) => {
+        expect(alternative.id).toBe(
+          `have-boxes-alternative-ids:have:alternative:${index + 1}`
+        );
+
+        expect(alternative.id).not.toBe(plan.id);
+      });
+
+      expect(
+        alternatives.some(
+          alternative => alternative.id === plan.id
+        )
+      ).toBe(false);
+    });
+
+    it('preserves caller input during a real multi-candidate workflow run', async () => {
+      const input = makeMultiCandidateInput();
+      const before = JSON.stringify(input);
+
+      const result = await planHaveBoxes(
+        'have-boxes-multi-immutable',
+        new BaselineSolver(),
+        input
+      );
+
+      expect(result.planningResult.kind).toBe('planned');
+      expect(JSON.stringify(input)).toBe(before);
+
+      expect(
+        input.items[0]!.dimensions
+      ).toEqual({
+        length: 10,
+        width: 10,
+        height: 10,
+      });
+
+      expect(
+        input.cartons.map(carton => carton.id)
+      ).toEqual([
+        'multi-small',
+        'multi-medium',
+        'multi-large',
+      ]);
+    });
   });
 });
