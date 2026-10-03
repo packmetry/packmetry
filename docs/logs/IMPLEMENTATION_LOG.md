@@ -835,3 +835,103 @@ Phase 9 complete.
 ### Next planned phase
 
 Phase 10 — Local Persistence
+
+2026-10-03 — Phase 10 Local Persistence complete
+Completed
+- Personal browser-local persistence retained and validated:
+  - Metric / Imperial unit preference
+  - Recent Personal items
+  - Recent Personal packing plans
+- Business saved carton library implemented with IndexedDB:
+  - saved carton identity
+  - carton name and code
+  - dimensions
+  - quantity available
+  - optional maximum gross weight
+  - optional empty carton weight
+  - optional carton cost
+- Business objective preference implemented using browser-local preference storage
+- Business handling preference implemented using browser-local preference storage
+- Business recent-project persistence implemented with a dedicated IndexedDB database:
+  - project identity and name
+  - complete product snapshot
+  - complete carton snapshot
+  - objective
+  - per-product handling selections
+  - saved timestamp
+  - newest-first ordering
+  - duplicate-ID replacement semantics
+  - bounded 10-project history
+- Business recent-project workspace integration implemented:
+  - explicit Save project action
+  - explicit Open project action
+  - no automatic save during optimization
+  - project restore clears stale result state
+  - project restore does not rewrite global objective or handling preferences
+- Versioned Business project JSON backup implemented:
+  - format packmetry.business.project
+  - version 1
+  - complete project snapshot serialization
+  - safe malformed/unrelated/unsupported JSON rejection
+  - strict objective and handling subsets
+  - no numeric-string coercion
+  - duplicate product/carton identity rejection
+  - optional values remain optional without fake defaults
+- Business project JSON browser actions implemented:
+  - deterministic safe filename generation
+  - application/json downloads
+  - Blob/object-URL/temporary-anchor download boundary
+  - selected-file text reading
+  - safe browser/read failure results
+  - cleanup of temporary browser resources
+- Business project JSON workspace integration implemented:
+  - explicit Export project JSON action
+  - explicit Import project JSON file input
+  - imported project restores id, name, products, cartons, objective, and handling selections
+  - imported project clears stale result state
+  - imported project is not automatically persisted
+  - user must explicitly Save project to retain imported data in recent-project history
+  - import/export reuse dedicated JSON and browser-action modules
+- Business project identity initialization race fixed:
+  - recent-project history readiness tracked separately from an empty history
+  - new unsaved project Save/Export cannot allocate an identity until recent history has loaded
+  - existing/opened/imported project identities remain usable
+  - deterministic business-project-N identity policy remains unchanged
+- No IndexedDB schema migration was required
+- Core solver, verifier, workflows, canonical PackingPlan, Three.js result visualization, and routes remain unchanged
+Persistence architecture
+- IndexedDB remains the structured local-data store for projects/cartons/recent records
+- localStorage-style preference modules remain limited to small preferences
+- JSON validation/serialization is isolated from browser file mechanics
+- Browser file mechanics are isolated from React workspace state
+- BusinessWorkspace reuses persistence and JSON modules instead of duplicating storage or parsing logic
+- Local persistence remains browser-first and account-free
+Validated deferrals
+- Alternatives and broader objective-scoring UX belong to Phase 11
+- DIM weight, chargeable-weight modules, and broader DIM settings belong to Phase 12
+- CSV import/export belongs to Phase 14
+- Batch processing belongs to Phase 15
+- Saved product catalog belongs to Phase 16
+- Analytics and carton-portfolio rationalization belong to Phase 17
+- Accounts/cloud belong to Phase 18
+- Integrations/API belong to Phase 19
+- Unsupported fragile, padding, spacing, and stackability UI remains deferred until solver/verifier semantics fully support those constraints
+Final validation
+- 120 files checked
+- 0 errors
+- 0 warnings
+- 0 hints
+- 68 test files passing
+- 952 tests passing
+- Production build passed
+- Generated routes:
+  - /
+  - /personal/
+  - /business/
+- Latest validated main commit: 4abc20d87a87d1a6cfe20757860568c172554306
+- GitHub Actions run #66: SUCCESS
+- No Phase 10 blockers remain
+Current dependency-aware stage
+Phase 10 complete.
+Next planned phase
+Phase 11 — Alternatives & Objective Scoring
