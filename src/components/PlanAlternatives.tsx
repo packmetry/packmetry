@@ -1,4 +1,5 @@
 import type { PackingPlan } from '../core/domain/packing-plan.js';
+import type { ObjectiveKind } from '../core/domain/objectives.js';
 
 export interface PlanAlternativesProps {
   selectedPlan: PackingPlan;
@@ -39,6 +40,60 @@ function planLabel(
     : `Alternative ${index}`;
 }
 
+export function objectiveLabel(
+  objective: ObjectiveKind
+): string {
+  switch (objective) {
+    case 'balanced':
+      return 'Balanced';
+
+    case 'fewest-cartons':
+      return 'Fewest boxes';
+
+    case 'least-wasted-volume':
+      return 'Least empty space';
+
+    case 'easier-to-carry':
+      return 'Easier to carry';
+
+    case 'existing-inventory-first':
+      return 'Existing inventory first';
+
+    case 'min-dim-weight':
+      return 'Lowest DIM weight';
+
+    case 'min-carton-cost':
+      return 'Lowest carton cost';
+  }
+}
+
+export function objectiveRankingExplanation(
+  objective: ObjectiveKind
+): string {
+  switch (objective) {
+    case 'balanced':
+      return 'Among equally complete verified plans, Packmetry prefers fewer boxes first, then less empty space, then higher space utilization.';
+
+    case 'fewest-cartons':
+      return 'Among equally complete verified plans, Packmetry prefers fewer boxes first. Ties are resolved by less empty space, then higher space utilization.';
+
+    case 'least-wasted-volume':
+      return 'Among equally complete verified plans, Packmetry prefers less empty space first. Ties are resolved by lower total box volume, fewer boxes, then higher space utilization.';
+
+    case 'easier-to-carry':
+      return 'Among equally complete verified plans, Packmetry prefers the lowest maximum packed box weight, then lower total packed weight.';
+
+    case 'min-carton-cost':
+      return 'Among equally complete verified plans, Packmetry prefers lower total carton cost, then fewer boxes, then less empty space.';
+
+    case 'existing-inventory-first':
+      return 'This objective requires inventory-aware ranking semantics before it can be presented as an optimized comparison.';
+
+    case 'min-dim-weight':
+      return 'This objective requires DIM-weight semantics before it can be presented as an optimized comparison.';
+  }
+}
+
 function planDescription(
   plan: PackingPlan
 ): string {
@@ -69,6 +124,9 @@ export default function PlanAlternatives({
     ...alternatives,
   ];
 
+  const objective =
+    selectedPlan.objective.kind;
+
   return (
     <section
       className="pm-summary"
@@ -87,6 +145,27 @@ export default function PlanAlternatives({
           Packmetry found more than one independently
           verified packing plan. The recommended plan
           is ranked first for your selected objective.
+        </p>
+      </div>
+
+      <div className="pm-summary-detail-section">
+        <strong>
+          Ranking objective:{' '}
+          {objectiveLabel(
+            objective
+          )}
+        </strong>
+
+        <p>
+          {objectiveRankingExplanation(
+            objective
+          )}
+        </p>
+
+        <p className="pm-fine-print">
+          Recommended means the best plan found by the
+          current deterministic solver for this objective.
+          It is not a claim of guaranteed global optimality.
         </p>
       </div>
 
@@ -144,6 +223,9 @@ export default function PlanAlternatives({
               return null;
             }
 
+            const recommended =
+              index === 0;
+
             return (
               <div
                 key={
@@ -160,6 +242,12 @@ export default function PlanAlternatives({
                   {planDescription(
                     plan
                   )}
+                </p>
+
+                <p className="pm-fine-print">
+                  {recommended
+                    ? 'This is the first-ranked verified plan for the selected objective.'
+                    : 'This independently verified plan ranked below the recommended plan for the same objective.'}
                 </p>
               </div>
             );
