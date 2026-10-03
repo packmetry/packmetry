@@ -1,6 +1,7 @@
 import { useEffect, useState, type SyntheticEvent } from 'react';
 
 import PackingVisualization from './PackingVisualization.js';
+import PlanAlternatives from './PlanAlternatives.js';
 import ResultSummary from './ResultSummary.js';
 import {
   readPersonalUnitPreference,
@@ -86,6 +87,7 @@ export interface NeedBoxesWorkspaceResult {
 
 export interface HaveBoxesWorkspaceResult {
   plan: PackingPlan;
+  alternatives: PackingPlan[];
   inventoryUsage: HaveBoxesInventoryUsage;
 }
 
@@ -439,6 +441,7 @@ export async function runHaveBoxesWorkspaceItems(
 
   return {
     plan: result.planningResult.plan,
+    alternatives: result.planningResult.alternatives,
     inventoryUsage: result.inventoryUsage,
   };
 }
@@ -1492,6 +1495,22 @@ export default function PackingWorkspace(
     );
 
   const [
+    recommendedPlan,
+    setRecommendedPlan,
+  ] =
+    useState<PackingPlan | null>(
+      null
+    );
+
+  const [
+    alternatives,
+    setAlternatives,
+  ] =
+    useState<PackingPlan[]>(
+      []
+    );
+
+  const [
     viewingRecentPlan,
     setViewingRecentPlan,
   ] =
@@ -1840,6 +1859,8 @@ export default function PackingWorkspace(
 
   const clearResult = () => {
     setPlan(null);
+    setRecommendedPlan(null);
+    setAlternatives([]);
     setViewingRecentPlan(false);
     setPurchaseRecommendations(
       []
@@ -1855,6 +1876,7 @@ export default function PackingWorkspace(
     clearResult();
     setMode(recentPlan.mode);
     setViewingRecentPlan(true);
+    setRecommendedPlan(recentPlan.plan);
     setPlan(recentPlan.plan);
   };
 
@@ -1949,6 +1971,8 @@ export default function PackingWorkspace(
             items
           );
 
+        setRecommendedPlan(result.plan);
+        setAlternatives([]);
         setPlan(result.plan);
 
         setPurchaseRecommendations(
@@ -1968,6 +1992,8 @@ export default function PackingWorkspace(
             cartons
           );
 
+        setRecommendedPlan(result.plan);
+        setAlternatives(result.alternatives);
         setPlan(result.plan);
 
         setInventoryUsage(
@@ -2844,6 +2870,33 @@ export default function PackingWorkspace(
                   <InventoryUsageSummary
                     usage={
                       inventoryUsage
+                    }
+                    note={
+                      alternatives.length > 0
+                        ? 'Inventory usage is derived from the recommended canonical plan. Comparing an alternative does not change this inventory summary.'
+                        : undefined
+                    }
+                  />
+                )}
+
+              {mode ===
+                'have-boxes' &&
+                recommendedPlan !==
+                  null &&
+                alternatives.length >
+                  0 && (
+                  <PlanAlternatives
+                    selectedPlan={
+                      recommendedPlan
+                    }
+                    alternatives={
+                      alternatives
+                    }
+                    activePlanId={
+                      plan.id
+                    }
+                    onSelectPlan={
+                      setPlan
                     }
                   />
                 )}
