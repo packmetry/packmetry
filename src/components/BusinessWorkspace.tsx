@@ -976,6 +976,12 @@ export default function BusinessWorkspace({
     >([]);
 
   const [
+    recentProjectsLoaded,
+    setRecentProjectsLoaded,
+  ] =
+    useState(false);
+
+  const [
     projectId,
     setProjectId,
   ] =
@@ -1006,6 +1012,9 @@ export default function BusinessWorkspace({
           if (active) {
             setRecentProjects(
               loadedProjects
+            );
+            setRecentProjectsLoaded(
+              true
             );
           }
         }
@@ -1313,6 +1322,16 @@ export default function BusinessWorkspace({
         return;
       }
 
+      if (
+        projectId === null &&
+        !recentProjectsLoaded
+      ) {
+        setProjectMessage(
+          'Recent projects are still loading. Try again in a moment.'
+        );
+        return;
+      }
+
       const nextProjectId =
         projectId ??
         nextBusinessProjectId(
@@ -1405,6 +1424,16 @@ export default function BusinessWorkspace({
     if (trimmedName === '') {
       setProjectMessage(
         'Enter a project name before exporting.'
+      );
+      return;
+    }
+
+    if (
+      projectId === null &&
+      !recentProjectsLoaded
+    ) {
+      setProjectMessage(
+        'Recent projects are still loading. Try again in a moment.'
       );
       return;
     }
