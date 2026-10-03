@@ -498,17 +498,102 @@ function solveCandidate(input: SolverInput): SolverCandidatePlan {
   };
 }
 
+function cartonVolume(carton: Carton): number {
+  return (
+    carton.internalDimensions.length *
+    carton.internalDimensions.width *
+    carton.internalDimensions.height
+  );
+}
+
+function orderedCartonsByVolume(
+  cartons: readonly Carton[],
+  direction: 'ascending' | 'descending'
+): Carton[] {
+  return cartons
+    .map((carton, index) => ({
+      carton,
+      index,
+      volume: cartonVolume(carton),
+    }))
+    .sort((first, second) => {
+      const volumeComparison =
+        direction === 'ascending'
+          ? first.volume - second.volume
+          : second.volume - first.volume;
+
+      return (
+        volumeComparison ||
+        first.index - second.index
+      );
+    })
+    .map(entry => entry.carton);
+}
+
+function solveWithCartonOrder(
+  input: SolverInput,
+  cartons: readonly Carton[]
+): SolverCandidatePlan {
+  return solveCandidate({
+    ...input,
+    cartons: [...cartons],
+  });
+}
+
+function candidateKey(
+  candidate: SolverCandidatePlan
+): string {
+  return JSON.stringify(candidate);
+}
+
+function solveCandidates(
+  input: SolverInput
+): SolverCandidatePlan[] {
+  const cartonOrders: readonly (readonly Carton[])[] = [
+    input.cartons,
+    orderedCartonsByVolume(
+      input.cartons,
+      'ascending'
+    ),
+    orderedCartonsByVolume(
+      input.cartons,
+      'descending'
+    ),
+  ];
+
+  const candidates: SolverCandidatePlan[] = [];
+  const seen = new Set<string>();
+
+  for (const cartons of cartonOrders) {
+    const candidate = solveWithCartonOrder(
+      input,
+      cartons
+    );
+
+    const key = candidateKey(candidate);
+
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    candidates.push(candidate);
+  }
+
+  return candidates;
+}
+
 export class BaselineSolver implements SolverAdapter {
   async solve(input: SolverInput): Promise<SolverOutput> {
     const startedAt = Date.now();
 
-    const candidate = solveCandidate(input);
+    const candidates = solveCandidates(input);
 
     return {
-      candidates: [candidate],
+      candidates,
       solverMeta: {
         solverId: 'packmetry-baseline',
-        solverVersion: '1',
+        solverVersion: '2',
         durationMs: Date.now() - startedAt,
         deterministic: true,
       },

@@ -29,7 +29,7 @@ describe('PackingWorkspace have-boxes mode', () => {
       <PackingWorkspace initialMode="have-boxes" />
     );
 
-expect(html).toContain('I Already Have Boxes');
+    expect(html).toContain('I Already Have Boxes');
     expect(html).toContain('Boxes you have');
     expect(html).toContain('Box type 1');
     expect(html).toContain('Available quantity');
@@ -53,7 +53,7 @@ expect(html).toContain('I Already Have Boxes');
     );
 
     expect(result.plan.status).toBe('feasible');
-    expect(result.plan.metrics.cartonCount).toBe(2);
+    expect(result.plan.metrics.cartonCount).toBe(1);
     expect(result.plan.metrics.placedItemCount).toBe(2);
     expect(result.plan.metrics.unplacedItemCount).toBe(0);
 
@@ -64,13 +64,17 @@ expect(html).toContain('I Already Have Boxes');
       }))
     ).toEqual([
       {
-        cartonId: 'small',
-        usedQuantity: 1,
-      },
-      {
         cartonId: 'large',
         usedQuantity: 1,
       },
+    ]);
+
+    expect(
+      result.inventoryUsage.unusedCartons.map(
+        entry => entry.cartonId
+      )
+    ).toEqual([
+      'small',
     ]);
   });
 
@@ -91,10 +95,21 @@ expect(html).toContain('I Already Have Boxes');
     );
 
     expect(
+      result.inventoryUsage.usedCartons.map(
+        entry => entry.cartonId
+      )
+    ).toEqual([
+      'unused-large',
+    ]);
+
+    expect(
       result.inventoryUsage.unusedCartons.map(
         entry => entry.cartonId
       )
-    ).toEqual(['unused-large']);
+    ).toEqual([
+      'small',
+      'medium',
+    ]);
   });
 
   it('enforces the available quantity entered for a box type', async () => {

@@ -228,11 +228,7 @@ describe('planHaveBoxes', () => {
       )
     ).toEqual([
       {
-        cartonId: 'small',
-        usedQuantity: 1,
-      },
-      {
-        cartonId: 'medium',
+        cartonId: 'unused-large',
         usedQuantity: 1,
       },
     ]);
@@ -241,7 +237,10 @@ describe('planHaveBoxes', () => {
       result.inventoryUsage?.unusedCartons.map(
         usage => usage.cartonId
       )
-    ).toEqual(['unused-large']);
+    ).toEqual([
+      'small',
+      'medium',
+    ]);
   });
 
   it('respects quantityAvailable as an existing inventory limit', async () => {

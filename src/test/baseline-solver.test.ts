@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { SolverAdapter } from '../core/solver/contracts.js';
+import type { SolverAdapter, SolverInput } from '../core/solver/contracts.js';
 import { BaselineSolver } from '../core/solver/baseline.js';
 import { verifyCandidatePlan } from '../core/verification/verifier.js';
 
@@ -22,6 +22,58 @@ function placedCount(
       total + carton.placements.length,
     0
   );
+}
+
+function alternativeInput(): SolverInput {
+  return {
+    items: [
+      {
+        id: 'cube',
+        dimensions: {
+          length: 60,
+          width: 60,
+          height: 60,
+        },
+        quantity: 2,
+        constraints: {
+          rotationPolicy: 'any',
+          fragile: false,
+          paddingAllowanceMm: 0,
+          spacingAllowanceMm: 0,
+          stackable: true,
+        },
+      },
+    ],
+    cartons: [
+      {
+        id: 'medium',
+        internalDimensions: {
+          length: 80,
+          width: 60,
+          height: 60,
+        },
+      },
+      {
+        id: 'small',
+        internalDimensions: {
+          length: 60,
+          width: 60,
+          height: 60,
+        },
+      },
+      {
+        id: 'large',
+        internalDimensions: {
+          length: 150,
+          width: 60,
+          height: 60,
+        },
+      },
+    ],
+    objective: {
+      kind: 'fewest-cartons',
+    },
+  };
 }
 
 describe('BaselineSolver', () => {
@@ -84,15 +136,17 @@ describe('BaselineSolver', () => {
     for (const testCase of PACKING_BENCHMARK_CASES) {
       const output = await solver.solve(testCase.input);
 
-      const report = verifyCandidatePlan(
-        testCase.input,
-        output.candidates[0]
-      );
+      for (const candidate of output.candidates) {
+        const report = verifyCandidatePlan(
+          testCase.input,
+          candidate
+        );
 
-      expect(
-        report.valid,
-        `${testCase.id}: ${JSON.stringify(report.issues)}`
-      ).toBe(true);
+        expect(
+          report.valid,
+          `${testCase.id}: ${JSON.stringify(report.issues)}`
+        ).toBe(true);
+      }
     }
   });
 
@@ -105,7 +159,7 @@ describe('BaselineSolver', () => {
       'packmetry-baseline'
     );
 
-    expect(output.solverMeta.solverVersion).toBe('1');
+    expect(output.solverMeta.solverVersion).toBe('2');
 
     expect(output.solverMeta.deterministic).toBe(true);
 
@@ -113,41 +167,23 @@ describe('BaselineSolver', () => {
   });
 
   it('produces deterministic candidate content', async () => {
-    const testCase = PACKING_BENCHMARK_CASES.find(
-      candidate =>
-        candidate.id === 'deterministic-repeatability'
-    );
+    const input = alternativeInput();
 
-    expect(testCase).toBeDefined();
-
-    if (testCase === undefined) {
-      return;
-    }
-
-    const first = await solver.solve(testCase.input);
-    const second = await solver.solve(testCase.input);
-    const third = await solver.solve(testCase.input);
+    const first = await solver.solve(input);
+    const second = await solver.solve(input);
+    const third = await solver.solve(input);
 
     expect(second.candidates).toEqual(first.candidates);
     expect(third.candidates).toEqual(first.candidates);
   });
 
   it('does not mutate solver input', async () => {
-    const testCase = PACKING_BENCHMARK_CASES.find(
-      candidate => candidate.id === 'mixed-items'
-    );
+    const input = alternativeInput();
+    const before = JSON.stringify(input);
 
-    expect(testCase).toBeDefined();
+    await solver.solve(input);
 
-    if (testCase === undefined) {
-      return;
-    }
-
-    const before = JSON.stringify(testCase.input);
-
-    await solver.solve(testCase.input);
-
-    expect(JSON.stringify(testCase.input)).toBe(before);
+    expect(JSON.stringify(input)).toBe(before);
   });
 
   it('classifies a known overweight item as weight-limit', async () => {
@@ -187,5 +223,96 @@ describe('BaselineSolver', () => {
         reason: 'weight-limit',
       },
     ]);
+  });
+
+  it('generates bounded deterministic alternatives from carton-order strategies', async () => {
+    const output = await solver.solve(
+      alternativeInput()
+    );
+
+    expect(output.candidates).toHaveLength(3);
+
+    expect(
+      output.candidates.map(candidate =>
+        candidate.cartons.map(
+          carton => carton.cartonId
+        )
+      )
+    ).toEqual([
+      ['medium', 'medium'],
+      ['small', 'small'],
+      ['large'],
+    ]);
+  });
+
+  it('preserves the original input-order plan as candidate zero', async () => {
+    const input = alternativeInput();
+
+    const output = await solver.solve(input);
+
+    expect(
+      output.candidates[0]?.cartons.map(
+        carton => carton.cartonId
+      )
+    ).toEqual([
+      'medium',
+      'medium',
+    ]);
+  });
+
+  it('deduplicates identical candidate content while preserving first occurrence', async () => {
+    const base = PACKING_BENCHMARK_CASES.find(
+      candidate => candidate.id === 'exact-fit'
+    );
+
+    expect(base).toBeDefined();
+
+    if (base === undefined) {
+      return;
+    }
+
+    const output = await solver.solve(
+      base.input
+    );
+
+    expect(output.candidates).toHaveLength(1);
+  });
+
+  it('generates the same candidate set regardless of objective kind', async () => {
+    const input = alternativeInput();
+
+    const fewest = await solver.solve(input);
+
+    const leastWaste = await solver.solve({
+      ...input,
+      objective: {
+        kind: 'least-wasted-volume',
+      },
+    });
+
+    expect(
+      leastWaste.candidates
+    ).toEqual(
+      fewest.candidates
+    );
+  });
+
+  it('keeps every generated alternative independently verifiable', async () => {
+    const input = alternativeInput();
+    const output = await solver.solve(input);
+
+    expect(output.candidates.length).toBeGreaterThan(1);
+
+    for (const candidate of output.candidates) {
+      const report = verifyCandidatePlan(
+        input,
+        candidate
+      );
+
+      expect(
+        report.valid,
+        JSON.stringify(report.issues)
+      ).toBe(true);
+    }
   });
 });
