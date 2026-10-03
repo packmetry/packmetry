@@ -1,6 +1,7 @@
 import { useEffect, useState, type ChangeEvent, type SyntheticEvent } from 'react';
 
 import PackingVisualization from './PackingVisualization.js';
+import PlanAlternatives from './PlanAlternatives.js';
 import ResultSummary, {
   formatPackedWeight,
 } from './ResultSummary.js';
@@ -123,6 +124,7 @@ export interface BusinessObjectiveOption {
 
 export interface BusinessWorkspaceResult {
   plan: PackingPlan;
+  alternatives: PackingPlan[];
   inventoryUsage: HaveBoxesInventoryUsage;
 }
 
@@ -549,6 +551,8 @@ export async function runBusinessWorkspace(
   return {
     plan:
       result.planningResult.plan,
+    alternatives:
+      result.planningResult.alternatives,
     inventoryUsage:
       result.inventoryUsage,
   };
@@ -1031,6 +1035,22 @@ export default function BusinessWorkspace({
     );
 
   const [
+    recommendedPlan,
+    setRecommendedPlan,
+  ] =
+    useState<PackingPlan | null>(
+      null
+    );
+
+  const [
+    alternatives,
+    setAlternatives,
+  ] =
+    useState<PackingPlan[]>(
+      []
+    );
+
+  const [
     inventoryUsage,
     setInventoryUsage,
   ] =
@@ -1410,6 +1430,8 @@ export default function BusinessWorkspace({
       project.objective
     );
     setPlan(null);
+    setRecommendedPlan(null);
+    setAlternatives([]);
     setInventoryUsage(null);
     setError(null);
     setProjectMessage(
@@ -1549,6 +1571,8 @@ export default function BusinessWorkspace({
         importedProject.objective
       );
       setPlan(null);
+      setRecommendedPlan(null);
+      setAlternatives([]);
       setInventoryUsage(null);
       setError(null);
       setProjectMessage(
@@ -1567,6 +1591,8 @@ export default function BusinessWorkspace({
       nextObjective
     );
     setPlan(null);
+    setRecommendedPlan(null);
+    setAlternatives([]);
     setInventoryUsage(null);
     setError(null);
   };
@@ -1579,6 +1605,8 @@ export default function BusinessWorkspace({
 
     setRunning(true);
     setPlan(null);
+    setRecommendedPlan(null);
+    setAlternatives([]);
     setInventoryUsage(null);
     setError(null);
 
@@ -1590,6 +1618,12 @@ export default function BusinessWorkspace({
           objective
         );
 
+      setRecommendedPlan(
+        result.plan
+      );
+      setAlternatives(
+        result.alternatives
+      );
       setPlan(result.plan);
       setInventoryUsage(
         result.inventoryUsage
@@ -1611,10 +1645,10 @@ export default function BusinessWorkspace({
     );
 
   const businessResultMetrics =
-    plan !== null &&
+    recommendedPlan !== null &&
     inventoryUsage !== null
       ? buildBusinessResultMetrics(
-          plan,
+          recommendedPlan,
           inventoryUsage
         )
       : null;
@@ -2663,6 +2697,13 @@ export default function BusinessWorkspace({
                       businessResultMetrics
                     )}
                   </span>
+
+                  {alternatives.length >
+                    0 && (
+                    <span>
+                      These business metrics stay tied to the recommended canonical plan while you compare alternatives.
+                    </span>
+                  )}
                 </div>
               )}
 
@@ -2694,6 +2735,13 @@ export default function BusinessWorkspace({
                     unused
                   </span>
 
+                  {alternatives.length >
+                    0 && (
+                    <span>
+                      Inventory usage stays tied to the recommended canonical plan while you compare alternatives.
+                    </span>
+                  )}
+
                   {inventoryUsage
                     .usedCartons
                     .map(entry => (
@@ -2718,6 +2766,26 @@ export default function BusinessWorkspace({
                     ))}
                 </div>
               )}
+
+              {recommendedPlan !==
+                null &&
+                alternatives.length >
+                  0 && (
+                  <PlanAlternatives
+                    selectedPlan={
+                      recommendedPlan
+                    }
+                    alternatives={
+                      alternatives
+                    }
+                    activePlanId={
+                      plan.id
+                    }
+                    onSelectPlan={
+                      setPlan
+                    }
+                  />
+                )}
 
               <ResultSummary
                 plan={plan}
