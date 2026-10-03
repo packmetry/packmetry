@@ -137,241 +137,819 @@ function oneLargeBox(): SolverCandidatePlan {
 }
 
 function invalidLargeBox(): SolverCandidatePlan {
-  const candidate = oneLargeBox();
-  candidate.cartons[0]!.placements[1]!.x = 35;
+  const candidate =
+    oneLargeBox();
+
+  candidate.cartons[0]!
+    .placements[1]!.x = 35;
+
   return candidate;
 }
 
 function makeSolver(
-  candidates: SolverCandidatePlan[],
-  onSolve?: (input: SolverInput) => void
+  candidates:
+    SolverCandidatePlan[],
+  onSolve?: (
+    input: SolverInput
+  ) => void
 ): SolverAdapter {
   return {
     solve: async input => {
-      onSolve?.(input);
+      onSolve?.(
+        input
+      );
 
       return {
         candidates,
         solverMeta: {
-          solverId: 'pipeline-test-solver',
-          solverVersion: '1',
+          solverId:
+            'pipeline-test-solver',
+          solverVersion:
+            '1',
           durationMs: 7,
-          deterministic: true,
+          deterministic:
+            true,
         },
       };
     },
   };
 }
 
-describe('planPacking', () => {
-  it('runs solve, verify, select, and canonical construction in order', async () => {
-    const input = makeInput();
-    const first = twoSmallBoxes();
-    const second = oneLargeBox();
-    let solveCalls = 0;
+describe(
+  'planPacking',
+  () => {
+    it(
+      'runs solve, verify, select, and canonical construction in order',
+      async () => {
+        const input =
+          makeInput();
+        const first =
+          twoSmallBoxes();
+        const second =
+          oneLargeBox();
+        let solveCalls = 0;
 
-    const result = await planPacking(
-      'plan-pipeline-1',
-      makeSolver([first, second], receivedInput => {
-        solveCalls += 1;
-        expect(receivedInput).toBe(input);
-      }),
-      input
+        const result =
+          await planPacking(
+            'plan-pipeline-1',
+            makeSolver(
+              [
+                first,
+                second,
+              ],
+              receivedInput => {
+                solveCalls += 1;
+                expect(
+                  receivedInput
+                ).toBe(
+                  input
+                );
+              }
+            ),
+            input
+          );
+
+        expect(
+          solveCalls
+        ).toBe(1);
+        expect(
+          result.kind
+        ).toBe(
+          'planned'
+        );
+
+        if (
+          result.kind !==
+          'planned'
+        ) {
+          throw new Error(
+            'Expected a planned result'
+          );
+        }
+
+        expect(
+          result.selection
+        ).toEqual({
+          kind: 'selected',
+          selectedCandidateIndex: 1,
+          rankedCandidateIndexes: [
+            1,
+            0,
+          ],
+        });
+
+        expect(
+          result.verification
+            .candidates
+        ).toHaveLength(
+          2
+        );
+        expect(
+          result.verification
+            .candidates[0]!
+            .candidate
+        ).toBe(
+          first
+        );
+        expect(
+          result.verification
+            .candidates[1]!
+            .candidate
+        ).toBe(
+          second
+        );
+        expect(
+          result.verification
+            .candidates[0]!
+            .verification
+            .valid
+        ).toBe(
+          true
+        );
+        expect(
+          result.verification
+            .candidates[1]!
+            .verification
+            .valid
+        ).toBe(
+          true
+        );
+
+        expect(
+          result.plan.id
+        ).toBe(
+          'plan-pipeline-1'
+        );
+        expect(
+          result.plan.cartons
+        ).toHaveLength(
+          1
+        );
+        expect(
+          result.plan
+            .cartons[0]!
+            .carton.id
+        ).toBe(
+          'large'
+        );
+        expect(
+          result.plan
+            .metrics
+            .cartonCount
+        ).toBe(
+          1
+        );
+        expect(
+          result.plan
+            .metrics
+            .placedItemCount
+        ).toBe(
+          2
+        );
+        expect(
+          result.plan.solverMeta
+        ).toEqual({
+          solverId:
+            'pipeline-test-solver',
+          solverVersion:
+            '1',
+          durationMs: 7,
+          deterministic:
+            true,
+        });
+
+        expect(
+          result.alternatives
+        ).toHaveLength(
+          1
+        );
+        expect(
+          result.alternatives[0]!
+            .id
+        ).toBe(
+          'plan-pipeline-1:alternative:1'
+        );
+        expect(
+          result.alternatives[0]!
+            .cartons
+        ).toHaveLength(
+          2
+        );
+        expect(
+          result.alternatives[0]!
+            .cartons.map(
+              carton =>
+                carton.carton.id
+            )
+        ).toEqual([
+          'small',
+          'small',
+        ]);
+      }
     );
 
-    expect(solveCalls).toBe(1);
-    expect(result.kind).toBe('planned');
+    it(
+      'materializes every non-selected ranked candidate as a canonical alternative in rank order',
+      async () => {
+        const first =
+          twoSmallBoxes();
+        const second =
+          oneLargeBox();
+        const third =
+          oneLargeBox();
 
-    if (result.kind !== 'planned') {
-      throw new Error('Expected a planned result');
-    }
+        const result =
+          await planPacking(
+            'ranked-plans',
+            makeSolver([
+              first,
+              second,
+              third,
+            ]),
+            makeInput(
+              'fewest-cartons'
+            )
+          );
 
-    expect(result.selection).toEqual({
-      kind: 'selected',
-      selectedCandidateIndex: 1,
-      rankedCandidateIndexes: [1, 0],
-    });
+        expect(
+          result.kind
+        ).toBe(
+          'planned'
+        );
 
-    expect(result.verification.candidates).toHaveLength(2);
-    expect(result.verification.candidates[0]!.candidate).toBe(first);
-    expect(result.verification.candidates[1]!.candidate).toBe(second);
-    expect(result.verification.candidates[0]!.verification.valid).toBe(true);
-    expect(result.verification.candidates[1]!.verification.valid).toBe(true);
+        if (
+          result.kind !==
+          'planned'
+        ) {
+          throw new Error(
+            'Expected a planned result'
+          );
+        }
 
-    expect(result.plan.id).toBe('plan-pipeline-1');
-    expect(result.plan.cartons).toHaveLength(1);
-    expect(result.plan.cartons[0]!.carton.id).toBe('large');
-    expect(result.plan.metrics.cartonCount).toBe(1);
-    expect(result.plan.metrics.placedItemCount).toBe(2);
-    expect(result.plan.solverMeta).toEqual({
-      solverId: 'pipeline-test-solver',
-      solverVersion: '1',
-      durationMs: 7,
-      deterministic: true,
-    });
-  });
+        expect(
+          result.selection
+            .rankedCandidateIndexes
+        ).toEqual([
+          1,
+          2,
+          0,
+        ]);
 
-  it('returns not-planned and retains diagnostics when no candidate verifies', async () => {
-    const input = makeInput();
-    const invalid = invalidLargeBox();
-    let solveCalls = 0;
+        expect(
+          result.plan.id
+        ).toBe(
+          'ranked-plans'
+        );
 
-    const result = await planPacking(
-      'plan-no-valid',
-      makeSolver([invalid], () => {
-        solveCalls += 1;
-      }),
-      input
+        expect(
+          result.alternatives.map(
+            plan =>
+              plan.id
+          )
+        ).toEqual([
+          'ranked-plans:alternative:1',
+          'ranked-plans:alternative:2',
+        ]);
+
+        expect(
+          result.alternatives[0]!
+            .cartons
+        ).toHaveLength(
+          1
+        );
+        expect(
+          result.alternatives[0]!
+            .cartons[0]!
+            .carton.id
+        ).toBe(
+          'large'
+        );
+
+        expect(
+          result.alternatives[1]!
+            .cartons
+        ).toHaveLength(
+          2
+        );
+        expect(
+          result.alternatives[1]!
+            .cartons.map(
+              carton =>
+                carton.carton.id
+            )
+        ).toEqual([
+          'small',
+          'small',
+        ]);
+
+        for (
+          const alternative
+          of result.alternatives
+        ) {
+          expect(
+            alternative
+              .objective
+              .kind
+          ).toBe(
+            'fewest-cartons'
+          );
+          expect(
+            alternative
+              .solverMeta
+          ).toEqual(
+            result.plan
+              .solverMeta
+          );
+        }
+      }
     );
 
-    expect(solveCalls).toBe(1);
-    expect(result.kind).toBe('not-planned');
+    it(
+      'returns not-planned and retains diagnostics when no candidate verifies',
+      async () => {
+        const input =
+          makeInput();
+        const invalid =
+          invalidLargeBox();
+        let solveCalls = 0;
 
-    if (result.kind !== 'not-planned') {
-      throw new Error('Expected a not-planned result');
-    }
+        const result =
+          await planPacking(
+            'plan-no-valid',
+            makeSolver(
+              [
+                invalid,
+              ],
+              () => {
+                solveCalls += 1;
+              }
+            ),
+            input
+          );
 
-    expect(result.selection).toEqual({
-      kind: 'no-valid-candidate',
-    });
+        expect(
+          solveCalls
+        ).toBe(1);
+        expect(
+          result.kind
+        ).toBe(
+          'not-planned'
+        );
 
-    expect(result.verification.candidates).toHaveLength(1);
-    expect(result.verification.candidates[0]!.candidate).toBe(invalid);
-    expect(result.verification.candidates[0]!.verification.valid).toBe(false);
-    expect(
-      result.verification.candidates[0]!.verification.issues.map(
-        issue => issue.code
-      )
-    ).toContain('boundary-violation');
-    expect('plan' in result).toBe(false);
-  });
+        if (
+          result.kind !==
+          'not-planned'
+        ) {
+          throw new Error(
+            'Expected a not-planned result'
+          );
+        }
 
-  it('returns objective-unsupported without falling back or rerunning the solver', async () => {
-    const input = makeInput('existing-inventory-first');
-    let solveCalls = 0;
+        expect(
+          result.selection
+        ).toEqual({
+          kind:
+            'no-valid-candidate',
+        });
 
-    const result = await planPacking(
-      'plan-unsupported',
-      makeSolver([oneLargeBox()], () => {
-        solveCalls += 1;
-      }),
-      input
+        expect(
+          result.verification
+            .candidates
+        ).toHaveLength(
+          1
+        );
+        expect(
+          result.verification
+            .candidates[0]!
+            .candidate
+        ).toBe(
+          invalid
+        );
+        expect(
+          result.verification
+            .candidates[0]!
+            .verification
+            .valid
+        ).toBe(
+          false
+        );
+        expect(
+          result.verification
+            .candidates[0]!
+            .verification
+            .issues.map(
+              issue =>
+                issue.code
+            )
+        ).toContain(
+          'boundary-violation'
+        );
+        expect(
+          'plan' in result
+        ).toBe(
+          false
+        );
+        expect(
+          'alternatives' in
+            result
+        ).toBe(
+          false
+        );
+      }
     );
 
-    expect(solveCalls).toBe(1);
-    expect(result).toMatchObject({
-      kind: 'not-planned',
-      selection: {
-        kind: 'objective-unsupported',
-        objective: 'existing-inventory-first',
-      },
-    });
-    expect('plan' in result).toBe(false);
-  });
+    it(
+      'returns objective-unsupported without falling back or rerunning the solver',
+      async () => {
+        const input =
+          makeInput(
+            'existing-inventory-first'
+          );
+        let solveCalls = 0;
 
-  it('returns insufficient-data without treating unknown carton cost as zero', async () => {
-    const input = makeInput('min-carton-cost');
-    delete input.cartons[1]!.costPerBox;
+        const result =
+          await planPacking(
+            'plan-unsupported',
+            makeSolver(
+              [
+                oneLargeBox(),
+              ],
+              () => {
+                solveCalls += 1;
+              }
+            ),
+            input
+          );
 
-    let solveCalls = 0;
-
-    const result = await planPacking(
-      'plan-missing-cost',
-      makeSolver([oneLargeBox()], () => {
-        solveCalls += 1;
-      }),
-      input
+        expect(
+          solveCalls
+        ).toBe(1);
+        expect(
+          result
+        ).toMatchObject({
+          kind:
+            'not-planned',
+          selection: {
+            kind:
+              'objective-unsupported',
+            objective:
+              'existing-inventory-first',
+          },
+        });
+        expect(
+          'plan' in result
+        ).toBe(
+          false
+        );
+      }
     );
 
-    expect(solveCalls).toBe(1);
-    expect(result).toMatchObject({
-      kind: 'not-planned',
-      selection: {
-        kind: 'insufficient-data',
-        objective: 'min-carton-cost',
-        missingMetric: 'carton-cost',
-      },
-    });
-    expect('plan' in result).toBe(false);
-  });
+    it(
+      'returns insufficient-data without treating unknown carton cost as zero',
+      async () => {
+        const input =
+          makeInput(
+            'min-carton-cost'
+          );
 
-  it('preserves invalid candidates while selecting a later valid candidate', async () => {
-    const input = makeInput('fewest-cartons');
-    const invalid = invalidLargeBox();
-    const valid = oneLargeBox();
+        delete input
+          .cartons[1]!
+          .costPerBox;
 
-    const result = await planPacking(
-      'plan-invalid-retained',
-      makeSolver([invalid, valid]),
-      input
+        let solveCalls = 0;
+
+        const result =
+          await planPacking(
+            'plan-missing-cost',
+            makeSolver(
+              [
+                oneLargeBox(),
+              ],
+              () => {
+                solveCalls += 1;
+              }
+            ),
+            input
+          );
+
+        expect(
+          solveCalls
+        ).toBe(1);
+        expect(
+          result
+        ).toMatchObject({
+          kind:
+            'not-planned',
+          selection: {
+            kind:
+              'insufficient-data',
+            objective:
+              'min-carton-cost',
+            missingMetric:
+              'carton-cost',
+          },
+        });
+        expect(
+          'plan' in result
+        ).toBe(
+          false
+        );
+      }
     );
 
-    expect(result.kind).toBe('planned');
+    it(
+      'preserves invalid candidates while excluding them from canonical alternatives',
+      async () => {
+        const input =
+          makeInput(
+            'fewest-cartons'
+          );
+        const invalid =
+          invalidLargeBox();
+        const valid =
+          oneLargeBox();
 
-    if (result.kind !== 'planned') {
-      throw new Error('Expected a planned result');
-    }
+        const result =
+          await planPacking(
+            'plan-invalid-retained',
+            makeSolver([
+              invalid,
+              valid,
+            ]),
+            input
+          );
 
-    expect(result.selection.selectedCandidateIndex).toBe(1);
-    expect(result.selection.rankedCandidateIndexes).toEqual([1]);
+        expect(
+          result.kind
+        ).toBe(
+          'planned'
+        );
 
-    expect(result.verification.candidates[0]!.candidate).toBe(invalid);
-    expect(result.verification.candidates[0]!.verification.valid).toBe(false);
-    expect(result.verification.candidates[1]!.candidate).toBe(valid);
-    expect(result.verification.candidates[1]!.verification.valid).toBe(true);
+        if (
+          result.kind !==
+          'planned'
+        ) {
+          throw new Error(
+            'Expected a planned result'
+          );
+        }
 
-    expect(result.plan.cartons[0]!.carton.id).toBe('large');
-  });
+        expect(
+          result.selection
+            .selectedCandidateIndex
+        ).toBe(
+          1
+        );
+        expect(
+          result.selection
+            .rankedCandidateIndexes
+        ).toEqual([
+          1,
+        ]);
 
-  it('passes the caller supplied plan id through unchanged', async () => {
-    const result = await planPacking(
-      'caller-owned-plan-id',
-      makeSolver([oneLargeBox()]),
-      makeInput()
+        expect(
+          result.verification
+            .candidates[0]!
+            .candidate
+        ).toBe(
+          invalid
+        );
+        expect(
+          result.verification
+            .candidates[0]!
+            .verification
+            .valid
+        ).toBe(
+          false
+        );
+        expect(
+          result.verification
+            .candidates[1]!
+            .candidate
+        ).toBe(
+          valid
+        );
+        expect(
+          result.verification
+            .candidates[1]!
+            .verification
+            .valid
+        ).toBe(
+          true
+        );
+
+        expect(
+          result.plan
+            .cartons[0]!
+            .carton.id
+        ).toBe(
+          'large'
+        );
+        expect(
+          result.alternatives
+        ).toEqual(
+          []
+        );
+      }
     );
 
-    expect(result.kind).toBe('planned');
+    it(
+      'passes the caller supplied primary plan id through unchanged and uses deterministic alternative ids',
+      async () => {
+        const result =
+          await planPacking(
+            'caller-owned-plan-id',
+            makeSolver([
+              oneLargeBox(),
+              twoSmallBoxes(),
+            ]),
+            makeInput()
+          );
 
-    if (result.kind !== 'planned') {
-      throw new Error('Expected a planned result');
-    }
+        expect(
+          result.kind
+        ).toBe(
+          'planned'
+        );
 
-    expect(result.plan.id).toBe('caller-owned-plan-id');
-  });
+        if (
+          result.kind !==
+          'planned'
+        ) {
+          throw new Error(
+            'Expected a planned result'
+          );
+        }
 
-  it('does not mutate the input or solver-owned candidate data', async () => {
-    const input = makeInput();
-    const first = twoSmallBoxes();
-    const second = oneLargeBox();
-    const candidates = [first, second];
-
-    const inputBefore = JSON.stringify(input);
-    const candidatesBefore = JSON.stringify(candidates);
-
-    const result = await planPacking(
-      'plan-immutability',
-      makeSolver(candidates),
-      input
+        expect(
+          result.plan.id
+        ).toBe(
+          'caller-owned-plan-id'
+        );
+        expect(
+          result.alternatives.map(
+            plan =>
+              plan.id
+          )
+        ).toEqual([
+          'caller-owned-plan-id:alternative:1',
+        ]);
+      }
     );
 
-    expect(result.kind).toBe('planned');
-    expect(JSON.stringify(input)).toBe(inputBefore);
-    expect(JSON.stringify(candidates)).toBe(candidatesBefore);
-  });
+    it(
+      'returns an empty alternatives array when only one ranked candidate exists',
+      async () => {
+        const result =
+          await planPacking(
+            'single-candidate',
+            makeSolver([
+              oneLargeBox(),
+            ]),
+            makeInput()
+          );
 
-  it('propagates unexpected solver failures', async () => {
-    const solver: SolverAdapter = {
-      solve: async () => {
-        throw new Error('pipeline solver failed');
-      },
-    };
+        expect(
+          result.kind
+        ).toBe(
+          'planned'
+        );
 
-    await expect(
-      planPacking(
-        'plan-error',
-        solver,
-        makeInput()
-      )
-    ).rejects.toThrow('pipeline solver failed');
-  });
-});
+        if (
+          result.kind !==
+          'planned'
+        ) {
+          throw new Error(
+            'Expected a planned result'
+          );
+        }
+
+        expect(
+          result.selection
+            .rankedCandidateIndexes
+        ).toEqual([
+          0,
+        ]);
+        expect(
+          result.alternatives
+        ).toEqual(
+          []
+        );
+      }
+    );
+
+    it(
+      'does not mutate or alias input, solver-owned candidates, or canonical alternatives',
+      async () => {
+        const input =
+          makeInput();
+        const first =
+          twoSmallBoxes();
+        const second =
+          oneLargeBox();
+        const candidates = [
+          first,
+          second,
+        ];
+
+        const inputBefore =
+          JSON.stringify(
+            input
+          );
+        const candidatesBefore =
+          JSON.stringify(
+            candidates
+          );
+
+        const result =
+          await planPacking(
+            'plan-immutability',
+            makeSolver(
+              candidates
+            ),
+            input
+          );
+
+        expect(
+          result.kind
+        ).toBe(
+          'planned'
+        );
+
+        if (
+          result.kind !==
+          'planned'
+        ) {
+          throw new Error(
+            'Expected a planned result'
+          );
+        }
+
+        expect(
+          JSON.stringify(
+            input
+          )
+        ).toBe(
+          inputBefore
+        );
+        expect(
+          JSON.stringify(
+            candidates
+          )
+        ).toBe(
+          candidatesBefore
+        );
+
+        result.plan
+          .cartons[0]!
+          .placements[0]!
+          .x = 777;
+
+        result.alternatives[0]!
+          .cartons[0]!
+          .placements[0]!
+          .x = 999;
+
+        expect(
+          JSON.stringify(
+            input
+          )
+        ).toBe(
+          inputBefore
+        );
+        expect(
+          JSON.stringify(
+            candidates
+          )
+        ).toBe(
+          candidatesBefore
+        );
+      }
+    );
+
+    it(
+      'propagates unexpected solver failures',
+      async () => {
+        const solver:
+          SolverAdapter = {
+            solve:
+              async () => {
+                throw new Error(
+                  'pipeline solver failed'
+                );
+              },
+          };
+
+        await expect(
+          planPacking(
+            'plan-error',
+            solver,
+            makeInput()
+          )
+        ).rejects.toThrow(
+          'pipeline solver failed'
+        );
+      }
+    );
+  }
+);
