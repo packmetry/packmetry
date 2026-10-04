@@ -8,3 +8,4 @@ export * from './types.js';
 export * from './length.js';
 export * from './mass.js';
 export * from './dimensions.js';
+export * from './dimensional-weight.js';
