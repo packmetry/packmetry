@@ -479,6 +479,34 @@ describe(
     );
 
     it(
+      'preserves the min-DIM-weight objective in Business project snapshots',
+      () => {
+        const project =
+          createRecentBusinessProject(
+            projectInput({
+              objective:
+                'min-dim-weight',
+            }),
+            123
+          );
+
+        expect(
+          project.objective
+        ).toBe(
+          'min-dim-weight'
+        );
+
+        expect(
+          project.dimensionalWeight
+        ).toEqual({
+          divisorValue: 5000,
+          lengthUnit: 'cm',
+          massUnit: 'kg',
+        });
+      }
+    );
+
+    it(
       'orders recent projects newest first',
       () => {
         const ordered =

@@ -131,6 +131,7 @@ export type BusinessObjectiveKind = Extract<
   | 'balanced'
   | 'fewest-cartons'
   | 'least-wasted-volume'
+  | 'min-dim-weight'
 >;
 
 export interface BusinessObjectiveOption {
@@ -201,6 +202,12 @@ export const BUSINESS_OBJECTIVE_OPTIONS:
       description:
         'Prioritize lower empty volume across the selected cartons.',
     },
+    {
+      kind: 'min-dim-weight',
+      label: 'Lowest DIM weight',
+      description:
+        'Prioritize lower total dimensional weight across verified candidates. Requires a DIM divisor and external dimensions for every available carton.',
+    },
   ];
 
 export const DEFAULT_BUSINESS_DIMENSIONAL_WEIGHT:
@@ -209,6 +216,12 @@ export const DEFAULT_BUSINESS_DIMENSIONAL_WEIGHT:
     lengthUnit: 'cm',
     massUnit: 'kg',
   };
+
+export const BUSINESS_MIN_DIM_DIVISOR_REQUIRED_MESSAGE =
+  'Lowest DIM weight requires a DIM divisor.';
+
+export const BUSINESS_MIN_DIM_EXTERNAL_DIMENSIONS_REQUIRED_MESSAGE =
+  'Lowest DIM weight requires external dimensions for every available carton.';
 
 export const DEFAULT_BUSINESS_PRODUCTS: BusinessProductValues[] = [
   {
@@ -501,6 +514,45 @@ export function buildBusinessDimensionalWeightSettings(
   return settings;
 }
 
+function hasCompleteBusinessExternalDimensions(
+  carton: BusinessCartonValues
+): boolean {
+  return (
+    carton.externalLengthMm !==
+      undefined &&
+    carton.externalWidthMm !==
+      undefined &&
+    carton.externalHeightMm !==
+      undefined
+  );
+}
+
+export function isBusinessMinDimWeightObjectiveAvailable(
+  cartons: readonly BusinessCartonValues[],
+  dimensionalWeightValues:
+    BusinessDimensionalWeightValues
+): boolean {
+  return (
+    dimensionalWeightValues
+      .divisorValue !==
+      undefined &&
+    Number.isFinite(
+      dimensionalWeightValues
+        .divisorValue
+    ) &&
+    dimensionalWeightValues
+      .divisorValue > 0 &&
+    cartons.every(
+      carton =>
+        carton.quantityAvailable ===
+          0 ||
+        hasCompleteBusinessExternalDimensions(
+          carton
+        )
+    )
+  );
+}
+
 function hasPartialBusinessExternalDimensions(
   carton: BusinessCartonValues
 ): boolean {
@@ -704,6 +756,35 @@ export async function runBusinessWorkspace(
   objective: BusinessObjectiveKind = 'balanced',
   dimensionalWeight?: DimensionalWeightSettings
 ): Promise<BusinessWorkspaceResult> {
+  if (
+    objective ===
+    'min-dim-weight'
+  ) {
+    if (
+      dimensionalWeight ===
+      undefined
+    ) {
+      throw new Error(
+        BUSINESS_MIN_DIM_DIVISOR_REQUIRED_MESSAGE
+      );
+    }
+
+    if (
+      cartons.some(
+        carton =>
+          carton.quantityAvailable >
+            0 &&
+          !hasCompleteBusinessExternalDimensions(
+            carton
+          )
+      )
+    ) {
+      throw new Error(
+        BUSINESS_MIN_DIM_EXTERNAL_DIMENSIONS_REQUIRED_MESSAGE
+      );
+    }
+  }
+
   const result =
     await planHaveBoxes(
       'business-workspace-plan',
@@ -1341,13 +1422,27 @@ export default function BusinessWorkspace({
 
     if (
       savedObjective !==
-      undefined
+      undefined &&
+      (
+        savedObjective !==
+          'min-dim-weight' ||
+        isBusinessMinDimWeightObjectiveAvailable(
+          cartons,
+          dimensionalWeightValues
+        )
+      )
     ) {
       setObjective(
         savedObjective
       );
     }
   }, [initialObjective]);
+
+  const minDimObjectiveAvailable =
+    isBusinessMinDimWeightObjectiveAvailable(
+      cartons,
+      dimensionalWeightValues
+    );
 
   const objectiveCopy =
     BUSINESS_OBJECTIVE_OPTIONS.find(
@@ -3069,6 +3164,18 @@ export default function BusinessWorkspace({
                       objective ===
                       option.kind
                     }
+                    disabled={
+                      option.kind ===
+                        'min-dim-weight' &&
+                      !minDimObjectiveAvailable
+                    }
+                    title={
+                      option.kind ===
+                        'min-dim-weight' &&
+                      !minDimObjectiveAvailable
+                        ? 'Enter a DIM divisor and external dimensions for every available carton to use this objective.'
+                        : undefined
+                    }
                     onClick={() =>
                       chooseObjective(
                         option.kind
@@ -3089,6 +3196,18 @@ export default function BusinessWorkspace({
               <span>
                 {objectiveCopy.description}
               </span>
+
+              {objective ===
+                'min-dim-weight' &&
+                !minDimObjectiveAvailable && (
+                  <span>
+                    Enter a DIM divisor and
+                    external dimensions for
+                    every available carton
+                    before running this
+                    objective.
+                  </span>
+                )}
             </div>
           </section>
 

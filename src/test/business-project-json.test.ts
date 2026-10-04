@@ -397,6 +397,54 @@ describe(
     );
 
     it(
+      'round-trips the min-DIM-weight objective with explicit DIM settings',
+      () => {
+        const source =
+          project({
+            objective:
+              'min-dim-weight',
+            dimensionalWeight: {
+              divisorValue: 5000,
+              lengthUnit: 'cm',
+              massUnit: 'kg',
+            },
+          });
+
+        const result =
+          parseBusinessProjectJson(
+            serializeBusinessProjectJson(
+              source
+            )
+          );
+
+        expect(
+          result.ok
+        ).toBe(true);
+
+        if (!result.ok) {
+          throw new Error(
+            'Expected min-DIM-weight project to parse.'
+          );
+        }
+
+        expect(
+          result.project.objective
+        ).toBe(
+          'min-dim-weight'
+        );
+
+        expect(
+          result.project
+            .dimensionalWeight
+        ).toEqual({
+          divisorValue: 5000,
+          lengthUnit: 'cm',
+          massUnit: 'kg',
+        });
+      }
+    );
+
+    it(
       'round-trips missing optional Business values without inventing defaults',
       () => {
         const source =
@@ -694,6 +742,12 @@ describe(
               'least-wasted-volume' as const,
             rotationPolicy:
               'fixed' as const,
+          },
+          {
+            objective:
+              'min-dim-weight' as const,
+            rotationPolicy:
+              'any' as const,
           },
         ];
 

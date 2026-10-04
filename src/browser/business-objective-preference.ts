@@ -6,6 +6,7 @@ export type BusinessObjectivePreference =
     | 'balanced'
     | 'fewest-cartons'
     | 'least-wasted-volume'
+    | 'min-dim-weight'
   >;
 
 export const BUSINESS_OBJECTIVE_PREFERENCE_KEY =
@@ -16,6 +17,7 @@ export const BUSINESS_OBJECTIVE_PREFERENCES:
     'balanced',
     'fewest-cartons',
     'least-wasted-volume',
+    'min-dim-weight',
   ];
 
 interface ObjectivePreferenceStorage {

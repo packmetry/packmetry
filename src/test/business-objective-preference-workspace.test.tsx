@@ -54,7 +54,7 @@ describe(
     );
 
     it(
-      'keeps the supported Business objective set unchanged',
+      'includes min-DIM weight in the supported Business objective set',
       () => {
         expect(
           BUSINESS_OBJECTIVE_OPTIONS.map(
@@ -64,6 +64,7 @@ describe(
           'balanced',
           'fewest-cartons',
           'least-wasted-volume',
+          'min-dim-weight',
         ]);
       }
     );
@@ -146,6 +147,17 @@ describe(
           workspaceSource
         ).toMatch(
           /savedObjective !==\s*undefined[\s\S]*setObjective\(\s*savedObjective\s*\)/
+        );
+      }
+    );
+
+    it(
+      'guards a persisted min-DIM objective behind its data prerequisites',
+      () => {
+        expect(
+          workspaceSource
+        ).toMatch(
+          /savedObjective !==\s*'min-dim-weight'[\s\S]*isBusinessMinDimWeightObjectiveAvailable\(\s*cartons,\s*dimensionalWeightValues\s*\)/
         );
       }
     );

@@ -26,6 +26,7 @@ describe(
           'balanced',
           'fewest-cartons',
           'least-wasted-volume',
+          'min-dim-weight',
         ]);
       }
     );
@@ -36,6 +37,7 @@ describe(
       'balanced',
       'fewest-cartons',
       'least-wasted-volume',
+      'min-dim-weight',
     ])(
       'recognizes the supported %s preference',
       preference => {
@@ -70,12 +72,6 @@ describe(
 
         expect(
           isBusinessObjectivePreference(
-            'min-dim-weight'
-          )
-        ).toBe(false);
-
-        expect(
-          isBusinessObjectivePreference(
             null
           )
         ).toBe(false);
@@ -99,6 +95,7 @@ describe(
       'balanced',
       'fewest-cartons',
       'least-wasted-volume',
+      'min-dim-weight',
     ])(
       'reads the saved %s preference',
       preference => {
@@ -179,6 +176,7 @@ describe(
       'balanced',
       'fewest-cartons',
       'least-wasted-volume',
+      'min-dim-weight',
     ])(
       'persists the selected %s preference under the stable key',
       preference => {

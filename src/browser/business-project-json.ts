@@ -51,6 +51,7 @@ const BUSINESS_PROJECT_OBJECTIVES:
     'balanced',
     'fewest-cartons',
     'least-wasted-volume',
+    'min-dim-weight',
   ];
 
 const BUSINESS_PROJECT_HANDLING_POLICIES:

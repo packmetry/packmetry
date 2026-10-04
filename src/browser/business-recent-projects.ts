@@ -19,6 +19,7 @@ export type RecentBusinessProjectObjective =
     | 'balanced'
     | 'fewest-cartons'
     | 'least-wasted-volume'
+    | 'min-dim-weight'
   >;
 
 export interface RecentBusinessProjectProduct {
