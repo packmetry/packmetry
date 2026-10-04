@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import BusinessWorkspace, {
   buildBusinessCartons,
+  buildBusinessDimensionalWeightSettings,
   buildBusinessItems,
   businessCartonFromSavedCarton,
   businessProjectInputFromWorkspace,
@@ -10,6 +11,7 @@ import BusinessWorkspace, {
   runBusinessWorkspace,
   savedBusinessCartonInputFromBusinessCarton,
   type BusinessCartonValues,
+  type BusinessDimensionalWeightValues,
   type BusinessProductValues,
 } from '../components/BusinessWorkspace.js';
 
@@ -47,8 +49,19 @@ function carton(
   };
 }
 
+function dimensionalWeightValues(
+  overrides: Partial<BusinessDimensionalWeightValues> = {}
+): BusinessDimensionalWeightValues {
+  return {
+    divisorValue: 1000,
+    lengthUnit: 'cm',
+    massUnit: 'kg',
+    ...overrides,
+  };
+}
+
 describe('BusinessWorkspace', () => {
-  it('renders the Business UX with optional external carton dimensions', () => {
+  it('renders Business carton and dimensional-weight inputs', () => {
     const html =
       renderToStaticMarkup(
         <BusinessWorkspace />
@@ -57,53 +70,118 @@ describe('BusinessWorkspace', () => {
     expect(html).toContain(
       'Optimize packing against your carton inventory'
     );
+
     expect(html).toContain(
       'Product name'
     );
+
     expect(html).toContain(
       'SKU (optional)'
     );
+
     expect(html).toContain(
       'Unit weight (g, optional)'
     );
+
     expect(html).toContain(
       'Carton inventory'
     );
+
     expect(html).toContain(
       'Carton name'
     );
+
     expect(html).toContain(
       'Carton code'
     );
+
     expect(html).toContain(
       'External package dimensions'
     );
+
     expect(html).toContain(
       'External length'
     );
+
     expect(html).toContain(
       'External width'
     );
+
     expect(html).toContain(
       'External height'
     );
+
     expect(html).toContain(
       'Used for dimensional-weight analysis'
     );
+
+    expect(html).toContain(
+      'Dimensional weight'
+    );
+
+    expect(html).toContain(
+      'DIM divisor value'
+    );
+
+    expect(html).toContain(
+      'Divisor length unit'
+    );
+
+    expect(html).toContain(
+      'Divisor mass unit'
+    );
+
+    expect(html).toContain(
+      'Packmetry does not assume a carrier divisor'
+    );
+
+    expect(html).toContain(
+      'Leave the divisor blank to disable DIM calculations'
+    );
+
     expect(html).toContain(
       'Available quantity'
     );
+
     expect(html).toContain(
       'Max gross weight'
     );
+
     expect(html).toContain(
       'Empty box weight'
     );
+
     expect(html).toContain(
       'Carton cost'
     );
+
     expect(html).toContain(
       'Optimize packing'
+    );
+  });
+
+  it('renders caller-supplied initial dimensional-weight settings', () => {
+    const html =
+      renderToStaticMarkup(
+        <BusinessWorkspace
+          initialDimensionalWeight={{
+            divisorValue: 5000,
+            lengthUnit: 'cm',
+            massUnit: 'kg',
+          }}
+        />
+      );
+
+    expect(html).toContain(
+      'value="5000"'
+    );
+
+    expect(html).toContain(
+      '<option value="cm" selected="">Centimeters (cm)</option>'
+    );
+
+    expect(html).toContain(
+      '<option value="kg" selected="">Kilograms (kg)</option>'
     );
   });
 
@@ -231,6 +309,105 @@ describe('BusinessWorkspace', () => {
           externalHeightMm: 90,
         }),
       ])
+    ).toThrow();
+  });
+
+  it('keeps dimensional-weight settings absent when the divisor is blank', () => {
+    const settings =
+      buildBusinessDimensionalWeightSettings(
+        dimensionalWeightValues({
+          divisorValue:
+            undefined,
+        })
+      );
+
+    expect(
+      settings
+    ).toBeUndefined();
+  });
+
+  it('builds explicit unit-safe dimensional-weight settings without assuming a carrier preset', () => {
+    const values =
+      dimensionalWeightValues({
+        divisorValue: 5000,
+        lengthUnit: 'cm',
+        massUnit: 'kg',
+      });
+
+    const settings =
+      buildBusinessDimensionalWeightSettings(
+        values
+      );
+
+    expect(
+      settings
+    ).toEqual({
+      divisor: {
+        value: 5000,
+        lengthUnit: 'cm',
+        massUnit: 'kg',
+      },
+    });
+
+    expect(
+      settings?.divisor
+    ).not.toBe(values);
+  });
+
+  it('preserves alternate supported divisor units', () => {
+    expect(
+      buildBusinessDimensionalWeightSettings({
+        divisorValue: 139,
+        lengthUnit: 'in',
+        massUnit: 'lb',
+      })
+    ).toEqual({
+      divisor: {
+        value: 139,
+        lengthUnit: 'in',
+        massUnit: 'lb',
+      },
+    });
+
+    expect(
+      buildBusinessDimensionalWeightSettings({
+        divisorValue: 6000,
+        lengthUnit: 'mm',
+        massUnit: 'g',
+      })
+    ).toEqual({
+      divisor: {
+        value: 6000,
+        lengthUnit: 'mm',
+        massUnit: 'g',
+      },
+    });
+  });
+
+  it('rejects an invalid dimensional-weight divisor through canonical validation', () => {
+    expect(() =>
+      buildBusinessDimensionalWeightSettings(
+        dimensionalWeightValues({
+          divisorValue: 0,
+        })
+      )
+    ).toThrow();
+
+    expect(() =>
+      buildBusinessDimensionalWeightSettings(
+        dimensionalWeightValues({
+          divisorValue: -1,
+        })
+      )
+    ).toThrow();
+
+    expect(() =>
+      buildBusinessDimensionalWeightSettings(
+        dimensionalWeightValues({
+          divisorValue:
+            Number.NaN,
+        })
+      )
     ).toThrow();
   });
 
@@ -413,9 +590,9 @@ describe('BusinessWorkspace', () => {
         ]
       );
 
-    expect(result.plan.status).toBe(
-      'feasible'
-    );
+    expect(
+      result.plan.status
+    ).toBe('feasible');
 
     expect(
       result.plan.metrics
@@ -432,8 +609,11 @@ describe('BusinessWorkspace', () => {
     ).toBe('balanced');
 
     expect(
-      result.plan.solverMeta.solverId
-    ).toBe('packmetry-baseline');
+      result.plan.solverMeta
+        .solverId
+    ).toBe(
+      'packmetry-baseline'
+    );
 
     expect(
       result.inventoryUsage
@@ -444,6 +624,144 @@ describe('BusinessWorkspace', () => {
       effectiveAvailability: 2,
       remainingQuantity: 1,
     });
+  });
+
+  it('produces canonical DIM metrics when explicit settings and external carton dimensions are supplied', async () => {
+    const settings =
+      buildBusinessDimensionalWeightSettings(
+        dimensionalWeightValues()
+      );
+
+    expect(
+      settings
+    ).toBeDefined();
+
+    const result =
+      await runBusinessWorkspace(
+        [
+          product(),
+        ],
+        [
+          carton({
+            externalLengthMm: 100,
+            externalWidthMm: 100,
+            externalHeightMm: 100,
+          }),
+        ],
+        'balanced',
+        settings
+      );
+
+    expect(
+      result.plan.metrics
+        .totalDimWeightG
+    ).toBe(1000);
+
+    expect(
+      result.plan.cartons[0]
+        ?.metrics.dimWeightG
+    ).toBe(1000);
+  });
+
+  it('does not produce DIM metrics merely because external carton dimensions exist', async () => {
+    const result =
+      await runBusinessWorkspace(
+        [
+          product(),
+        ],
+        [
+          carton({
+            externalLengthMm: 100,
+            externalWidthMm: 100,
+            externalHeightMm: 100,
+          }),
+        ]
+      );
+
+    expect(
+      result.plan.metrics
+        .totalDimWeightG
+    ).toBeUndefined();
+
+    expect(
+      result.plan.cartons[0]
+        ?.metrics.dimWeightG
+    ).toBeUndefined();
+  });
+
+  it('keeps DIM metrics unknown when settings exist but the used carton has no external dimensions', async () => {
+    const settings =
+      buildBusinessDimensionalWeightSettings(
+        dimensionalWeightValues()
+      );
+
+    const result =
+      await runBusinessWorkspace(
+        [
+          product(),
+        ],
+        [
+          carton(),
+        ],
+        'balanced',
+        settings
+      );
+
+    expect(
+      result.plan.metrics
+        .totalDimWeightG
+    ).toBeUndefined();
+
+    expect(
+      result.plan.cartons[0]
+        ?.metrics.dimWeightG
+    ).toBeUndefined();
+  });
+
+  it('produces chargeable weight only when actual gross and DIM weight are both known', async () => {
+    const settings =
+      buildBusinessDimensionalWeightSettings(
+        dimensionalWeightValues()
+      );
+
+    const result =
+      await runBusinessWorkspace(
+        [
+          product({
+            unitWeightG: 500,
+          }),
+        ],
+        [
+          carton({
+            externalLengthMm: 100,
+            externalWidthMm: 100,
+            externalHeightMm: 100,
+            emptyBoxWeightG: 100,
+          }),
+        ],
+        'balanced',
+        settings
+      );
+
+    expect(
+      result.plan.cartons[0]
+        ?.metrics.grossWeightG
+    ).toBe(600);
+
+    expect(
+      result.plan.cartons[0]
+        ?.metrics.dimWeightG
+    ).toBe(1000);
+
+    expect(
+      result.plan.cartons[0]
+        ?.metrics.chargeableWeightG
+    ).toBe(1000);
+
+    expect(
+      result.plan.metrics
+        .totalChargeableWeightG
+    ).toBe(1000);
   });
 
   it('respects business carton inventory quantity', async () => {
@@ -466,9 +784,9 @@ describe('BusinessWorkspace', () => {
         ]
       );
 
-    expect(result.plan.status).toBe(
-      'partial'
-    );
+    expect(
+      result.plan.status
+    ).toBe('partial');
 
     expect(
       result.plan.metrics
@@ -505,7 +823,9 @@ describe('BusinessWorkspace', () => {
         ]
       );
 
-    expect(result.plan.status).toBe(
+    expect(
+      result.plan.status
+    ).toBe(
       'infeasible'
     );
 
@@ -518,7 +838,9 @@ describe('BusinessWorkspace', () => {
       result.plan
         .unplacedItems[0]
         ?.reason
-    ).toBe('weight-limit');
+    ).toBe(
+      'weight-limit'
+    );
   });
 
   it('rejects invalid business product values through canonical validation', async () => {
@@ -571,7 +893,7 @@ describe('BusinessWorkspace', () => {
     );
   });
 
-  it('does not mutate caller-owned business form values', () => {
+  it('does not mutate caller-owned business form values or DIM settings', async () => {
     const products = [
       product(),
     ];
@@ -585,14 +907,34 @@ describe('BusinessWorkspace', () => {
       }),
     ];
 
+    const settings =
+      buildBusinessDimensionalWeightSettings(
+        dimensionalWeightValues()
+      )!;
+
     const beforeProducts =
       JSON.stringify(products);
 
     const beforeCartons =
       JSON.stringify(cartons);
 
-    buildBusinessItems(products);
-    buildBusinessCartons(cartons);
+    const beforeSettings =
+      JSON.stringify(settings);
+
+    buildBusinessItems(
+      products
+    );
+
+    buildBusinessCartons(
+      cartons
+    );
+
+    await runBusinessWorkspace(
+      products,
+      cartons,
+      'balanced',
+      settings
+    );
 
     expect(
       JSON.stringify(products)
@@ -601,5 +943,9 @@ describe('BusinessWorkspace', () => {
     expect(
       JSON.stringify(cartons)
     ).toBe(beforeCartons);
+
+    expect(
+      JSON.stringify(settings)
+    ).toBe(beforeSettings);
   });
 });

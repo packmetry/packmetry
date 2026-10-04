@@ -42,6 +42,14 @@ import { createItem, type Item } from '../core/domain/item.js';
 import type { RotationPolicy } from '../core/domain/constraints.js';
 import type { PackingPlan } from '../core/domain/packing-plan.js';
 import type { ObjectiveKind } from '../core/domain/objectives.js';
+import {
+  validateDimensionalWeightSettings,
+  type DimensionalWeightSettings,
+} from '../core/units/dimensional-weight.js';
+import type {
+  LengthUnit,
+  MassUnit,
+} from '../core/units/types.js';
 import { BaselineSolver } from '../core/solver/index.js';
 import {
   planHaveBoxes,
@@ -75,6 +83,12 @@ export interface BusinessCartonValues {
   maxGrossWeightG: number | undefined;
   emptyBoxWeightG: number | undefined;
   costPerBox: number | undefined;
+}
+
+export interface BusinessDimensionalWeightValues {
+  divisorValue: number | undefined;
+  lengthUnit: LengthUnit;
+  massUnit: MassUnit;
 }
 
 export type BusinessHandlingPolicy = Extract<
@@ -162,6 +176,7 @@ export interface BusinessWorkspaceProps {
   initialProducts?: readonly BusinessProductValues[];
   initialCartons?: readonly BusinessCartonValues[];
   initialObjective?: BusinessObjectiveKind;
+  initialDimensionalWeight?: BusinessDimensionalWeightValues;
 }
 
 export const BUSINESS_OBJECTIVE_OPTIONS:
@@ -185,6 +200,13 @@ export const BUSINESS_OBJECTIVE_OPTIONS:
         'Prioritize lower empty volume across the selected cartons.',
     },
   ];
+
+export const DEFAULT_BUSINESS_DIMENSIONAL_WEIGHT:
+  BusinessDimensionalWeightValues = {
+    divisorValue: undefined,
+    lengthUnit: 'cm',
+    massUnit: 'kg',
+  };
 
 export const DEFAULT_BUSINESS_PRODUCTS: BusinessProductValues[] = [
   {
@@ -228,6 +250,19 @@ function cloneBusinessCarton(
 ): BusinessCartonValues {
   return {
     ...carton,
+  };
+}
+
+function cloneBusinessDimensionalWeight(
+  values: BusinessDimensionalWeightValues
+): BusinessDimensionalWeightValues {
+  return {
+    divisorValue:
+      values.divisorValue,
+    lengthUnit:
+      values.lengthUnit,
+    massUnit:
+      values.massUnit,
   };
 }
 
@@ -427,6 +462,35 @@ function optionalNumber(
   }
 
   return Number(value);
+}
+
+export function buildBusinessDimensionalWeightSettings(
+  values: BusinessDimensionalWeightValues
+): DimensionalWeightSettings | undefined {
+  if (
+    values.divisorValue ===
+    undefined
+  ) {
+    return undefined;
+  }
+
+  const settings:
+    DimensionalWeightSettings = {
+      divisor: {
+        value:
+          values.divisorValue,
+        lengthUnit:
+          values.lengthUnit,
+        massUnit:
+          values.massUnit,
+      },
+    };
+
+  validateDimensionalWeightSettings(
+    settings
+  );
+
+  return settings;
 }
 
 function hasPartialBusinessExternalDimensions(
@@ -629,7 +693,8 @@ export function createBusinessItemLabels(
 export async function runBusinessWorkspace(
   products: readonly BusinessProductValues[],
   cartons: readonly BusinessCartonValues[],
-  objective: BusinessObjectiveKind = 'balanced'
+  objective: BusinessObjectiveKind = 'balanced',
+  dimensionalWeight?: DimensionalWeightSettings
 ): Promise<BusinessWorkspaceResult> {
   const result =
     await planHaveBoxes(
@@ -647,6 +712,12 @@ export async function runBusinessWorkspace(
         objective: {
           kind: objective,
         },
+        ...(dimensionalWeight !==
+        undefined
+          ? {
+              dimensionalWeight,
+            }
+          : {}),
       }
     );
 
@@ -994,6 +1065,7 @@ export default function BusinessWorkspace({
   initialProducts,
   initialCartons,
   initialObjective,
+  initialDimensionalWeight,
 }: BusinessWorkspaceProps) {
   const [
     products,
@@ -1204,6 +1276,18 @@ export default function BusinessWorkspace({
     useState<BusinessObjectiveKind>(
       initialObjective ??
         'balanced'
+    );
+
+  const [
+    dimensionalWeightValues,
+    setDimensionalWeightValues,
+  ] =
+    useState<BusinessDimensionalWeightValues>(
+      () =>
+        cloneBusinessDimensionalWeight(
+          initialDimensionalWeight ??
+            DEFAULT_BUSINESS_DIMENSIONAL_WEIGHT
+        )
     );
 
   useEffect(() => {
@@ -1590,6 +1674,11 @@ export default function BusinessWorkspace({
     setObjective(
       project.objective
     );
+    setDimensionalWeightValues(
+      cloneBusinessDimensionalWeight(
+        DEFAULT_BUSINESS_DIMENSIONAL_WEIGHT
+      )
+    );
     setPlan(null);
     setRecommendedPlan(null);
     setAlternatives([]);
@@ -1742,6 +1831,11 @@ export default function BusinessWorkspace({
       setObjective(
         importedProject.objective
       );
+      setDimensionalWeightValues(
+        cloneBusinessDimensionalWeight(
+          DEFAULT_BUSINESS_DIMENSIONAL_WEIGHT
+        )
+      );
       setPlan(null);
       setRecommendedPlan(null);
       setAlternatives([]);
@@ -1751,6 +1845,18 @@ export default function BusinessWorkspace({
         'Project imported. Save project to keep it in this browser.'
       );
     };
+
+  const updateDimensionalWeight = (
+    updates:
+      Partial<BusinessDimensionalWeightValues>
+  ) => {
+    setDimensionalWeightValues(
+      current => ({
+        ...current,
+        ...updates,
+      })
+    );
+  };
 
   const chooseObjective = (
     nextObjective:
@@ -1783,11 +1889,17 @@ export default function BusinessWorkspace({
     setError(null);
 
     try {
+      const dimensionalWeight =
+        buildBusinessDimensionalWeightSettings(
+          dimensionalWeightValues
+        );
+
       const result =
         await runBusinessWorkspace(
           products,
           cartons,
-          objective
+          objective,
+          dimensionalWeight
         );
 
       setRecommendedPlan(
@@ -2735,6 +2847,163 @@ export default function BusinessWorkspace({
 
               <div>
                 <h3>
+                  Dimensional weight
+                </h3>
+
+                <p>
+                  Optionally configure an
+                  explicit DIM divisor and
+                  its units. Packmetry does
+                  not assume a carrier
+                  divisor.
+                </p>
+              </div>
+            </div>
+
+            <div className="pm-context-note">
+              <strong>
+                Explicit divisor only
+              </strong>
+
+              <span>
+                Enter the divisor used by
+                your carrier or workflow.
+                External carton dimensions
+                are required for DIM
+                metrics. Leave the divisor
+                blank to disable DIM
+                calculations.
+              </span>
+
+              <span>
+                Core DIM calculations do
+                not apply carrier billing
+                rounding, service rules,
+                rates, or shipping prices.
+              </span>
+            </div>
+
+            <div className="pm-carton-fields">
+              <label className="pm-field">
+                <span className="pm-field-label">
+                  DIM divisor value
+                  (optional)
+                </span>
+
+                <input
+                  className="pm-number-input"
+                  type="number"
+                  min="0.001"
+                  step="any"
+                  value={
+                    dimensionalWeightValues
+                      .divisorValue ??
+                    ''
+                  }
+                  onChange={event =>
+                    updateDimensionalWeight(
+                      {
+                        divisorValue:
+                          optionalNumber(
+                            event
+                              .currentTarget
+                              .value
+                          ),
+                      }
+                    )
+                  }
+                />
+              </label>
+
+              <label className="pm-field">
+                <span className="pm-field-label">
+                  Divisor length unit
+                </span>
+
+                <select
+                  className="pm-number-input"
+                  value={
+                    dimensionalWeightValues
+                      .lengthUnit
+                  }
+                  onChange={event =>
+                    updateDimensionalWeight(
+                      {
+                        lengthUnit:
+                          event
+                            .currentTarget
+                            .value as
+                            LengthUnit,
+                      }
+                    )
+                  }
+                >
+                  <option value="mm">
+                    Millimeters (mm)
+                  </option>
+                  <option value="cm">
+                    Centimeters (cm)
+                  </option>
+                  <option value="m">
+                    Meters (m)
+                  </option>
+                  <option value="in">
+                    Inches (in)
+                  </option>
+                  <option value="ft">
+                    Feet (ft)
+                  </option>
+                </select>
+              </label>
+
+              <label className="pm-field">
+                <span className="pm-field-label">
+                  Divisor mass unit
+                </span>
+
+                <select
+                  className="pm-number-input"
+                  value={
+                    dimensionalWeightValues
+                      .massUnit
+                  }
+                  onChange={event =>
+                    updateDimensionalWeight(
+                      {
+                        massUnit:
+                          event
+                            .currentTarget
+                            .value as
+                            MassUnit,
+                      }
+                    )
+                  }
+                >
+                  <option value="g">
+                    Grams (g)
+                  </option>
+                  <option value="kg">
+                    Kilograms (kg)
+                  </option>
+                  <option value="oz">
+                    Ounces (oz)
+                  </option>
+                  <option value="lb">
+                    Pounds (lb)
+                  </option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section className="pm-form-section">
+            <div className="pm-form-section-heading">
+              <span className="pm-section-number">
+                04
+              </span>
+
+              <div>
+                <h3>
                   Optimization objective
                 </h3>
 
@@ -2784,7 +3053,7 @@ export default function BusinessWorkspace({
           <section className="pm-form-section">
             <div className="pm-form-section-heading">
               <span className="pm-section-number">
-                04
+                05
               </span>
 
               <div>
