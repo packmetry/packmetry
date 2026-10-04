@@ -977,3 +977,55 @@ Phase 11 complete.
 
 ### Next planned phase
 Phase 12 — DIM / Weight Modules
+
+
+## 2026-10-04 — Phase 12 DIM / Weight Modules complete
+
+### Completed
+- ADR-012 dimensional and chargeable weight semantics accepted and implemented
+- Canonical dimensional-weight divisor/settings module implemented
+- SolverInput accepts optional dimensional-weight planning context
+- Canonical carton metrics support DIM weight and estimated chargeable weight
+- Canonical plan metrics support total DIM weight and total estimated chargeable weight
+- Carton DIM calculations use external dimensions only; no internal-dimension fallback
+- Actual gross weight remains physical contents plus carton tare when both are known
+- DIM weight remains distinct from physical mass
+- Estimated chargeable weight is available only when both actual gross and DIM weight are known
+- min-dim-weight verified candidate ranking implemented with deterministic tie-breaking
+- Have-boxes workflow propagates dimensional-weight settings
+- Business carton model/UI supports optional external dimensions
+- Business workspace supports explicit DIM divisor value plus length/mass units
+- No numeric carrier divisor default or carrier preset is assumed
+- Business recent projects persist DIM settings
+- Business project JSON version 1 round-trips DIM settings while remaining backward compatible with older v1 snapshots that omit them
+- Business result presentation exposes Actual gross weight, DIM weight, and Estimated chargeable weight from canonical metrics
+- Business Lowest DIM weight objective exposed with prerequisite gating
+- min-dim-weight preference/project/JSON persistence implemented
+- zero-availability cartons do not block min-DIM objective readiness
+- carrier billing rounding, service rules, rates, and shipping prices remain outside Phase 12
+
+### Architecture boundaries preserved
+- DIM settings are ranking/metric context and do not change packing geometry
+- independent verification remains authoritative before candidate ranking
+- physical max-gross-weight semantics remain separate from DIM/chargeable weight
+- no carrier-specific numeric preset was introduced
+- no shipping-rate engine was introduced
+- solver/core architecture remains shared between Personal and Business
+
+### Final validation
+- typecheck: 0 errors, 0 warnings, 0 hints
+- 72 test files passing
+- 1098 tests passing
+- production build passed
+- routes /, /personal/, /business/ generated successfully
+- latest validated main commit: cf7fd442277a3ef5801cd054548ef0478cfb6ac8
+- GitHub Actions run #88: SUCCESS
+- No Phase 12 blockers remain
+
+### Current dependency-aware stage
+Phase 12 complete.
+
+### Next planned phase
+Phase 12.5 — Product UI & Visual Integration Sprint
+
+This focused sprint covers homepage, Personal, Business, result surfaces, 3D presentation, responsive/accessibility polish, and design consistency without rewriting the solver/core or inventing unsupported metrics.

@@ -32,7 +32,7 @@ For every meaningful task:
 7. Only after approval does the user commit and push.
 See docs/process/AI_IMPLEMENTATION_WORKFLOW.md.
 Current state
-Phase 11 complete: Alternatives & Objective Scoring implemented and validated.
+Phase 12 complete: DIM / Weight Modules implemented and validated.
 Personal and Business entry experience:
 - Root homepage classifies visitors by intention
 - Home & Personal entry at /personal/
@@ -50,15 +50,21 @@ Business UX core capabilities:
 - Optional maximum gross weight
 - Optional carton tare weight
 - Optional carton cost
+- Optional carton external dimensions
+- Explicit dimensional-weight divisor and divisor units
 - Balanced objective
 - Fewest boxes objective
 - Least empty space objective
+- Lowest DIM weight objective
 - Optimize packing CTA
 - Shared verified planHaveBoxes planning workflow
 - Canonical packing result
 - Carton count and packed/unpacked items
 - Utilization and empty space
 - Content weight and gross packed weight when known
+- Actual gross weight when product weight and carton tare weight are known
+- Canonical DIM weight when settings and external dimensions are available
+- Canonical estimated chargeable weight when actual gross and DIM weight are both known
 - Carton cost when known
 - Carton stock impact
 - Per-carton result detail
@@ -73,40 +79,47 @@ Local persistence capabilities:
 - Business recent projects stored in IndexedDB
 - Business recent-project history is bounded and ordered deterministically
 - Business project JSON export/import for local backup without an account
+- Business recent projects include DIM settings
+- Business project JSON round-trips DIM settings
 - Versioned Business project JSON validation with safe rejection of malformed or unsupported data
 - Browser download/read mechanics kept separate from JSON validation and persistence
-- Imported projects restore workspace state without automatic persistence
+- Imported projects restore workspace state including DIM settings without automatic persistence
 - Project identity allocation is guarded until recent-project history initialization completes
 - Browser-local messaging makes local-only storage behavior explicit
-Phase 11 capabilities:
-- deterministic bounded multi-candidate BaselineSolver generation
-- independent verification before ranking
-- ADR-008 objective-aware deterministic ranking
-- ranked non-selected canonical PackingPlan alternatives
-- Personal have-boxes alternatives UI
-- Business alternatives UI
-- shared PlanAlternatives comparison component
-- Recommended + alternative plan switching for result summary/3D visualization
-- inventory usage remains tied to the recommended canonical plan
-- explainable ranking for Balanced, Fewest boxes, and Least empty space
-- truthful "best plan found" / no guaranteed-global-optimality wording
+Phase 12 capabilities:
+- ADR-012 dimensional and chargeable weight semantics
+- Explicit dimensional-weight divisor with length and mass units
+- No assumed carrier divisor or numeric carrier preset
+- Carton DIM calculations use external dimensions only
+- No internal-dimension fallback for carton DIM calculations
+- Actual gross weight = contents + carton tare when both known
+- DIM weight remains distinct from physical mass
+- Estimated chargeable weight = greater of actual gross and DIM weight only when both are known
+- Plan-level DIM/chargeable totals remain unknown unless all used cartons provide required data
+- SolverInput accepts dimensional-weight planning context
+- min-dim-weight ranking uses canonical DIM data and deterministic tie-breaking
+- Business UI exposes Lowest DIM weight only when required divisor and external dimensions are available
+- Business result surface shows Actual gross weight, DIM weight, and Estimated chargeable weight
+- Business persistence and JSON round-trip DIM settings and min-dim objective
+- Carrier billing rounding, service rules, rates, and shipping prices are NOT implemented
 Validation baseline:
-- 120 files typechecked with 0 errors, 0 warnings, 0 hints
-- 69 test files passing
-- 991 tests passing
+- 72 test files passing
+- 1098 tests passing
+- typecheck: 0 errors, 0 warnings, 0 hints
 - Production build passing
 - /, /personal/, and /business/ generated successfully
-- GitHub Actions run #75: SUCCESS
-- Latest validated main commit: 1cfc34f
+- GitHub Actions run #88: SUCCESS
+- Latest validated main commit: cf7fd442277a3ef5801cd054548ef0478cfb6ac8
 Intentional deferrals / later roadmap work:
 - Unsupported fragile, padding, spacing, and stackability controls remain unexposed until solver/verifier semantics support them
-- DIM weight, chargeable-weight modules, and broader DIM settings belong to Phase 12
 - CSV import/export belongs to Phase 14
 - Batch processing belongs to Phase 15
 - Saved product catalog belongs to Phase 16
 - Analytics and carton-portfolio rationalization belong to Phase 17
 - Accounts/cloud belong to Phase 18
 - Integrations/API belong to Phase 19
-No Phase 11 blockers remain.
+- Live carrier billing/rates/shipping-price calculation remains outside the completed Phase 12 scope
+No Phase 12 blockers remain.
 Next planned product phase
-Phase 12 — DIM / Weight Modules
+Phase 12.5 — Product UI & Visual Integration Sprint
+This focused sprint covers homepage, Personal, Business, result surfaces, 3D presentation, responsive/accessibility polish, and design consistency without rewriting the solver/core or inventing unsupported metrics.
