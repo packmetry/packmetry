@@ -5,6 +5,7 @@ import {
 import type { Item } from '../domain/item.js';
 import { validateItem } from '../domain/item.js';
 import type { OptimizationObjective } from '../domain/objectives.js';
+import type { DimensionalWeightSettings } from '../units/dimensional-weight.js';
 import { ValidationError } from '../units/types.js';
 import {
   planPacking,
@@ -19,6 +20,7 @@ export interface HaveBoxesWorkflowInput {
   items: readonly Item[];
   cartons: readonly Carton[];
   objective: OptimizationObjective;
+  dimensionalWeight?: DimensionalWeightSettings;
 }
 
 export type HaveBoxesCartonProvenance =
@@ -139,6 +141,21 @@ function cloneCarton(carton: Carton): Carton {
   });
 }
 
+function cloneDimensionalWeightSettings(
+  settings: DimensionalWeightSettings
+): DimensionalWeightSettings {
+  return {
+    divisor: {
+      value:
+        settings.divisor.value,
+      lengthUnit:
+        settings.divisor.lengthUnit,
+      massUnit:
+        settings.divisor.massUnit,
+    },
+  };
+}
+
 function buildCartonProvenance(
   cartons: readonly Carton[]
 ): Record<string, HaveBoxesCartonProvenance> {
@@ -247,6 +264,10 @@ function buildInventoryUsage(
  * When both are present, the baseline solver and workflow summary use the
  * stricter limit.
  *
+ * Optional dimensional-weight settings are forwarded as planning/ranking
+ * context. They do not alter geometry verification or physical weight
+ * constraints.
+ *
  * Inventory usage is derived only from the canonical verified PackingPlan.
  */
 export async function planHaveBoxes(
@@ -275,6 +296,14 @@ export async function planHaveBoxes(
     objective: {
       kind: input.objective.kind,
     },
+    ...(input.dimensionalWeight !== undefined
+      ? {
+          dimensionalWeight:
+            cloneDimensionalWeightSettings(
+              input.dimensionalWeight
+            ),
+        }
+      : {}),
   };
 
   const planningResult = await planPacking(
