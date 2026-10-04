@@ -68,6 +68,9 @@ export interface BusinessCartonValues {
   lengthMm: number;
   widthMm: number;
   heightMm: number;
+  externalLengthMm?: number;
+  externalWidthMm?: number;
+  externalHeightMm?: number;
   quantityAvailable: number;
   maxGrossWeightG: number | undefined;
   emptyBoxWeightG: number | undefined;
@@ -292,6 +295,27 @@ export function businessCartonFromSavedCarton(
       savedCarton.widthMm,
     heightMm:
       savedCarton.heightMm,
+    ...(savedCarton.externalLengthMm !==
+    undefined
+      ? {
+          externalLengthMm:
+            savedCarton.externalLengthMm,
+        }
+      : {}),
+    ...(savedCarton.externalWidthMm !==
+    undefined
+      ? {
+          externalWidthMm:
+            savedCarton.externalWidthMm,
+        }
+      : {}),
+    ...(savedCarton.externalHeightMm !==
+    undefined
+      ? {
+          externalHeightMm:
+            savedCarton.externalHeightMm,
+        }
+      : {}),
     quantityAvailable:
       savedCarton.quantityAvailable,
     maxGrossWeightG:
@@ -319,6 +343,27 @@ export function savedBusinessCartonInputFromBusinessCarton(
       carton.widthMm,
     heightMm:
       carton.heightMm,
+    ...(carton.externalLengthMm !==
+    undefined
+      ? {
+          externalLengthMm:
+            carton.externalLengthMm,
+        }
+      : {}),
+    ...(carton.externalWidthMm !==
+    undefined
+      ? {
+          externalWidthMm:
+            carton.externalWidthMm,
+        }
+      : {}),
+    ...(carton.externalHeightMm !==
+    undefined
+      ? {
+          externalHeightMm:
+            carton.externalHeightMm,
+        }
+      : {}),
     quantityAvailable:
       carton.quantityAvailable,
     maxGrossWeightG:
@@ -384,6 +429,69 @@ function optionalNumber(
   return Number(value);
 }
 
+function hasPartialBusinessExternalDimensions(
+  carton: BusinessCartonValues
+): boolean {
+  const values = [
+    carton.externalLengthMm,
+    carton.externalWidthMm,
+    carton.externalHeightMm,
+  ];
+
+  return (
+    values.some(
+      value =>
+        value !== undefined
+    ) &&
+    values.some(
+      value =>
+        value === undefined
+    )
+  );
+}
+
+function businessExternalDimensions(
+  carton: BusinessCartonValues,
+  index: number
+):
+  | {
+      length: number;
+      width: number;
+      height: number;
+    }
+  | undefined {
+  const externalLengthMm =
+    carton.externalLengthMm;
+  const externalWidthMm =
+    carton.externalWidthMm;
+  const externalHeightMm =
+    carton.externalHeightMm;
+
+  if (
+    externalLengthMm === undefined &&
+    externalWidthMm === undefined &&
+    externalHeightMm === undefined
+  ) {
+    return undefined;
+  }
+
+  if (
+    externalLengthMm === undefined ||
+    externalWidthMm === undefined ||
+    externalHeightMm === undefined
+  ) {
+    throw new Error(
+      `Carton ${index + 1} external dimensions must include length, width, and height.`
+    );
+  }
+
+  return {
+    length: externalLengthMm,
+    width: externalWidthMm,
+    height: externalHeightMm,
+  };
+}
+
 export function buildBusinessItems(
   products: readonly BusinessProductValues[]
 ): Item[] {
@@ -436,6 +544,11 @@ export function buildBusinessCartons(
         carton.name.trim();
       const cartonCode =
         carton.cartonCode.trim();
+      const externalDimensions =
+        businessExternalDimensions(
+          carton,
+          index
+        );
 
       return createCarton({
         id: carton.id,
@@ -449,6 +562,12 @@ export function buildBusinessCartons(
           width: carton.widthMm,
           height: carton.heightMm,
         },
+        ...(externalDimensions !==
+        undefined
+          ? {
+              externalDimensions,
+            }
+          : {}),
         quantityAvailable:
           carton.quantityAvailable,
         ...(cartonCode !== ''
@@ -751,6 +870,20 @@ export function SavedBusinessCartonLibrary({
                       ? ` · ${carton.cartonCode}`
                       : ''}
                   </span>
+
+                  {carton.externalLengthMm !==
+                    undefined &&
+                    carton.externalWidthMm !==
+                      undefined &&
+                    carton.externalHeightMm !==
+                      undefined && (
+                    <span className="pm-submit-note">
+                      External:{' '}
+                      {carton.externalLengthMm} ×{' '}
+                      {carton.externalWidthMm} ×{' '}
+                      {carton.externalHeightMm} mm
+                    </span>
+                  )}
 
                   <button
                     type="button"
@@ -1204,6 +1337,12 @@ export default function BusinessWorkspace({
         lengthMm: 100,
         widthMm: 100,
         heightMm: 100,
+        externalLengthMm:
+          undefined,
+        externalWidthMm:
+          undefined,
+        externalHeightMm:
+          undefined,
         quantityAvailable: 1,
         maxGrossWeightG:
           undefined,
@@ -1240,6 +1379,17 @@ export default function BusinessWorkspace({
       setCartonLibraryMessage(
         null
       );
+
+      if (
+        hasPartialBusinessExternalDimensions(
+          carton
+        )
+      ) {
+        setCartonLibraryMessage(
+          'Enter all three external carton dimensions, or leave all three blank.'
+        );
+        return;
+      }
 
       const libraryCarton =
         savedBusinessCartonInputFromBusinessCarton(
@@ -1338,6 +1488,17 @@ export default function BusinessWorkspace({
       if (trimmedName === '') {
         setProjectMessage(
           'Enter a project name before saving.'
+        );
+        return;
+      }
+
+      if (
+        cartons.some(
+          hasPartialBusinessExternalDimensions
+        )
+      ) {
+        setProjectMessage(
+          'Enter all three external dimensions for each carton, or leave all three blank.'
         );
         return;
       }
@@ -1446,6 +1607,17 @@ export default function BusinessWorkspace({
     if (trimmedName === '') {
       setProjectMessage(
         'Enter a project name before exporting.'
+      );
+      return;
+    }
+
+    if (
+      cartons.some(
+        hasPartialBusinessExternalDimensions
+      )
+    ) {
+      setProjectMessage(
+        'Enter all three external dimensions for each carton, or leave all three blank.'
       );
       return;
     }
@@ -2068,11 +2240,12 @@ export default function BusinessWorkspace({
                 </h3>
 
                 <p>
-                  Add the internal
+                  Add internal packing
+                  dimensions, optional
+                  external package
                   dimensions and stock
-                  limits of the cartons
-                  available to this
-                  order.
+                  limits for the cartons
+                  available to this order.
                 </p>
               </div>
             </div>
@@ -2256,6 +2429,119 @@ export default function BusinessWorkspace({
                                 {
                                   heightMm:
                                     Number(
+                                      event
+                                        .currentTarget
+                                        .value
+                                    ),
+                                }
+                              )
+                          }
+                        />
+                      </label>
+                    </div>
+
+                    <div className="pm-context-note">
+                      <strong>
+                        External package dimensions
+                        (optional)
+                      </strong>
+
+                      <span>
+                        Used for dimensional-weight
+                        analysis when DIM settings
+                        are configured. Enter all
+                        three outer dimensions, or
+                        leave all three blank.
+                      </span>
+                    </div>
+
+                    <div className="pm-measurement-grid">
+                      <label className="pm-field">
+                        <span className="pm-field-label">
+                          External length
+                          (mm, optional)
+                        </span>
+
+                        <input
+                          className="pm-number-input"
+                          type="number"
+                          min="0.001"
+                          step="any"
+                          value={
+                            carton.externalLengthMm ??
+                            ''
+                          }
+                          onChange={
+                            event =>
+                              updateCarton(
+                                carton.id,
+                                {
+                                  externalLengthMm:
+                                    optionalNumber(
+                                      event
+                                        .currentTarget
+                                        .value
+                                    ),
+                                }
+                              )
+                          }
+                        />
+                      </label>
+
+                      <label className="pm-field">
+                        <span className="pm-field-label">
+                          External width
+                          (mm, optional)
+                        </span>
+
+                        <input
+                          className="pm-number-input"
+                          type="number"
+                          min="0.001"
+                          step="any"
+                          value={
+                            carton.externalWidthMm ??
+                            ''
+                          }
+                          onChange={
+                            event =>
+                              updateCarton(
+                                carton.id,
+                                {
+                                  externalWidthMm:
+                                    optionalNumber(
+                                      event
+                                        .currentTarget
+                                        .value
+                                    ),
+                                }
+                              )
+                          }
+                        />
+                      </label>
+
+                      <label className="pm-field">
+                        <span className="pm-field-label">
+                          External height
+                          (mm, optional)
+                        </span>
+
+                        <input
+                          className="pm-number-input"
+                          type="number"
+                          min="0.001"
+                          step="any"
+                          value={
+                            carton.externalHeightMm ??
+                            ''
+                          }
+                          onChange={
+                            event =>
+                              updateCarton(
+                                carton.id,
+                                {
+                                  externalHeightMm:
+                                    optionalNumber(
                                       event
                                         .currentTarget
                                         .value

@@ -4,8 +4,11 @@ import { describe, expect, it } from 'vitest';
 import BusinessWorkspace, {
   buildBusinessCartons,
   buildBusinessItems,
+  businessCartonFromSavedCarton,
+  businessProjectInputFromWorkspace,
   createBusinessItemLabels,
   runBusinessWorkspace,
+  savedBusinessCartonInputFromBusinessCarton,
   type BusinessCartonValues,
   type BusinessProductValues,
 } from '../components/BusinessWorkspace.js';
@@ -45,7 +48,7 @@ function carton(
 }
 
 describe('BusinessWorkspace', () => {
-  it('renders the first manual Business UX slice', () => {
+  it('renders the Business UX with optional external carton dimensions', () => {
     const html =
       renderToStaticMarkup(
         <BusinessWorkspace />
@@ -73,16 +76,31 @@ describe('BusinessWorkspace', () => {
       'Carton code'
     );
     expect(html).toContain(
+      'External package dimensions'
+    );
+    expect(html).toContain(
+      'External length'
+    );
+    expect(html).toContain(
+      'External width'
+    );
+    expect(html).toContain(
+      'External height'
+    );
+    expect(html).toContain(
+      'Used for dimensional-weight analysis'
+    );
+    expect(html).toContain(
       'Available quantity'
     );
     expect(html).toContain(
-      'Max gross weight (g, optional)'
+      'Max gross weight'
     );
     expect(html).toContain(
-      'Empty box weight (g, optional)'
+      'Empty box weight'
     );
     expect(html).toContain(
-      'Carton cost (optional)'
+      'Carton cost'
     );
     expect(html).toContain(
       'Optimize packing'
@@ -96,6 +114,7 @@ describe('BusinessWorkspace', () => {
       ]);
 
     expect(items).toHaveLength(1);
+
     expect(items[0]).toMatchObject({
       id: 'business-product-1',
       name: 'Ceramic mug',
@@ -125,6 +144,7 @@ describe('BusinessWorkspace', () => {
       ]);
 
     expect(cartons).toHaveLength(1);
+
     expect(cartons[0]).toMatchObject({
       id: 'business-carton-1',
       name: 'Small shipper',
@@ -138,6 +158,202 @@ describe('BusinessWorkspace', () => {
       maxGrossWeightG: 5000,
       emptyBoxWeightG: 250,
       costPerBox: 1.75,
+    });
+  });
+
+  it('maps complete external carton dimensions separately from internal dimensions', () => {
+    const cartons =
+      buildBusinessCartons([
+        carton({
+          lengthMm: 100,
+          widthMm: 90,
+          heightMm: 80,
+          externalLengthMm: 110,
+          externalWidthMm: 100,
+          externalHeightMm: 90,
+        }),
+      ]);
+
+    expect(cartons[0]).toMatchObject({
+      internalDimensions: {
+        length: 100,
+        width: 90,
+        height: 80,
+      },
+      externalDimensions: {
+        length: 110,
+        width: 100,
+        height: 90,
+      },
+    });
+  });
+
+  it('keeps external carton dimensions unknown when all three are omitted', () => {
+    const cartons =
+      buildBusinessCartons([
+        carton(),
+      ]);
+
+    expect(
+      cartons[0]?.externalDimensions
+    ).toBeUndefined();
+
+    expect(
+      cartons[0]?.internalDimensions
+    ).toEqual({
+      length: 100,
+      width: 100,
+      height: 100,
+    });
+  });
+
+  it('rejects partial external carton dimensions instead of inferring missing values', () => {
+    expect(() =>
+      buildBusinessCartons([
+        carton({
+          externalLengthMm: 110,
+          externalWidthMm: 100,
+          externalHeightMm:
+            undefined,
+        }),
+      ])
+    ).toThrow(
+      'Carton 1 external dimensions must include length, width, and height.'
+    );
+  });
+
+  it('rejects invalid complete external dimensions through canonical carton validation', () => {
+    expect(() =>
+      buildBusinessCartons([
+        carton({
+          externalLengthMm: 110,
+          externalWidthMm: -1,
+          externalHeightMm: 90,
+        }),
+      ])
+    ).toThrow();
+  });
+
+  it('preserves external dimensions when converting a workspace carton for the saved carton library', () => {
+    const input =
+      savedBusinessCartonInputFromBusinessCarton(
+        carton({
+          externalLengthMm: 110,
+          externalWidthMm: 105,
+          externalHeightMm: 95,
+        })
+      );
+
+    expect(input).toMatchObject({
+      id: 'business-carton-1',
+      lengthMm: 100,
+      widthMm: 100,
+      heightMm: 100,
+      externalLengthMm: 110,
+      externalWidthMm: 105,
+      externalHeightMm: 95,
+    });
+  });
+
+  it('preserves external dimensions when restoring a saved carton into the workspace', () => {
+    const savedInput =
+      savedBusinessCartonInputFromBusinessCarton(
+        carton({
+          externalLengthMm: 110,
+          externalWidthMm: 105,
+          externalHeightMm: 95,
+        })
+      );
+
+    const restored =
+      businessCartonFromSavedCarton(
+        {
+          ...savedInput,
+          savedAt: 123,
+        },
+        []
+      );
+
+    expect(restored).toMatchObject({
+      id: 'business-carton-1',
+      libraryId:
+        'business-carton-1',
+      lengthMm: 100,
+      widthMm: 100,
+      heightMm: 100,
+      externalLengthMm: 110,
+      externalWidthMm: 105,
+      externalHeightMm: 95,
+    });
+  });
+
+  it('does not invent external dimensions during saved-carton conversion', () => {
+    const savedInput =
+      savedBusinessCartonInputFromBusinessCarton(
+        carton()
+      );
+
+    expect(
+      savedInput.externalLengthMm
+    ).toBeUndefined();
+
+    expect(
+      savedInput.externalWidthMm
+    ).toBeUndefined();
+
+    expect(
+      savedInput.externalHeightMm
+    ).toBeUndefined();
+
+    const restored =
+      businessCartonFromSavedCarton(
+        {
+          ...savedInput,
+          savedAt: 123,
+        },
+        []
+      );
+
+    expect(
+      restored.externalLengthMm
+    ).toBeUndefined();
+
+    expect(
+      restored.externalWidthMm
+    ).toBeUndefined();
+
+    expect(
+      restored.externalHeightMm
+    ).toBeUndefined();
+  });
+
+  it('preserves external carton dimensions in Business project snapshots', () => {
+    const project =
+      businessProjectInputFromWorkspace(
+        'business-project-1',
+        'DIM project',
+        [
+          product(),
+        ],
+        [
+          carton({
+            externalLengthMm: 120,
+            externalWidthMm: 110,
+            externalHeightMm: 105,
+          }),
+        ],
+        'balanced'
+      );
+
+    expect(
+      project.cartons[0]
+    ).toMatchObject({
+      lengthMm: 100,
+      widthMm: 100,
+      heightMm: 100,
+      externalLengthMm: 120,
+      externalWidthMm: 110,
+      externalHeightMm: 105,
     });
   });
 
@@ -200,17 +416,21 @@ describe('BusinessWorkspace', () => {
     expect(result.plan.status).toBe(
       'feasible'
     );
+
     expect(
       result.plan.metrics
         .placedItemCount
     ).toBe(3);
+
     expect(
       result.plan.metrics
         .unplacedItemCount
     ).toBe(0);
+
     expect(
       result.plan.objective.kind
     ).toBe('balanced');
+
     expect(
       result.plan.solverMeta.solverId
     ).toBe('packmetry-baseline');
@@ -249,14 +469,17 @@ describe('BusinessWorkspace', () => {
     expect(result.plan.status).toBe(
       'partial'
     );
+
     expect(
       result.plan.metrics
         .placedItemCount
     ).toBe(1);
+
     expect(
       result.plan.metrics
         .unplacedItemCount
     ).toBe(1);
+
     expect(
       result.plan
         .unplacedItems[0]
@@ -285,10 +508,12 @@ describe('BusinessWorkspace', () => {
     expect(result.plan.status).toBe(
       'infeasible'
     );
+
     expect(
       result.plan.metrics
         .placedItemCount
     ).toBe(0);
+
     expect(
       result.plan
         .unplacedItems[0]
@@ -304,7 +529,9 @@ describe('BusinessWorkspace', () => {
             quantity: 0,
           }),
         ],
-        [carton()]
+        [
+          carton(),
+        ]
       )
     ).rejects.toThrow();
   });
@@ -312,7 +539,9 @@ describe('BusinessWorkspace', () => {
   it('rejects invalid carton business metadata through canonical validation', async () => {
     await expect(
       runBusinessWorkspace(
-        [product()],
+        [
+          product(),
+        ],
         [
           carton({
             costPerBox: -1,
@@ -322,18 +551,43 @@ describe('BusinessWorkspace', () => {
     ).rejects.toThrow();
   });
 
+  it('rejects partial external dimensions before planning', async () => {
+    await expect(
+      runBusinessWorkspace(
+        [
+          product(),
+        ],
+        [
+          carton({
+            externalLengthMm: 110,
+            externalWidthMm:
+              undefined,
+            externalHeightMm: 90,
+          }),
+        ]
+      )
+    ).rejects.toThrow(
+      'Carton 1 external dimensions must include length, width, and height.'
+    );
+  });
+
   it('does not mutate caller-owned business form values', () => {
     const products = [
       product(),
     ];
+
     const cartons = [
       carton({
+        externalLengthMm: 110,
+        externalWidthMm: 105,
+        externalHeightMm: 95,
         costPerBox: 2,
       }),
     ];
 
     const beforeProducts =
       JSON.stringify(products);
+
     const beforeCartons =
       JSON.stringify(cartons);
 
