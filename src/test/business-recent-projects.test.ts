@@ -57,6 +57,9 @@ function projectInput(
         lengthMm: 400,
         widthMm: 300,
         heightMm: 200,
+        externalLengthMm: 410,
+        externalWidthMm: 310,
+        externalHeightMm: 210,
         quantityAvailable: 15,
         maxGrossWeightG:
           12_000,
@@ -156,6 +159,44 @@ describe(
     );
 
     it(
+      'preserves external carton dimensions independently from internal dimensions',
+      () => {
+        const project =
+          createRecentBusinessProject(
+            projectInput(),
+            123
+          );
+
+        const carton =
+          project.cartons[0];
+
+        expect(
+          carton?.lengthMm
+        ).toBe(400);
+
+        expect(
+          carton?.widthMm
+        ).toBe(300);
+
+        expect(
+          carton?.heightMm
+        ).toBe(200);
+
+        expect(
+          carton?.externalLengthMm
+        ).toBe(410);
+
+        expect(
+          carton?.externalWidthMm
+        ).toBe(310);
+
+        expect(
+          carton?.externalHeightMm
+        ).toBe(210);
+      }
+    );
+
+    it(
       'copies project arrays and records instead of retaining caller references',
       () => {
         const input =
@@ -216,6 +257,12 @@ describe(
                   ...base.cartons[0]!,
                   libraryId:
                     undefined,
+                  externalLengthMm:
+                    undefined,
+                  externalWidthMm:
+                    undefined,
+                  externalHeightMm:
+                    undefined,
                   maxGrossWeightG:
                     undefined,
                   emptyBoxWeightG:
@@ -245,6 +292,21 @@ describe(
 
         expect(
           project.cartons[0]
+            ?.externalLengthMm
+        ).toBeUndefined();
+
+        expect(
+          project.cartons[0]
+            ?.externalWidthMm
+        ).toBeUndefined();
+
+        expect(
+          project.cartons[0]
+            ?.externalHeightMm
+        ).toBeUndefined();
+
+        expect(
+          project.cartons[0]
             ?.maxGrossWeightG
         ).toBeUndefined();
 
@@ -257,6 +319,59 @@ describe(
           project.cartons[0]
             ?.costPerBox
         ).toBeUndefined();
+      }
+    );
+
+    it(
+      'does not infer external dimensions from internal dimensions',
+      () => {
+        const base =
+          projectInput();
+
+        const project =
+          createRecentBusinessProject(
+            projectInput({
+              cartons: [
+                {
+                  ...base.cartons[0]!,
+                  externalLengthMm:
+                    undefined,
+                  externalWidthMm:
+                    undefined,
+                  externalHeightMm:
+                    undefined,
+                },
+              ],
+            }),
+            123
+          );
+
+        const carton =
+          project.cartons[0];
+
+        expect(
+          carton?.externalLengthMm
+        ).toBeUndefined();
+
+        expect(
+          carton?.externalWidthMm
+        ).toBeUndefined();
+
+        expect(
+          carton?.externalHeightMm
+        ).toBeUndefined();
+
+        expect(
+          carton?.lengthMm
+        ).toBe(400);
+
+        expect(
+          carton?.widthMm
+        ).toBe(300);
+
+        expect(
+          carton?.heightMm
+        ).toBe(200);
       }
     );
 

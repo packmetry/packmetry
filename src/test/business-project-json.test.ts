@@ -71,6 +71,9 @@ function projectInput(
         lengthMm: 400,
         widthMm: 300,
         heightMm: 200,
+        externalLengthMm: 410,
+        externalWidthMm: 310,
+        externalHeightMm: 210,
         quantityAvailable: 15,
         maxGrossWeightG:
           12_000,
@@ -273,6 +276,62 @@ describe(
     );
 
     it(
+      'round-trips external carton dimensions independently from internal dimensions',
+      () => {
+        const source =
+          project();
+
+        const result =
+          parseBusinessProjectJson(
+            serializeBusinessProjectJson(
+              source
+            )
+          );
+
+        expect(
+          result.ok
+        ).toBe(true);
+
+        if (!result.ok) {
+          throw new Error(
+            'Expected external carton dimensions to parse.'
+          );
+        }
+
+        const carton =
+          result.project
+            .cartons[0];
+
+        expect(
+          carton?.lengthMm
+        ).toBe(400);
+
+        expect(
+          carton?.widthMm
+        ).toBe(300);
+
+        expect(
+          carton?.heightMm
+        ).toBe(200);
+
+        expect(
+          carton
+            ?.externalLengthMm
+        ).toBe(410);
+
+        expect(
+          carton
+            ?.externalWidthMm
+        ).toBe(310);
+
+        expect(
+          carton
+            ?.externalHeightMm
+        ).toBe(210);
+      }
+    );
+
+    it(
       'round-trips missing optional Business values without inventing defaults',
       () => {
         const source =
@@ -345,6 +404,21 @@ describe(
 
         expect(
           result.project.cartons[0]
+            ?.externalLengthMm
+        ).toBeUndefined();
+
+        expect(
+          result.project.cartons[0]
+            ?.externalWidthMm
+        ).toBeUndefined();
+
+        expect(
+          result.project.cartons[0]
+            ?.externalHeightMm
+        ).toBeUndefined();
+
+        expect(
+          result.project.cartons[0]
             ?.maxGrossWeightG
         ).toBeUndefined();
 
@@ -356,6 +430,83 @@ describe(
         expect(
           result.project.cartons[0]
             ?.costPerBox
+        ).toBeUndefined();
+      }
+    );
+
+    it(
+      'does not infer external carton dimensions from internal dimensions',
+      () => {
+        const source =
+          project({
+            cartons: [
+              {
+                id:
+                  'business-carton-1',
+                name:
+                  'Internal only',
+                cartonCode:
+                  'INT-1',
+                lengthMm: 100,
+                widthMm: 90,
+                heightMm: 80,
+                quantityAvailable: 1,
+                maxGrossWeightG:
+                  undefined,
+                emptyBoxWeightG:
+                  undefined,
+                costPerBox:
+                  undefined,
+              },
+            ],
+          });
+
+        const result =
+          parseBusinessProjectJson(
+            serializeBusinessProjectJson(
+              source
+            )
+          );
+
+        expect(
+          result.ok
+        ).toBe(true);
+
+        if (!result.ok) {
+          throw new Error(
+            'Expected internal-only carton to parse.'
+          );
+        }
+
+        const carton =
+          result.project
+            .cartons[0];
+
+        expect(
+          carton?.lengthMm
+        ).toBe(100);
+
+        expect(
+          carton?.widthMm
+        ).toBe(90);
+
+        expect(
+          carton?.heightMm
+        ).toBe(80);
+
+        expect(
+          carton
+            ?.externalLengthMm
+        ).toBeUndefined();
+
+        expect(
+          carton
+            ?.externalWidthMm
+        ).toBeUndefined();
+
+        expect(
+          carton
+            ?.externalHeightMm
         ).toBeUndefined();
       }
     );
@@ -861,6 +1012,126 @@ describe(
     );
 
     it(
+      'rejects invalid external carton dimensions',
+      () => {
+        const base =
+          project();
+
+        const invalidCases: Array<
+          Record<string, unknown>
+        > = [
+          {
+            ...base.cartons[0]!,
+            externalLengthMm: 0,
+          },
+          {
+            ...base.cartons[0]!,
+            externalWidthMm: -1,
+          },
+          {
+            ...base.cartons[0]!,
+            externalHeightMm: 0,
+          },
+          {
+            ...base.cartons[0]!,
+            externalLengthMm:
+              '410',
+          },
+        ];
+
+        for (
+          const invalidCarton of
+            invalidCases
+        ) {
+          const invalid =
+            documentFor(
+              project()
+            );
+
+          (
+            invalid.project as
+              Record<string, unknown>
+          ).cartons = [
+            invalidCarton,
+          ];
+
+          expect(
+            parseBusinessProjectJson(
+              JSON.stringify(
+                invalid
+              )
+            )
+          ).toMatchObject({
+            ok: false,
+            error: {
+              code:
+                'invalid-project',
+            },
+          });
+        }
+      }
+    );
+
+    it(
+      'rejects partial external carton dimensions',
+      () => {
+        const base =
+          project();
+
+        const cases: Array<
+          Record<string, unknown>
+        > = [
+          {
+            ...base.cartons[0]!,
+            externalWidthMm:
+              undefined,
+          },
+          {
+            ...base.cartons[0]!,
+            externalLengthMm:
+              undefined,
+          },
+          {
+            ...base.cartons[0]!,
+            externalHeightMm:
+              undefined,
+          },
+        ];
+
+        for (
+          const invalidCarton of
+            cases
+        ) {
+          const invalid =
+            documentFor(
+              project()
+            );
+
+          (
+            invalid.project as
+              Record<string, unknown>
+          ).cartons = [
+            invalidCarton,
+          ];
+
+          expect(
+            parseBusinessProjectJson(
+              JSON.stringify(
+                invalid
+              )
+            )
+          ).toMatchObject({
+            ok: false,
+            error: {
+              code:
+                'invalid-project',
+            },
+          });
+        }
+      }
+    );
+
+    it(
       'rejects null optional values rather than treating them as missing',
       () => {
         const invalid =
@@ -877,6 +1148,41 @@ describe(
             Record<string, unknown>[];
 
         products[0]!.unitWeightG =
+          null;
+
+        expect(
+          parseBusinessProjectJson(
+            JSON.stringify(
+              invalid
+            )
+          )
+        ).toMatchObject({
+          ok: false,
+          error: {
+            code:
+              'invalid-project',
+          },
+        });
+      }
+    );
+
+    it(
+      'rejects null external carton dimensions rather than treating them as missing',
+      () => {
+        const invalid =
+          documentFor(
+            project()
+          );
+
+        const projectRecord =
+          invalid.project as
+            Record<string, unknown>;
+
+        const cartons =
+          projectRecord.cartons as
+            Record<string, unknown>[];
+
+        cartons[0]!.externalLengthMm =
           null;
 
         expect(
@@ -1036,6 +1342,33 @@ describe(
         const invalid = {
           ...project(),
           products: [],
+        };
+
+        expect(() =>
+          serializeBusinessProjectJson(
+            invalid
+          )
+        ).toThrow(
+          'Cannot serialize an invalid Business project.'
+        );
+      }
+    );
+
+    it(
+      'refuses to serialize a project with partial external carton dimensions',
+      () => {
+        const base =
+          project();
+
+        const invalid: RecentBusinessProject = {
+          ...base,
+          cartons: [
+            {
+              ...base.cartons[0]!,
+              externalWidthMm:
+                undefined,
+            },
+          ],
         };
 
         expect(() =>

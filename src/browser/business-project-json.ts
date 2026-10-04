@@ -248,6 +248,49 @@ function parseCarton(
     return null;
   }
 
+  const externalLengthMm =
+    optionalPositiveNumber(
+      value,
+      'externalLengthMm'
+    );
+
+  const externalWidthMm =
+    optionalPositiveNumber(
+      value,
+      'externalWidthMm'
+    );
+
+  const externalHeightMm =
+    optionalPositiveNumber(
+      value,
+      'externalHeightMm'
+    );
+
+  if (
+    externalLengthMm === null ||
+    externalWidthMm === null ||
+    externalHeightMm === null
+  ) {
+    return null;
+  }
+
+  const hasAnyExternalDimension =
+    externalLengthMm !== undefined ||
+    externalWidthMm !== undefined ||
+    externalHeightMm !== undefined;
+
+  const hasAllExternalDimensions =
+    externalLengthMm !== undefined &&
+    externalWidthMm !== undefined &&
+    externalHeightMm !== undefined;
+
+  if (
+    hasAnyExternalDimension &&
+    !hasAllExternalDimensions
+  ) {
+    return null;
+  }
+
   const maxGrossWeightG =
     optionalPositiveNumber(
       value,
@@ -290,6 +333,13 @@ function parseCarton(
     lengthMm: value.lengthMm,
     widthMm: value.widthMm,
     heightMm: value.heightMm,
+    ...(hasAllExternalDimensions
+      ? {
+          externalLengthMm,
+          externalWidthMm,
+          externalHeightMm,
+        }
+      : {}),
     quantityAvailable:
       value.quantityAvailable,
     maxGrossWeightG,

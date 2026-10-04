@@ -38,6 +38,9 @@ export interface RecentBusinessProjectCarton {
   lengthMm: number;
   widthMm: number;
   heightMm: number;
+  externalLengthMm?: number;
+  externalWidthMm?: number;
+  externalHeightMm?: number;
   quantityAvailable: number;
   maxGrossWeightG: number | undefined;
   emptyBoxWeightG: number | undefined;
@@ -214,6 +217,27 @@ function cloneProjectCarton(
       carton.widthMm,
     heightMm:
       carton.heightMm,
+    ...(carton.externalLengthMm !==
+    undefined
+      ? {
+          externalLengthMm:
+            carton.externalLengthMm,
+        }
+      : {}),
+    ...(carton.externalWidthMm !==
+    undefined
+      ? {
+          externalWidthMm:
+            carton.externalWidthMm,
+        }
+      : {}),
+    ...(carton.externalHeightMm !==
+    undefined
+      ? {
+          externalHeightMm:
+            carton.externalHeightMm,
+        }
+      : {}),
     quantityAvailable:
       carton.quantityAvailable,
     maxGrossWeightG:

@@ -27,6 +27,9 @@ function cartonInput(
     lengthMm: 300,
     widthMm: 200,
     heightMm: 150,
+    externalLengthMm: 310,
+    externalWidthMm: 210,
+    externalHeightMm: 160,
     quantityAvailable: 12,
     maxGrossWeightG: 8_000,
     emptyBoxWeightG: 250,
@@ -89,11 +92,59 @@ describe(
     );
 
     it(
+      'preserves external carton dimensions independently from internal dimensions',
+      () => {
+        const saved =
+          createSavedBusinessCarton(
+            cartonInput({
+              lengthMm: 300,
+              widthMm: 200,
+              heightMm: 150,
+              externalLengthMm: 320,
+              externalWidthMm: 220,
+              externalHeightMm: 170,
+            }),
+            123
+          );
+
+        expect(
+          saved.lengthMm
+        ).toBe(300);
+
+        expect(
+          saved.widthMm
+        ).toBe(200);
+
+        expect(
+          saved.heightMm
+        ).toBe(150);
+
+        expect(
+          saved.externalLengthMm
+        ).toBe(320);
+
+        expect(
+          saved.externalWidthMm
+        ).toBe(220);
+
+        expect(
+          saved.externalHeightMm
+        ).toBe(170);
+      }
+    );
+
+    it(
       'preserves missing optional carton values as unknown',
       () => {
         const saved =
           createSavedBusinessCarton(
             cartonInput({
+              externalLengthMm:
+                undefined,
+              externalWidthMm:
+                undefined,
+              externalHeightMm:
+                undefined,
               maxGrossWeightG:
                 undefined,
               emptyBoxWeightG:
@@ -103,6 +154,18 @@ describe(
             }),
             123
           );
+
+        expect(
+          saved.externalLengthMm
+        ).toBeUndefined();
+
+        expect(
+          saved.externalWidthMm
+        ).toBeUndefined();
+
+        expect(
+          saved.externalHeightMm
+        ).toBeUndefined();
 
         expect(
           saved.maxGrossWeightG
@@ -115,6 +178,48 @@ describe(
         expect(
           saved.costPerBox
         ).toBeUndefined();
+      }
+    );
+
+    it(
+      'does not infer external dimensions from internal dimensions',
+      () => {
+        const saved =
+          createSavedBusinessCarton(
+            cartonInput({
+              externalLengthMm:
+                undefined,
+              externalWidthMm:
+                undefined,
+              externalHeightMm:
+                undefined,
+            }),
+            123
+          );
+
+        expect(
+          saved.externalLengthMm
+        ).toBeUndefined();
+
+        expect(
+          saved.externalWidthMm
+        ).toBeUndefined();
+
+        expect(
+          saved.externalHeightMm
+        ).toBeUndefined();
+
+        expect(
+          saved.lengthMm
+        ).toBe(300);
+
+        expect(
+          saved.widthMm
+        ).toBe(200);
+
+        expect(
+          saved.heightMm
+        ).toBe(150);
       }
     );
 
