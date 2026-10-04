@@ -1,5 +1,9 @@
 import type { RotationPolicy } from '../core/domain/constraints.js';
 import type { ObjectiveKind } from '../core/domain/objectives.js';
+import type {
+  LengthUnit,
+  MassUnit,
+} from '../core/units/types.js';
 
 export type RecentBusinessProjectHandlingPolicy =
   Extract<
@@ -47,6 +51,12 @@ export interface RecentBusinessProjectCarton {
   costPerBox: number | undefined;
 }
 
+export interface RecentBusinessProjectDimensionalWeight {
+  divisorValue: number | undefined;
+  lengthUnit: LengthUnit;
+  massUnit: MassUnit;
+}
+
 export interface RecentBusinessProjectInput {
   id: string;
   name: string;
@@ -56,6 +66,8 @@ export interface RecentBusinessProjectInput {
     readonly RecentBusinessProjectCarton[];
   objective:
     RecentBusinessProjectObjective;
+  dimensionalWeight?:
+    RecentBusinessProjectDimensionalWeight;
 }
 
 export interface RecentBusinessProject {
@@ -67,6 +79,8 @@ export interface RecentBusinessProject {
     RecentBusinessProjectCarton[];
   objective:
     RecentBusinessProjectObjective;
+  dimensionalWeight?:
+    RecentBusinessProjectDimensionalWeight;
   savedAt: number;
 }
 
@@ -249,6 +263,20 @@ function cloneProjectCarton(
   };
 }
 
+function cloneProjectDimensionalWeight(
+  dimensionalWeight:
+    RecentBusinessProjectDimensionalWeight
+): RecentBusinessProjectDimensionalWeight {
+  return {
+    divisorValue:
+      dimensionalWeight.divisorValue,
+    lengthUnit:
+      dimensionalWeight.lengthUnit,
+    massUnit:
+      dimensionalWeight.massUnit,
+  };
+}
+
 export function createRecentBusinessProject(
   project:
     RecentBusinessProjectInput,
@@ -267,6 +295,15 @@ export function createRecentBusinessProject(
       ),
     objective:
       project.objective,
+    ...(project.dimensionalWeight !==
+    undefined
+      ? {
+          dimensionalWeight:
+            cloneProjectDimensionalWeight(
+              project.dimensionalWeight
+            ),
+        }
+      : {}),
     savedAt,
   };
 }

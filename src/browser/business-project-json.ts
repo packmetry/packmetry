@@ -1,10 +1,15 @@
 import type {
   RecentBusinessProject,
   RecentBusinessProjectCarton,
+  RecentBusinessProjectDimensionalWeight,
   RecentBusinessProjectHandlingPolicy,
   RecentBusinessProjectObjective,
   RecentBusinessProjectProduct,
 } from './business-recent-projects.js';
+import {
+  isLengthUnit,
+  isMassUnit,
+} from '../core/units/types.js';
 
 export const BUSINESS_PROJECT_JSON_FORMAT =
   'packmetry.business.project';
@@ -348,6 +353,59 @@ function parseCarton(
   };
 }
 
+function parseDimensionalWeight(
+  value: unknown
+):
+  | RecentBusinessProjectDimensionalWeight
+  | undefined
+  | null {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const divisorValue =
+    optionalPositiveNumber(
+      value,
+      'divisorValue'
+    );
+
+  if (divisorValue === null) {
+    return null;
+  }
+
+  if (
+    typeof value.lengthUnit !==
+      'string' ||
+    !isLengthUnit(
+      value.lengthUnit
+    )
+  ) {
+    return null;
+  }
+
+  if (
+    typeof value.massUnit !==
+      'string' ||
+    !isMassUnit(
+      value.massUnit
+    )
+  ) {
+    return null;
+  }
+
+  return {
+    divisorValue,
+    lengthUnit:
+      value.lengthUnit,
+    massUnit:
+      value.massUnit,
+  };
+}
+
 function hasUniqueIds(
   values: readonly {
     id: string;
@@ -413,6 +471,18 @@ function parseProject(
     return null;
   }
 
+  const dimensionalWeight =
+    parseDimensionalWeight(
+      value.dimensionalWeight
+    );
+
+  if (
+    dimensionalWeight ===
+    null
+  ) {
+    return null;
+  }
+
   const parsedProducts =
     products as
       RecentBusinessProjectProduct[];
@@ -434,6 +504,12 @@ function parseProject(
     products: parsedProducts,
     cartons: parsedCartons,
     objective: value.objective,
+    ...(dimensionalWeight !==
+    undefined
+      ? {
+          dimensionalWeight,
+        }
+      : {}),
     savedAt: value.savedAt,
   };
 }

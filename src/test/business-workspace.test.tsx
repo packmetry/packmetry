@@ -504,7 +504,14 @@ describe('BusinessWorkspace', () => {
     ).toBeUndefined();
   });
 
-  it('preserves external carton dimensions in Business project snapshots', () => {
+  it('preserves external carton dimensions and DIM settings in Business project snapshots', () => {
+    const dimValues =
+      dimensionalWeightValues({
+        divisorValue: 5000,
+        lengthUnit: 'cm',
+        massUnit: 'kg',
+      });
+
     const project =
       businessProjectInputFromWorkspace(
         'business-project-1',
@@ -519,7 +526,8 @@ describe('BusinessWorkspace', () => {
             externalHeightMm: 105,
           }),
         ],
-        'balanced'
+        'balanced',
+        dimValues
       );
 
     expect(
@@ -531,6 +539,50 @@ describe('BusinessWorkspace', () => {
       externalLengthMm: 120,
       externalWidthMm: 110,
       externalHeightMm: 105,
+    });
+
+    expect(
+      project.dimensionalWeight
+    ).toEqual({
+      divisorValue: 5000,
+      lengthUnit: 'cm',
+      massUnit: 'kg',
+    });
+
+    expect(
+      project.dimensionalWeight
+    ).not.toBe(
+      dimValues
+    );
+  });
+
+  it('preserves a blank DIM divisor in Business project snapshots without inventing a carrier default', () => {
+    const project =
+      businessProjectInputFromWorkspace(
+        'business-project-blank-dim',
+        'Blank DIM project',
+        [
+          product(),
+        ],
+        [
+          carton(),
+        ],
+        'balanced',
+        dimensionalWeightValues({
+          divisorValue:
+            undefined,
+          lengthUnit: 'in',
+          massUnit: 'lb',
+        })
+      );
+
+    expect(
+      project.dimensionalWeight
+    ).toEqual({
+      divisorValue:
+        undefined,
+      lengthUnit: 'in',
+      massUnit: 'lb',
     });
   });
 

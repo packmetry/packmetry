@@ -418,7 +418,9 @@ export function businessProjectInputFromWorkspace(
   cartons:
     readonly BusinessCartonValues[],
   objective:
-    BusinessObjectiveKind
+    BusinessObjectiveKind,
+  dimensionalWeight:
+    BusinessDimensionalWeightValues
 ): RecentBusinessProjectInput {
   return {
     id,
@@ -432,6 +434,10 @@ export function businessProjectInputFromWorkspace(
         cloneBusinessCarton
       ),
     objective,
+    dimensionalWeight:
+      cloneBusinessDimensionalWeight(
+        dimensionalWeight
+      ),
   };
 }
 
@@ -1609,7 +1615,8 @@ export default function BusinessWorkspace({
           trimmedName,
           products,
           cartons,
-          objective
+          objective,
+          dimensionalWeightValues
         );
 
       const saved =
@@ -1676,7 +1683,8 @@ export default function BusinessWorkspace({
     );
     setDimensionalWeightValues(
       cloneBusinessDimensionalWeight(
-        DEFAULT_BUSINESS_DIMENSIONAL_WEIGHT
+        project.dimensionalWeight ??
+          DEFAULT_BUSINESS_DIMENSIONAL_WEIGHT
       )
     );
     setPlan(null);
@@ -1733,7 +1741,8 @@ export default function BusinessWorkspace({
         trimmedName,
         products,
         cartons,
-        objective
+        objective,
+        dimensionalWeightValues
       );
 
     const exportProject =
@@ -1833,7 +1842,8 @@ export default function BusinessWorkspace({
       );
       setDimensionalWeightValues(
         cloneBusinessDimensionalWeight(
-          DEFAULT_BUSINESS_DIMENSIONAL_WEIGHT
+          importedProject.dimensionalWeight ??
+            DEFAULT_BUSINESS_DIMENSIONAL_WEIGHT
         )
       );
       setPlan(null);

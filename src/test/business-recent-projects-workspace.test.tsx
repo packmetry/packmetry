@@ -17,6 +17,7 @@ import BusinessWorkspace, {
   BusinessRecentProjects,
   businessProjectInputFromWorkspace,
   type BusinessCartonValues,
+  type BusinessDimensionalWeightValues,
   type BusinessProductValues,
 } from '../components/BusinessWorkspace.js';
 
@@ -52,10 +53,22 @@ function carton(): BusinessCartonValues {
     lengthMm: 400,
     widthMm: 300,
     heightMm: 200,
+    externalLengthMm: 410,
+    externalWidthMm: 310,
+    externalHeightMm: 210,
     quantityAvailable: 15,
     maxGrossWeightG: 12_000,
     emptyBoxWeightG: 350,
     costPerBox: 1.75,
+  };
+}
+
+function dimensionalWeight():
+  BusinessDimensionalWeightValues {
+  return {
+    divisorValue: 5000,
+    lengthUnit: 'cm',
+    massUnit: 'kg',
   };
 }
 
@@ -72,6 +85,8 @@ function recentProject(): RecentBusinessProject {
       ],
       objective:
         'fewest-cartons',
+      dimensionalWeight:
+        dimensionalWeight(),
     },
     123
   );
@@ -94,6 +109,14 @@ describe(
 
         expect(html).toContain(
           'Save project'
+        );
+
+        expect(html).toContain(
+          'Export project JSON'
+        );
+
+        expect(html).toContain(
+          'Import project JSON'
         );
 
         expect(html).toContain(
@@ -143,14 +166,18 @@ describe(
     );
 
     it(
-      'builds a complete project snapshot from current Business workspace state',
+      'builds a complete project snapshot from current Business workspace state including DIM settings',
       () => {
         const products = [
           product(),
         ];
+
         const cartons = [
           carton(),
         ];
+
+        const dimValues =
+          dimensionalWeight();
 
         const input =
           businessProjectInputFromWorkspace(
@@ -158,7 +185,8 @@ describe(
             'October orders',
             products,
             cartons,
-            'least-wasted-volume'
+            'least-wasted-volume',
+            dimValues
           );
 
         expect(input).toEqual({
@@ -168,6 +196,11 @@ describe(
           cartons,
           objective:
             'least-wasted-volume',
+          dimensionalWeight: {
+            divisorValue: 5000,
+            lengthUnit: 'cm',
+            massUnit: 'kg',
+          },
         });
 
         expect(
@@ -193,6 +226,45 @@ describe(
         ).not.toBe(
           cartons[0]
         );
+
+        expect(
+          input.dimensionalWeight
+        ).not.toBe(
+          dimValues
+        );
+      }
+    );
+
+    it(
+      'preserves a blank DIM divisor in a project snapshot without inventing a carrier default',
+      () => {
+        const input =
+          businessProjectInputFromWorkspace(
+            'business-project-blank-dim',
+            'Blank DIM project',
+            [
+              product(),
+            ],
+            [
+              carton(),
+            ],
+            'balanced',
+            {
+              divisorValue:
+                undefined,
+              lengthUnit: 'in',
+              massUnit: 'lb',
+            }
+          );
+
+        expect(
+          input.dimensionalWeight
+        ).toEqual({
+          divisorValue:
+            undefined,
+          lengthUnit: 'in',
+          massUnit: 'lb',
+        });
       }
     );
 
@@ -306,6 +378,40 @@ describe(
         expect(
           submitSource
         ).not.toContain(
+          'saveRecentBusinessProject('
+        );
+      }
+    );
+
+    it(
+      'includes current DIM settings when saving a project',
+      () => {
+        const saveStart =
+          workspaceSource.indexOf(
+            'const saveCurrentProject'
+          );
+
+        const saveEnd =
+          workspaceSource.indexOf(
+            'const openRecentProject',
+            saveStart
+          );
+
+        const saveSource =
+          workspaceSource.slice(
+            saveStart,
+            saveEnd
+          );
+
+        expect(
+          saveSource
+        ).toMatch(
+          /businessProjectInputFromWorkspace\([\s\S]*objective,[\s\S]*dimensionalWeightValues[\s\S]*\)/
+        );
+
+        expect(
+          saveSource
+        ).toContain(
           'saveRecentBusinessProject('
         );
       }
@@ -472,7 +578,7 @@ describe(
     );
 
     it(
-      'opens a recent project only through an explicit action and restores its workspace snapshot',
+      'opens a recent project only through an explicit action and restores its workspace snapshot including DIM settings',
       () => {
         const openStart =
           workspaceSource.indexOf(
@@ -481,7 +587,7 @@ describe(
 
         const openEnd =
           workspaceSource.indexOf(
-            'const chooseObjective',
+            'const exportCurrentProject',
             openStart
           );
 
@@ -524,6 +630,24 @@ describe(
         expect(
           openSource
         ).toContain(
+          'setDimensionalWeightValues('
+        );
+
+        expect(
+          openSource
+        ).toContain(
+          'project.dimensionalWeight ??'
+        );
+
+        expect(
+          openSource
+        ).toContain(
+          'DEFAULT_BUSINESS_DIMENSIONAL_WEIGHT'
+        );
+
+        expect(
+          openSource
+        ).toContain(
           'setPlan(null)'
         );
 
@@ -548,7 +672,93 @@ describe(
     );
 
     it(
-      'keeps project restore separate from global preferences and later persistence slices',
+      'exports the current DIM settings as part of the Business project snapshot',
+      () => {
+        const exportStart =
+          workspaceSource.indexOf(
+            'const exportCurrentProject'
+          );
+
+        const exportEnd =
+          workspaceSource.indexOf(
+            'const importProjectJson',
+            exportStart
+          );
+
+        const exportSource =
+          workspaceSource.slice(
+            exportStart,
+            exportEnd
+          );
+
+        expect(
+          exportSource
+        ).toMatch(
+          /businessProjectInputFromWorkspace\([\s\S]*objective,[\s\S]*dimensionalWeightValues[\s\S]*\)/
+        );
+
+        expect(
+          exportSource
+        ).toContain(
+          'createRecentBusinessProject('
+        );
+
+        expect(
+          exportSource
+        ).toContain(
+          'downloadBusinessProjectJson('
+        );
+      }
+    );
+
+    it(
+      'restores imported DIM settings and safely falls back for older projects without them',
+      () => {
+        const importStart =
+          workspaceSource.indexOf(
+            'const importProjectJson'
+          );
+
+        const importEnd =
+          workspaceSource.indexOf(
+            'const updateDimensionalWeight',
+            importStart
+          );
+
+        const importSource =
+          workspaceSource.slice(
+            importStart,
+            importEnd
+          );
+
+        expect(
+          importSource
+        ).toContain(
+          'setDimensionalWeightValues('
+        );
+
+        expect(
+          importSource
+        ).toContain(
+          'importedProject.dimensionalWeight ??'
+        );
+
+        expect(
+          importSource
+        ).toContain(
+          'DEFAULT_BUSINESS_DIMENSIONAL_WEIGHT'
+        );
+
+        expect(
+          importSource
+        ).toContain(
+          'Project imported. Save project to keep it in this browser.'
+        );
+      }
+    );
+
+    it(
+      'keeps project restore separate from global preferences and direct storage access',
       () => {
         const openStart =
           workspaceSource.indexOf(
@@ -557,7 +767,7 @@ describe(
 
         const openEnd =
           workspaceSource.indexOf(
-            'const chooseObjective',
+            'const exportCurrentProject',
             openStart
           );
 

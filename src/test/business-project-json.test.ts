@@ -101,6 +101,11 @@ function projectInput(
     ],
     objective:
       'least-wasted-volume',
+    dimensionalWeight: {
+      divisorValue: 5000,
+      lengthUnit: 'cm',
+      massUnit: 'kg',
+    },
     ...overrides,
   };
 }
@@ -186,6 +191,13 @@ describe(
         ).not.toBe(
           source.cartons
         );
+
+        expect(
+          document.project
+            .dimensionalWeight
+        ).not.toBe(
+          source.dimensionalWeight
+        );
       }
     );
 
@@ -225,6 +237,12 @@ describe(
           parsed
         ).toHaveProperty(
           'project'
+        );
+
+        expect(
+          serialized
+        ).toContain(
+          '"dimensionalWeight"'
         );
       }
     );
@@ -271,6 +289,13 @@ describe(
           result.project.cartons
         ).not.toBe(
           source.cartons
+        );
+
+        expect(
+          result.project
+            .dimensionalWeight
+        ).not.toBe(
+          source.dimensionalWeight
         );
       }
     );
@@ -332,6 +357,46 @@ describe(
     );
 
     it(
+      'round-trips dimensional-weight divisor and units',
+      () => {
+        const source =
+          project({
+            dimensionalWeight: {
+              divisorValue: 139,
+              lengthUnit: 'in',
+              massUnit: 'lb',
+            },
+          });
+
+        const result =
+          parseBusinessProjectJson(
+            serializeBusinessProjectJson(
+              source
+            )
+          );
+
+        expect(
+          result.ok
+        ).toBe(true);
+
+        if (!result.ok) {
+          throw new Error(
+            'Expected dimensional-weight settings to parse.'
+          );
+        }
+
+        expect(
+          result.project
+            .dimensionalWeight
+        ).toEqual({
+          divisorValue: 139,
+          lengthUnit: 'in',
+          massUnit: 'lb',
+        });
+      }
+    );
+
+    it(
       'round-trips missing optional Business values without inventing defaults',
       () => {
         const source =
@@ -368,6 +433,8 @@ describe(
                   undefined,
               },
             ],
+            dimensionalWeight:
+              undefined,
           });
 
         const result =
@@ -431,6 +498,101 @@ describe(
           result.project.cartons[0]
             ?.costPerBox
         ).toBeUndefined();
+
+        expect(
+          result.project
+            .dimensionalWeight
+        ).toBeUndefined();
+      }
+    );
+
+    it(
+      'accepts an existing version-1 project that has no dimensional-weight field',
+      () => {
+        const source =
+          project({
+            dimensionalWeight:
+              undefined,
+          });
+
+        const document =
+          documentFor(
+            source
+          );
+
+        const projectRecord =
+          document.project as
+            Record<
+              string,
+              unknown
+            >;
+
+        delete projectRecord
+          .dimensionalWeight;
+
+        const result =
+          parseBusinessProjectJson(
+            JSON.stringify(
+              document
+            )
+          );
+
+        expect(
+          result.ok
+        ).toBe(true);
+
+        if (!result.ok) {
+          throw new Error(
+            'Expected legacy version-1 project to parse.'
+          );
+        }
+
+        expect(
+          result.project
+            .dimensionalWeight
+        ).toBeUndefined();
+      }
+    );
+
+    it(
+      'round-trips a blank DIM divisor without inventing a carrier default',
+      () => {
+        const source =
+          project({
+            dimensionalWeight: {
+              divisorValue:
+                undefined,
+              lengthUnit: 'in',
+              massUnit: 'lb',
+            },
+          });
+
+        const result =
+          parseBusinessProjectJson(
+            serializeBusinessProjectJson(
+              source
+            )
+          );
+
+        expect(
+          result.ok
+        ).toBe(true);
+
+        if (!result.ok) {
+          throw new Error(
+            'Expected blank DIM divisor settings to parse.'
+          );
+        }
+
+        expect(
+          result.project
+            .dimensionalWeight
+        ).toEqual({
+          divisorValue:
+            undefined,
+          lengthUnit: 'in',
+          massUnit: 'lb',
+        });
       }
     );
 
@@ -1132,6 +1294,174 @@ describe(
     );
 
     it(
+      'rejects invalid dimensional-weight divisor values',
+      () => {
+        const invalidCases: unknown[] = [
+          0,
+          -1,
+          '5000',
+          null,
+        ];
+
+        for (
+          const divisorValue of
+            invalidCases
+        ) {
+          const invalid =
+            documentFor(
+              project()
+            );
+
+          const projectRecord =
+            invalid.project as
+              Record<
+                string,
+                unknown
+              >;
+
+          projectRecord
+            .dimensionalWeight = {
+              divisorValue,
+              lengthUnit: 'cm',
+              massUnit: 'kg',
+            };
+
+          expect(
+            parseBusinessProjectJson(
+              JSON.stringify(
+                invalid
+              )
+            )
+          ).toMatchObject({
+            ok: false,
+            error: {
+              code:
+                'invalid-project',
+            },
+          });
+        }
+      }
+    );
+
+    it(
+      'rejects unsupported dimensional-weight units',
+      () => {
+        const invalidCases = [
+          {
+            divisorValue: 5000,
+            lengthUnit:
+              'yards',
+            massUnit: 'kg',
+          },
+          {
+            divisorValue: 5000,
+            lengthUnit: 'cm',
+            massUnit:
+              'stone',
+          },
+          {
+            divisorValue: 5000,
+            lengthUnit: 123,
+            massUnit: 'kg',
+          },
+          {
+            divisorValue: 5000,
+            lengthUnit: 'cm',
+            massUnit: 123,
+          },
+        ];
+
+        for (
+          const dimensionalWeight of
+            invalidCases
+        ) {
+          const invalid =
+            documentFor(
+              project()
+            );
+
+          (
+            invalid.project as
+              Record<
+                string,
+                unknown
+              >
+          ).dimensionalWeight =
+            dimensionalWeight;
+
+          expect(
+            parseBusinessProjectJson(
+              JSON.stringify(
+                invalid
+              )
+            )
+          ).toMatchObject({
+            ok: false,
+            error: {
+              code:
+                'invalid-project',
+            },
+          });
+        }
+      }
+    );
+
+    it(
+      'rejects null or malformed dimensional-weight settings rather than treating them as missing',
+      () => {
+        const invalidCases:
+          unknown[] = [
+            null,
+            5000,
+            '5000',
+            [],
+            {},
+            {
+              divisorValue: 5000,
+              massUnit: 'kg',
+            },
+            {
+              divisorValue: 5000,
+              lengthUnit: 'cm',
+            },
+          ];
+
+        for (
+          const dimensionalWeight of
+            invalidCases
+        ) {
+          const invalid =
+            documentFor(
+              project()
+            );
+
+          (
+            invalid.project as
+              Record<
+                string,
+                unknown
+              >
+          ).dimensionalWeight =
+            dimensionalWeight;
+
+          expect(
+            parseBusinessProjectJson(
+              JSON.stringify(
+                invalid
+              )
+            )
+          ).toMatchObject({
+            ok: false,
+            error: {
+              code:
+                'invalid-project',
+            },
+          });
+        }
+      }
+    );
+
+    it(
       'rejects null optional values rather than treating them as missing',
       () => {
         const invalid =
@@ -1369,6 +1699,35 @@ describe(
                 undefined,
             },
           ],
+        };
+
+        expect(() =>
+          serializeBusinessProjectJson(
+            invalid
+          )
+        ).toThrow(
+          'Cannot serialize an invalid Business project.'
+        );
+      }
+    );
+
+    it(
+      'refuses to serialize invalid dimensional-weight settings',
+      () => {
+        const invalid =
+          project();
+
+        (
+          invalid as
+            unknown as
+            Record<
+              string,
+              unknown
+            >
+        ).dimensionalWeight = {
+          divisorValue: 0,
+          lengthUnit: 'cm',
+          massUnit: 'kg',
         };
 
         expect(() =>

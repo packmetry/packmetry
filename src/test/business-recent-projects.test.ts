@@ -71,6 +71,11 @@ function projectInput(
     ],
     objective:
       'fewest-cartons',
+    dimensionalWeight: {
+      divisorValue: 5000,
+      lengthUnit: 'cm',
+      massUnit: 'kg',
+    },
     ...overrides,
   };
 }
@@ -153,6 +158,9 @@ describe(
               ...input.cartons[0],
             },
           ],
+          dimensionalWeight: {
+            ...input.dimensionalWeight!,
+          },
           savedAt: 123,
         });
       }
@@ -197,7 +205,26 @@ describe(
     );
 
     it(
-      'copies project arrays and records instead of retaining caller references',
+      'preserves dimensional-weight divisor and unit semantics',
+      () => {
+        const project =
+          createRecentBusinessProject(
+            projectInput(),
+            123
+          );
+
+        expect(
+          project.dimensionalWeight
+        ).toEqual({
+          divisorValue: 5000,
+          lengthUnit: 'cm',
+          massUnit: 'kg',
+        });
+      }
+    );
+
+    it(
+      'copies project arrays, records, and dimensional-weight settings instead of retaining caller references',
       () => {
         const input =
           projectInput();
@@ -230,6 +257,12 @@ describe(
           project.cartons[0]
         ).not.toBe(
           input.cartons[0]
+        );
+
+        expect(
+          project.dimensionalWeight
+        ).not.toBe(
+          input.dimensionalWeight
         );
       }
     );
@@ -271,6 +304,8 @@ describe(
                     undefined,
                 },
               ],
+              dimensionalWeight:
+                undefined,
             }),
             123
           );
@@ -319,6 +354,37 @@ describe(
           project.cartons[0]
             ?.costPerBox
         ).toBeUndefined();
+
+        expect(
+          project.dimensionalWeight
+        ).toBeUndefined();
+      }
+    );
+
+    it(
+      'preserves a blank divisor without inventing a numeric carrier default',
+      () => {
+        const project =
+          createRecentBusinessProject(
+            projectInput({
+              dimensionalWeight: {
+                divisorValue:
+                  undefined,
+                lengthUnit: 'in',
+                massUnit: 'lb',
+              },
+            }),
+            123
+          );
+
+        expect(
+          project.dimensionalWeight
+        ).toEqual({
+          divisorValue:
+            undefined,
+          lengthUnit: 'in',
+          massUnit: 'lb',
+        });
       }
     );
 
