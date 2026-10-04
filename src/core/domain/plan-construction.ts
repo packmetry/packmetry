@@ -13,31 +13,56 @@ import type {
   SolverCandidateCarton,
   SolverInput,
 } from '../solver/contracts.js';
+import {
+  calculateChargeableWeightG,
+  calculateDimensionalWeightG,
+  validateDimensionalWeightSettings,
+} from '../units/dimensional-weight.js';
 
-function cloneCarton(carton: Carton): Carton {
+function cloneCarton(
+  carton: Carton
+): Carton {
   return {
     ...carton,
     internalDimensions: {
-      length: carton.internalDimensions.length,
-      width: carton.internalDimensions.width,
-      height: carton.internalDimensions.height,
+      length:
+        carton.internalDimensions
+          .length,
+      width:
+        carton.internalDimensions
+          .width,
+      height:
+        carton.internalDimensions
+          .height,
     },
     ...(carton.externalDimensions
       ? {
           externalDimensions: {
-            length: carton.externalDimensions.length,
-            width: carton.externalDimensions.width,
-            height: carton.externalDimensions.height,
+            length:
+              carton
+                .externalDimensions
+                .length,
+            width:
+              carton
+                .externalDimensions
+                .width,
+            height:
+              carton
+                .externalDimensions
+                .height,
           },
         }
       : {}),
   };
 }
 
-function clonePlacement(placement: ItemPlacement): ItemPlacement {
+function clonePlacement(
+  placement: ItemPlacement
+): ItemPlacement {
   return {
     itemId: placement.itemId,
-    instanceIndex: placement.instanceIndex,
+    instanceIndex:
+      placement.instanceIndex,
     x: placement.x,
     y: placement.y,
     z: placement.z,
@@ -48,21 +73,28 @@ function clonePlacement(placement: ItemPlacement): ItemPlacement {
   };
 }
 
-function cloneUnplacedItem(item: UnplacedItem): UnplacedItem {
+function cloneUnplacedItem(
+  item: UnplacedItem
+): UnplacedItem {
   return {
     itemId: item.itemId,
-    instanceIndex: item.instanceIndex,
+    instanceIndex:
+      item.instanceIndex,
     reason: item.reason,
   };
 }
 
 function buildPackedCarton(
   input: SolverInput,
-  candidateCarton: SolverCandidateCarton
+  candidateCarton:
+    SolverCandidateCarton
 ): PackingPlan['cartons'][number] {
-  const sourceCarton = input.cartons.find(
-    carton => carton.id === candidateCarton.cartonId
-  );
+  const sourceCarton =
+    input.cartons.find(
+      carton =>
+        carton.id ===
+        candidateCarton.cartonId
+    );
 
   if (!sourceCarton) {
     throw new Error(
@@ -70,38 +102,69 @@ function buildPackedCarton(
     );
   }
 
-  const carton = cloneCarton(sourceCarton);
-  const placements = candidateCarton.placements.map(clonePlacement);
+  const carton =
+    cloneCarton(
+      sourceCarton
+    );
 
-  const itemVolumeMm3 = placements.reduce(
-    (sum, placement) =>
-      sum +
-      placement.length *
-        placement.width *
-        placement.height,
-    0
-  );
+  const placements =
+    candidateCarton
+      .placements
+      .map(
+        clonePlacement
+      );
+
+  const itemVolumeMm3 =
+    placements.reduce(
+      (
+        sum,
+        placement
+      ) =>
+        sum +
+        placement.length *
+          placement.width *
+          placement.height,
+      0
+    );
 
   const cartonVolumeMm3 =
-    carton.internalDimensions.length *
-    carton.internalDimensions.width *
-    carton.internalDimensions.height;
+    carton
+      .internalDimensions
+      .length *
+    carton
+      .internalDimensions
+      .width *
+    carton
+      .internalDimensions
+      .height;
 
   const metrics: CartonMetrics = {
-    itemCount: placements.length,
+    itemCount:
+      placements.length,
     itemVolumeMm3,
     cartonVolumeMm3,
-    emptyVolumeMm3: cartonVolumeMm3 - itemVolumeMm3,
-    utilization: itemVolumeMm3 / cartonVolumeMm3,
+    emptyVolumeMm3:
+      cartonVolumeMm3 -
+      itemVolumeMm3,
+    utilization:
+      itemVolumeMm3 /
+      cartonVolumeMm3,
   };
 
   let contentsWeightG = 0;
-  let contentsWeightKnown = true;
+  let contentsWeightKnown =
+    true;
 
-  for (const placement of placements) {
-    const item = input.items.find(
-      candidateItem => candidateItem.id === placement.itemId
-    );
+  for (
+    const placement
+    of placements
+  ) {
+    const item =
+      input.items.find(
+        candidateItem =>
+          candidateItem.id ===
+          placement.itemId
+      );
 
     if (!item) {
       throw new Error(
@@ -109,20 +172,59 @@ function buildPackedCarton(
       );
     }
 
-    if (item.unitWeightG === undefined) {
-      contentsWeightKnown = false;
+    if (
+      item.unitWeightG ===
+      undefined
+    ) {
+      contentsWeightKnown =
+        false;
       break;
     }
 
-    contentsWeightG += item.unitWeightG;
+    contentsWeightG +=
+      item.unitWeightG;
   }
 
-  if (placements.length === 0 || contentsWeightKnown) {
-    metrics.contentsWeightG = contentsWeightG;
+  if (
+    placements.length === 0 ||
+    contentsWeightKnown
+  ) {
+    metrics.contentsWeightG =
+      contentsWeightG;
 
-    if (carton.emptyBoxWeightG !== undefined) {
+    if (
+      carton.emptyBoxWeightG !==
+      undefined
+    ) {
       metrics.grossWeightG =
-        contentsWeightG + carton.emptyBoxWeightG;
+        contentsWeightG +
+        carton.emptyBoxWeightG;
+    }
+  }
+
+  if (
+    input.dimensionalWeight !==
+      undefined &&
+    carton.externalDimensions !==
+      undefined
+  ) {
+    metrics.dimWeightG =
+      calculateDimensionalWeightG(
+        carton.externalDimensions,
+        input
+          .dimensionalWeight
+          .divisor
+      );
+
+    if (
+      metrics.grossWeightG !==
+      undefined
+    ) {
+      metrics.chargeableWeightG =
+        calculateChargeableWeightG(
+          metrics.grossWeightG,
+          metrics.dimWeightG
+        );
     }
   }
 
@@ -135,35 +237,63 @@ function buildPackedCarton(
 
 function deriveStatus(
   input: SolverInput,
-  candidate: CandidateVerificationResult['candidate']
+  candidate:
+    CandidateVerificationResult[
+      'candidate'
+    ]
 ): PlanStatus {
-  const requestedItemCount = input.items.reduce(
-    (sum, item) => sum + item.quantity,
-    0
-  );
+  const requestedItemCount =
+    input.items.reduce(
+      (
+        sum,
+        item
+      ) =>
+        sum +
+        item.quantity,
+      0
+    );
 
-  const placedItemCount = candidate.cartons.reduce(
-    (sum, carton) => sum + carton.placements.length,
-    0
-  );
+  const placedItemCount =
+    candidate.cartons.reduce(
+      (
+        sum,
+        carton
+      ) =>
+        sum +
+        carton
+          .placements
+          .length,
+      0
+    );
 
-  if (requestedItemCount === 0) {
-    return 'feasible';
-  }
-
-  if (placedItemCount === requestedItemCount) {
+  if (
+    requestedItemCount === 0
+  ) {
     return 'feasible';
   }
 
   if (
-    candidate.unplacedItems.some(
-      item => item.reason === 'solver-limit-reached'
-    )
+    placedItemCount ===
+    requestedItemCount
+  ) {
+    return 'feasible';
+  }
+
+  if (
+    candidate
+      .unplacedItems
+      .some(
+        item =>
+          item.reason ===
+          'solver-limit-reached'
+      )
   ) {
     return 'limit_reached';
   }
 
-  if (placedItemCount > 0) {
+  if (
+    placedItemCount > 0
+  ) {
     return 'partial';
   }
 
@@ -171,69 +301,198 @@ function deriveStatus(
 }
 
 function buildPlanMetrics(
-  cartons: PackingPlan['cartons'],
-  unplacedItems: UnplacedItem[]
+  cartons:
+    PackingPlan['cartons'],
+  unplacedItems:
+    UnplacedItem[],
+  dimensionalWeightConfigured:
+    boolean
 ): PlanMetrics {
   const metrics: PlanMetrics = {
-    cartonCount: cartons.length,
-    placedItemCount: cartons.reduce(
-      (sum, carton) => sum + carton.metrics.itemCount,
-      0
-    ),
-    unplacedItemCount: unplacedItems.length,
-    itemVolumeMm3: cartons.reduce(
-      (sum, carton) => sum + carton.metrics.itemVolumeMm3,
-      0
-    ),
-    cartonVolumeMm3: cartons.reduce(
-      (sum, carton) => sum + carton.metrics.cartonVolumeMm3,
-      0
-    ),
-    emptyVolumeMm3: cartons.reduce(
-      (sum, carton) => sum + carton.metrics.emptyVolumeMm3,
-      0
-    ),
+    cartonCount:
+      cartons.length,
+    placedItemCount:
+      cartons.reduce(
+        (
+          sum,
+          carton
+        ) =>
+          sum +
+          carton
+            .metrics
+            .itemCount,
+        0
+      ),
+    unplacedItemCount:
+      unplacedItems.length,
+    itemVolumeMm3:
+      cartons.reduce(
+        (
+          sum,
+          carton
+        ) =>
+          sum +
+          carton
+            .metrics
+            .itemVolumeMm3,
+        0
+      ),
+    cartonVolumeMm3:
+      cartons.reduce(
+        (
+          sum,
+          carton
+        ) =>
+          sum +
+          carton
+            .metrics
+            .cartonVolumeMm3,
+        0
+      ),
+    emptyVolumeMm3:
+      cartons.reduce(
+        (
+          sum,
+          carton
+        ) =>
+          sum +
+          carton
+            .metrics
+            .emptyVolumeMm3,
+        0
+      ),
     utilization: 0,
   };
 
   metrics.utilization =
-    metrics.cartonVolumeMm3 === 0
+    metrics.cartonVolumeMm3 ===
+    0
       ? 0
-      : metrics.itemVolumeMm3 / metrics.cartonVolumeMm3;
+      : metrics
+          .itemVolumeMm3 /
+        metrics
+          .cartonVolumeMm3;
 
   if (
     cartons.length === 0 ||
     cartons.every(
-      carton => carton.metrics.contentsWeightG !== undefined
+      carton =>
+        carton.metrics
+          .contentsWeightG !==
+        undefined
     )
   ) {
-    metrics.totalContentsWeightG = cartons.reduce(
-      (sum, carton) =>
-        sum + (carton.metrics.contentsWeightG ?? 0),
-      0
-    );
+    metrics.totalContentsWeightG =
+      cartons.reduce(
+        (
+          sum,
+          carton
+        ) =>
+          sum +
+          (carton.metrics
+            .contentsWeightG ??
+            0),
+        0
+      );
   }
 
   if (
     cartons.length === 0 ||
     cartons.every(
-      carton => carton.metrics.grossWeightG !== undefined
+      carton =>
+        carton.metrics
+          .grossWeightG !==
+        undefined
     )
   ) {
-    metrics.totalGrossWeightG = cartons.reduce(
-      (sum, carton) => sum + (carton.metrics.grossWeightG ?? 0),
-      0
-    );
+    metrics.totalGrossWeightG =
+      cartons.reduce(
+        (
+          sum,
+          carton
+        ) =>
+          sum +
+          (carton.metrics
+            .grossWeightG ??
+            0),
+        0
+      );
+  }
+
+  if (
+    dimensionalWeightConfigured &&
+    (
+      cartons.length === 0 ||
+      cartons.every(
+        carton =>
+          carton.metrics
+            .dimWeightG !==
+          undefined
+      )
+    )
+  ) {
+    metrics.totalDimWeightG =
+      cartons.reduce(
+        (
+          sum,
+          carton
+        ) =>
+          sum +
+          (carton.metrics
+            .dimWeightG ??
+            0),
+        0
+      );
+  }
+
+  if (
+    dimensionalWeightConfigured &&
+    (
+      cartons.length === 0 ||
+      cartons.every(
+        carton =>
+          carton.metrics
+            .chargeableWeightG !==
+          undefined
+      )
+    )
+  ) {
+    metrics
+      .totalChargeableWeightG =
+      cartons.reduce(
+        (
+          sum,
+          carton
+        ) =>
+          sum +
+          (carton.metrics
+            .chargeableWeightG ??
+            0),
+        0
+      );
   }
 
   if (
     cartons.length === 0 ||
-    cartons.every(carton => carton.carton.costPerBox !== undefined)
+    cartons.every(
+      carton =>
+        carton.carton
+          .costPerBox !==
+        undefined
+    )
   ) {
-    metrics.totalCartonCost = cartons.reduce(
-      (sum, carton) => sum + (carton.carton.costPerBox ?? 0),
-      0
-    );
+    metrics.totalCartonCost =
+      cartons.reduce(
+        (
+          sum,
+          carton
+        ) =>
+          sum +
+          (carton.carton
+            .costPerBox ??
+            0),
+        0
+      );
   }
 
   return metrics;
@@ -242,45 +501,94 @@ function buildPlanMetrics(
 export function constructPackingPlan(
   planId: string,
   input: SolverInput,
-  verifiedCandidate: CandidateVerificationResult,
+  verifiedCandidate:
+    CandidateVerificationResult,
   solverMeta: SolverMeta
 ): PackingPlan {
-  if (!verifiedCandidate.verification.valid) {
+  if (
+    !verifiedCandidate
+      .verification
+      .valid
+  ) {
     throw new Error(
       'Cannot construct PackingPlan from invalid verified candidate'
     );
   }
 
-  const candidate = verifiedCandidate.candidate;
+  if (
+    input.dimensionalWeight !==
+    undefined
+  ) {
+    validateDimensionalWeightSettings(
+      input.dimensionalWeight
+    );
+  }
 
-  const cartons = candidate.cartons.map(candidateCarton =>
-    buildPackedCarton(input, candidateCarton)
-  );
+  const candidate =
+    verifiedCandidate
+      .candidate;
+
+  const cartons =
+    candidate.cartons.map(
+      candidateCarton =>
+        buildPackedCarton(
+          input,
+          candidateCarton
+        )
+    );
 
   const unplacedItems =
-    candidate.unplacedItems.map(cloneUnplacedItem);
+    candidate
+      .unplacedItems
+      .map(
+        cloneUnplacedItem
+      );
 
   const plan: PackingPlan = {
     id: planId,
-    status: deriveStatus(input, candidate),
+    status:
+      deriveStatus(
+        input,
+        candidate
+      ),
     objective: {
-      kind: input.objective.kind,
+      kind:
+        input.objective.kind,
     },
     cartons,
     unplacedItems,
-    metrics: buildPlanMetrics(cartons, unplacedItems),
+    metrics:
+      buildPlanMetrics(
+        cartons,
+        unplacedItems,
+        input
+          .dimensionalWeight !==
+          undefined
+      ),
     explanations: [],
     solverMeta: {
-      solverId: solverMeta.solverId,
-      ...(solverMeta.solverVersion !== undefined
-        ? { solverVersion: solverMeta.solverVersion }
+      solverId:
+        solverMeta.solverId,
+      ...(solverMeta
+        .solverVersion !==
+      undefined
+        ? {
+            solverVersion:
+              solverMeta
+                .solverVersion,
+          }
         : {}),
-      durationMs: solverMeta.durationMs,
-      deterministic: solverMeta.deterministic,
+      durationMs:
+        solverMeta.durationMs,
+      deterministic:
+        solverMeta
+          .deterministic,
     },
   };
 
-  validatePackingPlan(plan);
+  validatePackingPlan(
+    plan
+  );
 
   return plan;
 }

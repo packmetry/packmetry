@@ -44,8 +44,12 @@ export interface CartonMetrics {
   utilization: number;
   /** Optional total weight of contents (grams) */
   contentsWeightG?: number;
-  /** Optional total weight including carton tare (grams) */
+  /** Optional total actual weight including carton tare (grams) */
   grossWeightG?: number;
+  /** Optional dimensional weight derived from external carton dimensions (grams) */
+  dimWeightG?: number;
+  /** Optional greater of actual gross and dimensional weight (grams) */
+  chargeableWeightG?: number;
 }
 
 /**
@@ -68,8 +72,12 @@ export interface PlanMetrics {
   utilization: number;
   /** Optional total weight of all placed items (grams) */
   totalContentsWeightG?: number;
-  /** Optional total weight including all carton tares (grams) */
+  /** Optional total actual weight including all carton tares (grams) */
   totalGrossWeightG?: number;
+  /** Optional total dimensional weight across all cartons (grams) */
+  totalDimWeightG?: number;
+  /** Optional total estimated chargeable weight across all cartons (grams) */
+  totalChargeableWeightG?: number;
   /** Optional total cost of cartons used */
   totalCartonCost?: number;
 }
@@ -110,18 +118,27 @@ export interface SolverMeta {
  * @param value - The value to validate
  * @throws {ValidationError} If value is not a valid UnplacedReason
  */
-export function validateUnplacedReason(value: unknown): asserts value is UnplacedReason {
+export function validateUnplacedReason(
+  value: unknown
+): asserts value is UnplacedReason {
   const validReasons: UnplacedReason[] = [
     'no-fitting-carton',
     'inventory-exhausted',
     'weight-limit',
     'constraint-conflict',
-    'solver-limit-reached'
+    'solver-limit-reached',
   ];
 
-  if (typeof value !== 'string' || !validReasons.includes(value as UnplacedReason)) {
+  if (
+    typeof value !== 'string' ||
+    !validReasons.includes(
+      value as UnplacedReason
+    )
+  ) {
     throw new ValidationError(
-      `Invalid UnplacedReason: '${value}'. Must be one of: ${validReasons.map(r => `'${r}'`).join(', ')}`
+      `Invalid UnplacedReason: '${value}'. Must be one of: ${validReasons
+        .map(reason => `'${reason}'`)
+        .join(', ')}`
     );
   }
 }
@@ -131,31 +148,98 @@ export function validateUnplacedReason(value: unknown): asserts value is Unplace
  * @param value - The object to validate
  * @throws {ValidationError} If any validation fails
  */
-export function validateUnplacedItem(value: unknown): asserts value is UnplacedItem {
-  if (value === null || typeof value !== 'object') {
-    throw new ValidationError('UnplacedItem must be an object');
+export function validateUnplacedItem(
+  value: unknown
+): asserts value is UnplacedItem {
+  if (
+    value === null ||
+    typeof value !== 'object'
+  ) {
+    throw new ValidationError(
+      'UnplacedItem must be an object'
+    );
   }
 
-  const item = value as Record<string, unknown>;
+  const item =
+    value as Record<
+      string,
+      unknown
+    >;
 
-  // Validate itemId: string (no non-empty requirement per ADR)
-  if (typeof item.itemId !== 'string') {
-    throw new ValidationError('UnplacedItem.itemId must be a string');
-  }
-
-  // Validate instanceIndex: integer >= 0
-  if (typeof item.instanceIndex !== 'number' || !Number.isFinite(item.instanceIndex)) {
-    throw new ValidationError('UnplacedItem.instanceIndex must be a finite number');
-  }
-  if (!Number.isInteger(item.instanceIndex)) {
-    throw new ValidationError('UnplacedItem.instanceIndex must be an integer');
-  }
-  if (item.instanceIndex < 0) {
-    throw new ValidationError(`UnplacedItem.instanceIndex must be ≥ 0, got: ${item.instanceIndex}`);
+  if (
+    typeof item.itemId !==
+    'string'
+  ) {
+    throw new ValidationError(
+      'UnplacedItem.itemId must be a string'
+    );
   }
 
-  // Validate reason: UnplacedReason
-  validateUnplacedReason(item.reason);
+  if (
+    typeof item.instanceIndex !==
+      'number' ||
+    !Number.isFinite(
+      item.instanceIndex
+    )
+  ) {
+    throw new ValidationError(
+      'UnplacedItem.instanceIndex must be a finite number'
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      item.instanceIndex
+    )
+  ) {
+    throw new ValidationError(
+      'UnplacedItem.instanceIndex must be an integer'
+    );
+  }
+
+  if (
+    item.instanceIndex < 0
+  ) {
+    throw new ValidationError(
+      `UnplacedItem.instanceIndex must be ≥ 0, got: ${item.instanceIndex}`
+    );
+  }
+
+  validateUnplacedReason(
+    item.reason
+  );
+}
+
+function validateOptionalNonNegativeMetric(
+  metrics: Record<string, unknown>,
+  key: string,
+  label: string
+): void {
+  const value =
+    metrics[key];
+
+  if (
+    value === undefined
+  ) {
+    return;
+  }
+
+  if (
+    typeof value !== 'number' ||
+    !Number.isFinite(value)
+  ) {
+    throw new ValidationError(
+      `${label} must be a finite number when provided`
+    );
+  }
+
+  if (
+    value < 0
+  ) {
+    throw new ValidationError(
+      `${label} must be ≥ 0 when provided, got: ${value}`
+    );
+  }
 }
 
 /**
@@ -163,75 +247,158 @@ export function validateUnplacedItem(value: unknown): asserts value is UnplacedI
  * @param value - The object to validate
  * @throws {ValidationError} If any validation fails
  */
-export function validateCartonMetrics(value: unknown): asserts value is CartonMetrics {
-  if (value === null || typeof value !== 'object') {
-    throw new ValidationError('CartonMetrics must be an object');
+export function validateCartonMetrics(
+  value: unknown
+): asserts value is CartonMetrics {
+  if (
+    value === null ||
+    typeof value !== 'object'
+  ) {
+    throw new ValidationError(
+      'CartonMetrics must be an object'
+    );
   }
 
-  const metrics = value as Record<string, unknown>;
+  const metrics =
+    value as Record<
+      string,
+      unknown
+    >;
 
-  // Validate itemCount: integer >= 0
-  if (typeof metrics.itemCount !== 'number' || !Number.isFinite(metrics.itemCount)) {
-    throw new ValidationError('CartonMetrics.itemCount must be a finite number');
-  }
-  if (!Number.isInteger(metrics.itemCount)) {
-    throw new ValidationError('CartonMetrics.itemCount must be an integer');
-  }
-  if (metrics.itemCount < 0) {
-    throw new ValidationError(`CartonMetrics.itemCount must be ≥ 0, got: ${metrics.itemCount}`);
-  }
-
-  // Validate itemVolumeMm3: finite >= 0
-  if (typeof metrics.itemVolumeMm3 !== 'number' || !Number.isFinite(metrics.itemVolumeMm3)) {
-    throw new ValidationError('CartonMetrics.itemVolumeMm3 must be a finite number');
-  }
-  if (metrics.itemVolumeMm3 < 0) {
-    throw new ValidationError(`CartonMetrics.itemVolumeMm3 must be ≥ 0, got: ${metrics.itemVolumeMm3}`);
+  if (
+    typeof metrics.itemCount !==
+      'number' ||
+    !Number.isFinite(
+      metrics.itemCount
+    )
+  ) {
+    throw new ValidationError(
+      'CartonMetrics.itemCount must be a finite number'
+    );
   }
 
-  // Validate cartonVolumeMm3: finite >= 0
-  if (typeof metrics.cartonVolumeMm3 !== 'number' || !Number.isFinite(metrics.cartonVolumeMm3)) {
-    throw new ValidationError('CartonMetrics.cartonVolumeMm3 must be a finite number');
-  }
-  if (metrics.cartonVolumeMm3 < 0) {
-    throw new ValidationError(`CartonMetrics.cartonVolumeMm3 must be ≥ 0, got: ${metrics.cartonVolumeMm3}`);
-  }
-
-  // Validate emptyVolumeMm3: finite >= 0
-  if (typeof metrics.emptyVolumeMm3 !== 'number' || !Number.isFinite(metrics.emptyVolumeMm3)) {
-    throw new ValidationError('CartonMetrics.emptyVolumeMm3 must be a finite number');
-  }
-  if (metrics.emptyVolumeMm3 < 0) {
-    throw new ValidationError(`CartonMetrics.emptyVolumeMm3 must be ≥ 0, got: ${metrics.emptyVolumeMm3}`);
+  if (
+    !Number.isInteger(
+      metrics.itemCount
+    )
+  ) {
+    throw new ValidationError(
+      'CartonMetrics.itemCount must be an integer'
+    );
   }
 
-  // Validate utilization: finite 0..1
-  if (typeof metrics.utilization !== 'number' || !Number.isFinite(metrics.utilization)) {
-    throw new ValidationError('CartonMetrics.utilization must be a finite number');
-  }
-  if (metrics.utilization < 0 || metrics.utilization > 1) {
-    throw new ValidationError(`CartonMetrics.utilization must be between 0 and 1 inclusive, got: ${metrics.utilization}`);
-  }
-
-  // Validate optional contentsWeightG: finite >= 0
-  if (metrics.contentsWeightG !== undefined) {
-    if (typeof metrics.contentsWeightG !== 'number' || !Number.isFinite(metrics.contentsWeightG)) {
-      throw new ValidationError('CartonMetrics.contentsWeightG must be a finite number when provided');
-    }
-    if (metrics.contentsWeightG < 0) {
-      throw new ValidationError(`CartonMetrics.contentsWeightG must be ≥ 0 when provided, got: ${metrics.contentsWeightG}`);
-    }
+  if (
+    metrics.itemCount < 0
+  ) {
+    throw new ValidationError(
+      `CartonMetrics.itemCount must be ≥ 0, got: ${metrics.itemCount}`
+    );
   }
 
-  // Validate optional grossWeightG: finite >= 0
-  if (metrics.grossWeightG !== undefined) {
-    if (typeof metrics.grossWeightG !== 'number' || !Number.isFinite(metrics.grossWeightG)) {
-      throw new ValidationError('CartonMetrics.grossWeightG must be a finite number when provided');
-    }
-    if (metrics.grossWeightG < 0) {
-      throw new ValidationError(`CartonMetrics.grossWeightG must be ≥ 0 when provided, got: ${metrics.grossWeightG}`);
-    }
+  if (
+    typeof metrics.itemVolumeMm3 !==
+      'number' ||
+    !Number.isFinite(
+      metrics.itemVolumeMm3
+    )
+  ) {
+    throw new ValidationError(
+      'CartonMetrics.itemVolumeMm3 must be a finite number'
+    );
   }
+
+  if (
+    metrics.itemVolumeMm3 < 0
+  ) {
+    throw new ValidationError(
+      `CartonMetrics.itemVolumeMm3 must be ≥ 0, got: ${metrics.itemVolumeMm3}`
+    );
+  }
+
+  if (
+    typeof metrics.cartonVolumeMm3 !==
+      'number' ||
+    !Number.isFinite(
+      metrics.cartonVolumeMm3
+    )
+  ) {
+    throw new ValidationError(
+      'CartonMetrics.cartonVolumeMm3 must be a finite number'
+    );
+  }
+
+  if (
+    metrics.cartonVolumeMm3 < 0
+  ) {
+    throw new ValidationError(
+      `CartonMetrics.cartonVolumeMm3 must be ≥ 0, got: ${metrics.cartonVolumeMm3}`
+    );
+  }
+
+  if (
+    typeof metrics.emptyVolumeMm3 !==
+      'number' ||
+    !Number.isFinite(
+      metrics.emptyVolumeMm3
+    )
+  ) {
+    throw new ValidationError(
+      'CartonMetrics.emptyVolumeMm3 must be a finite number'
+    );
+  }
+
+  if (
+    metrics.emptyVolumeMm3 < 0
+  ) {
+    throw new ValidationError(
+      `CartonMetrics.emptyVolumeMm3 must be ≥ 0, got: ${metrics.emptyVolumeMm3}`
+    );
+  }
+
+  if (
+    typeof metrics.utilization !==
+      'number' ||
+    !Number.isFinite(
+      metrics.utilization
+    )
+  ) {
+    throw new ValidationError(
+      'CartonMetrics.utilization must be a finite number'
+    );
+  }
+
+  if (
+    metrics.utilization < 0 ||
+    metrics.utilization > 1
+  ) {
+    throw new ValidationError(
+      `CartonMetrics.utilization must be between 0 and 1 inclusive, got: ${metrics.utilization}`
+    );
+  }
+
+  validateOptionalNonNegativeMetric(
+    metrics,
+    'contentsWeightG',
+    'CartonMetrics.contentsWeightG'
+  );
+
+  validateOptionalNonNegativeMetric(
+    metrics,
+    'grossWeightG',
+    'CartonMetrics.grossWeightG'
+  );
+
+  validateOptionalNonNegativeMetric(
+    metrics,
+    'dimWeightG',
+    'CartonMetrics.dimWeightG'
+  );
+
+  validateOptionalNonNegativeMetric(
+    metrics,
+    'chargeableWeightG',
+    'CartonMetrics.chargeableWeightG'
+  );
 }
 
 /**
@@ -239,119 +406,249 @@ export function validateCartonMetrics(value: unknown): asserts value is CartonMe
  * @param value - The object to validate
  * @throws {ValidationError} If any validation fails
  */
-export function validatePlanMetrics(value: unknown): asserts value is PlanMetrics {
-  if (value === null || typeof value !== 'object') {
-    throw new ValidationError('PlanMetrics must be an object');
+export function validatePlanMetrics(
+  value: unknown
+): asserts value is PlanMetrics {
+  if (
+    value === null ||
+    typeof value !== 'object'
+  ) {
+    throw new ValidationError(
+      'PlanMetrics must be an object'
+    );
   }
 
-  const metrics = value as Record<string, unknown>;
+  const metrics =
+    value as Record<
+      string,
+      unknown
+    >;
 
-  // Validate cartonCount: integer >= 0
-  if (typeof metrics.cartonCount !== 'number' || !Number.isFinite(metrics.cartonCount)) {
-    throw new ValidationError('PlanMetrics.cartonCount must be a finite number');
-  }
-  if (!Number.isInteger(metrics.cartonCount)) {
-    throw new ValidationError('PlanMetrics.cartonCount must be an integer');
-  }
-  if (metrics.cartonCount < 0) {
-    throw new ValidationError(`PlanMetrics.cartonCount must be ≥ 0, got: ${metrics.cartonCount}`);
-  }
-
-  // Validate placedItemCount: integer >= 0
-  if (typeof metrics.placedItemCount !== 'number' || !Number.isFinite(metrics.placedItemCount)) {
-    throw new ValidationError('PlanMetrics.placedItemCount must be a finite number');
-  }
-  if (!Number.isInteger(metrics.placedItemCount)) {
-    throw new ValidationError('PlanMetrics.placedItemCount must be an integer');
-  }
-  if (metrics.placedItemCount < 0) {
-    throw new ValidationError(`PlanMetrics.placedItemCount must be ≥ 0, got: ${metrics.placedItemCount}`);
+  if (
+    typeof metrics.cartonCount !==
+      'number' ||
+    !Number.isFinite(
+      metrics.cartonCount
+    )
+  ) {
+    throw new ValidationError(
+      'PlanMetrics.cartonCount must be a finite number'
+    );
   }
 
-  // Validate unplacedItemCount: integer >= 0
-  if (typeof metrics.unplacedItemCount !== 'number' || !Number.isFinite(metrics.unplacedItemCount)) {
-    throw new ValidationError('PlanMetrics.unplacedItemCount must be a finite number');
-  }
-  if (!Number.isInteger(metrics.unplacedItemCount)) {
-    throw new ValidationError('PlanMetrics.unplacedItemCount must be an integer');
-  }
-  if (metrics.unplacedItemCount < 0) {
-    throw new ValidationError(`PlanMetrics.unplacedItemCount must be ≥ 0, got: ${metrics.unplacedItemCount}`);
-  }
-
-  // Validate itemVolumeMm3: finite >= 0
-  if (typeof metrics.itemVolumeMm3 !== 'number' || !Number.isFinite(metrics.itemVolumeMm3)) {
-    throw new ValidationError('PlanMetrics.itemVolumeMm3 must be a finite number');
-  }
-  if (metrics.itemVolumeMm3 < 0) {
-    throw new ValidationError(`PlanMetrics.itemVolumeMm3 must be ≥ 0, got: ${metrics.itemVolumeMm3}`);
+  if (
+    !Number.isInteger(
+      metrics.cartonCount
+    )
+  ) {
+    throw new ValidationError(
+      'PlanMetrics.cartonCount must be an integer'
+    );
   }
 
-  // Validate cartonVolumeMm3: finite >= 0
-  if (typeof metrics.cartonVolumeMm3 !== 'number' || !Number.isFinite(metrics.cartonVolumeMm3)) {
-    throw new ValidationError('PlanMetrics.cartonVolumeMm3 must be a finite number');
-  }
-  if (metrics.cartonVolumeMm3 < 0) {
-    throw new ValidationError(`PlanMetrics.cartonVolumeMm3 must be ≥ 0, got: ${metrics.cartonVolumeMm3}`);
-  }
-
-  // Validate emptyVolumeMm3: finite >= 0
-  if (typeof metrics.emptyVolumeMm3 !== 'number' || !Number.isFinite(metrics.emptyVolumeMm3)) {
-    throw new ValidationError('PlanMetrics.emptyVolumeMm3 must be a finite number');
-  }
-  if (metrics.emptyVolumeMm3 < 0) {
-    throw new ValidationError(`PlanMetrics.emptyVolumeMm3 must be ≥ 0, got: ${metrics.emptyVolumeMm3}`);
+  if (
+    metrics.cartonCount < 0
+  ) {
+    throw new ValidationError(
+      `PlanMetrics.cartonCount must be ≥ 0, got: ${metrics.cartonCount}`
+    );
   }
 
-  // Validate utilization: finite 0..1
-  if (typeof metrics.utilization !== 'number' || !Number.isFinite(metrics.utilization)) {
-    throw new ValidationError('PlanMetrics.utilization must be a finite number');
-  }
-  if (metrics.utilization < 0 || metrics.utilization > 1) {
-    throw new ValidationError(`PlanMetrics.utilization must be between 0 and 1 inclusive, got: ${metrics.utilization}`);
-  }
-
-  // Validate optional totalContentsWeightG: finite >= 0
-  if (metrics.totalContentsWeightG !== undefined) {
-    if (typeof metrics.totalContentsWeightG !== 'number' || !Number.isFinite(metrics.totalContentsWeightG)) {
-      throw new ValidationError('PlanMetrics.totalContentsWeightG must be a finite number when provided');
-    }
-    if (metrics.totalContentsWeightG < 0) {
-      throw new ValidationError(`PlanMetrics.totalContentsWeightG must be ≥ 0 when provided, got: ${metrics.totalContentsWeightG}`);
-    }
+  if (
+    typeof metrics.placedItemCount !==
+      'number' ||
+    !Number.isFinite(
+      metrics.placedItemCount
+    )
+  ) {
+    throw new ValidationError(
+      'PlanMetrics.placedItemCount must be a finite number'
+    );
   }
 
-  // Validate optional totalGrossWeightG: finite >= 0
-  if (metrics.totalGrossWeightG !== undefined) {
-    if (typeof metrics.totalGrossWeightG !== 'number' || !Number.isFinite(metrics.totalGrossWeightG)) {
-      throw new ValidationError('PlanMetrics.totalGrossWeightG must be a finite number when provided');
-    }
-    if (metrics.totalGrossWeightG < 0) {
-      throw new ValidationError(`PlanMetrics.totalGrossWeightG must be ≥ 0 when provided, got: ${metrics.totalGrossWeightG}`);
-    }
+  if (
+    !Number.isInteger(
+      metrics.placedItemCount
+    )
+  ) {
+    throw new ValidationError(
+      'PlanMetrics.placedItemCount must be an integer'
+    );
   }
 
-  // Validate optional totalCartonCost: finite >= 0
-  if (metrics.totalCartonCost !== undefined) {
-    if (typeof metrics.totalCartonCost !== 'number' || !Number.isFinite(metrics.totalCartonCost)) {
-      throw new ValidationError('PlanMetrics.totalCartonCost must be a finite number when provided');
-    }
-    if (metrics.totalCartonCost < 0) {
-      throw new ValidationError(`PlanMetrics.totalCartonCost must be ≥ 0 when provided, got: ${metrics.totalCartonCost}`);
-    }
+  if (
+    metrics.placedItemCount < 0
+  ) {
+    throw new ValidationError(
+      `PlanMetrics.placedItemCount must be ≥ 0, got: ${metrics.placedItemCount}`
+    );
   }
+
+  if (
+    typeof metrics.unplacedItemCount !==
+      'number' ||
+    !Number.isFinite(
+      metrics.unplacedItemCount
+    )
+  ) {
+    throw new ValidationError(
+      'PlanMetrics.unplacedItemCount must be a finite number'
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      metrics.unplacedItemCount
+    )
+  ) {
+    throw new ValidationError(
+      'PlanMetrics.unplacedItemCount must be an integer'
+    );
+  }
+
+  if (
+    metrics.unplacedItemCount < 0
+  ) {
+    throw new ValidationError(
+      `PlanMetrics.unplacedItemCount must be ≥ 0, got: ${metrics.unplacedItemCount}`
+    );
+  }
+
+  if (
+    typeof metrics.itemVolumeMm3 !==
+      'number' ||
+    !Number.isFinite(
+      metrics.itemVolumeMm3
+    )
+  ) {
+    throw new ValidationError(
+      'PlanMetrics.itemVolumeMm3 must be a finite number'
+    );
+  }
+
+  if (
+    metrics.itemVolumeMm3 < 0
+  ) {
+    throw new ValidationError(
+      `PlanMetrics.itemVolumeMm3 must be ≥ 0, got: ${metrics.itemVolumeMm3}`
+    );
+  }
+
+  if (
+    typeof metrics.cartonVolumeMm3 !==
+      'number' ||
+    !Number.isFinite(
+      metrics.cartonVolumeMm3
+    )
+  ) {
+    throw new ValidationError(
+      'PlanMetrics.cartonVolumeMm3 must be a finite number'
+    );
+  }
+
+  if (
+    metrics.cartonVolumeMm3 < 0
+  ) {
+    throw new ValidationError(
+      `PlanMetrics.cartonVolumeMm3 must be ≥ 0, got: ${metrics.cartonVolumeMm3}`
+    );
+  }
+
+  if (
+    typeof metrics.emptyVolumeMm3 !==
+      'number' ||
+    !Number.isFinite(
+      metrics.emptyVolumeMm3
+    )
+  ) {
+    throw new ValidationError(
+      'PlanMetrics.emptyVolumeMm3 must be a finite number'
+    );
+  }
+
+  if (
+    metrics.emptyVolumeMm3 < 0
+  ) {
+    throw new ValidationError(
+      `PlanMetrics.emptyVolumeMm3 must be ≥ 0, got: ${metrics.emptyVolumeMm3}`
+    );
+  }
+
+  if (
+    typeof metrics.utilization !==
+      'number' ||
+    !Number.isFinite(
+      metrics.utilization
+    )
+  ) {
+    throw new ValidationError(
+      'PlanMetrics.utilization must be a finite number'
+    );
+  }
+
+  if (
+    metrics.utilization < 0 ||
+    metrics.utilization > 1
+  ) {
+    throw new ValidationError(
+      `PlanMetrics.utilization must be between 0 and 1 inclusive, got: ${metrics.utilization}`
+    );
+  }
+
+  validateOptionalNonNegativeMetric(
+    metrics,
+    'totalContentsWeightG',
+    'PlanMetrics.totalContentsWeightG'
+  );
+
+  validateOptionalNonNegativeMetric(
+    metrics,
+    'totalGrossWeightG',
+    'PlanMetrics.totalGrossWeightG'
+  );
+
+  validateOptionalNonNegativeMetric(
+    metrics,
+    'totalDimWeightG',
+    'PlanMetrics.totalDimWeightG'
+  );
+
+  validateOptionalNonNegativeMetric(
+    metrics,
+    'totalChargeableWeightG',
+    'PlanMetrics.totalChargeableWeightG'
+  );
+
+  validateOptionalNonNegativeMetric(
+    metrics,
+    'totalCartonCost',
+    'PlanMetrics.totalCartonCost'
+  );
 }
+
 /**
  * Validates an ExplanationLevel value.
  * @param value - The value to validate
  * @throws {ValidationError} If value is not a valid ExplanationLevel
  */
-export function validateExplanationLevel(value: unknown): asserts value is ExplanationLevel {
-  const validLevels: ExplanationLevel[] = ['info', 'warning'];
+export function validateExplanationLevel(
+  value: unknown
+): asserts value is ExplanationLevel {
+  const validLevels: ExplanationLevel[] = [
+    'info',
+    'warning',
+  ];
 
-  if (typeof value !== 'string' || !validLevels.includes(value as ExplanationLevel)) {
+  if (
+    typeof value !== 'string' ||
+    !validLevels.includes(
+      value as ExplanationLevel
+    )
+  ) {
     throw new ValidationError(
-      `Invalid ExplanationLevel: '${value}'. Must be one of: ${validLevels.map(r => `'${r}'`).join(', ')}`
+      `Invalid ExplanationLevel: '${value}'. Must be one of: ${validLevels
+        .map(level => `'${level}'`)
+        .join(', ')}`
     );
   }
 }
@@ -361,31 +658,61 @@ export function validateExplanationLevel(value: unknown): asserts value is Expla
  * @param value - The object to validate
  * @throws {ValidationError} If any validation fails
  */
-export function validateExplanation(value: unknown): asserts value is Explanation {
-  if (value === null || typeof value !== 'object') {
-    throw new ValidationError('Explanation must be an object');
+export function validateExplanation(
+  value: unknown
+): asserts value is Explanation {
+  if (
+    value === null ||
+    typeof value !== 'object'
+  ) {
+    throw new ValidationError(
+      'Explanation must be an object'
+    );
   }
 
-  const explanation = value as Record<string, unknown>;
+  const explanation =
+    value as Record<
+      string,
+      unknown
+    >;
 
-  // Validate code: non-empty string
-  if (typeof explanation.code !== 'string') {
-    throw new ValidationError('Explanation.code must be a string');
-  }
-  if (explanation.code === '') {
-    throw new ValidationError('Explanation.code must be a non-empty string');
-  }
-
-  // Validate message: non-empty string
-  if (typeof explanation.message !== 'string') {
-    throw new ValidationError('Explanation.message must be a string');
-  }
-  if (explanation.message === '') {
-    throw new ValidationError('Explanation.message must be a non-empty string');
+  if (
+    typeof explanation.code !==
+    'string'
+  ) {
+    throw new ValidationError(
+      'Explanation.code must be a string'
+    );
   }
 
-  // Validate level: ExplanationLevel
-  validateExplanationLevel(explanation.level);
+  if (
+    explanation.code === ''
+  ) {
+    throw new ValidationError(
+      'Explanation.code must be a non-empty string'
+    );
+  }
+
+  if (
+    typeof explanation.message !==
+    'string'
+  ) {
+    throw new ValidationError(
+      'Explanation.message must be a string'
+    );
+  }
+
+  if (
+    explanation.message === ''
+  ) {
+    throw new ValidationError(
+      'Explanation.message must be a non-empty string'
+    );
+  }
+
+  validateExplanationLevel(
+    explanation.level
+  );
 }
 
 /**
@@ -393,41 +720,89 @@ export function validateExplanation(value: unknown): asserts value is Explanatio
  * @param value - The object to validate
  * @throws {ValidationError} If any validation fails
  */
-export function validateSolverMeta(value: unknown): asserts value is SolverMeta {
-  if (value === null || typeof value !== 'object') {
-    throw new ValidationError('SolverMeta must be an object');
+export function validateSolverMeta(
+  value: unknown
+): asserts value is SolverMeta {
+  if (
+    value === null ||
+    typeof value !== 'object'
+  ) {
+    throw new ValidationError(
+      'SolverMeta must be an object'
+    );
   }
 
-  const meta = value as Record<string, unknown>;
+  const meta =
+    value as Record<
+      string,
+      unknown
+    >;
 
-  // Validate solverId: non-empty string
-  if (typeof meta.solverId !== 'string') {
-    throw new ValidationError('SolverMeta.solverId must be a string');
-  }
-  if (meta.solverId === '') {
-    throw new ValidationError('SolverMeta.solverId must be a non-empty string');
+  if (
+    typeof meta.solverId !==
+    'string'
+  ) {
+    throw new ValidationError(
+      'SolverMeta.solverId must be a string'
+    );
   }
 
-  // Validate optional solverVersion: non-empty string
-  if (meta.solverVersion !== undefined) {
-    if (typeof meta.solverVersion !== 'string') {
-      throw new ValidationError('SolverMeta.solverVersion must be a string when provided');
+  if (
+    meta.solverId === ''
+  ) {
+    throw new ValidationError(
+      'SolverMeta.solverId must be a non-empty string'
+    );
+  }
+
+  if (
+    meta.solverVersion !==
+    undefined
+  ) {
+    if (
+      typeof meta.solverVersion !==
+      'string'
+    ) {
+      throw new ValidationError(
+        'SolverMeta.solverVersion must be a string when provided'
+      );
     }
-    if (meta.solverVersion === '') {
-      throw new ValidationError('SolverMeta.solverVersion must be a non-empty string when provided');
+
+    if (
+      meta.solverVersion === ''
+    ) {
+      throw new ValidationError(
+        'SolverMeta.solverVersion must be a non-empty string when provided'
+      );
     }
   }
 
-  // Validate durationMs: finite >= 0
-  if (typeof meta.durationMs !== 'number' || !Number.isFinite(meta.durationMs)) {
-    throw new ValidationError('SolverMeta.durationMs must be a finite number');
-  }
-  if (meta.durationMs < 0) {
-    throw new ValidationError(`SolverMeta.durationMs must be ≥ 0, got: ${meta.durationMs}`);
+  if (
+    typeof meta.durationMs !==
+      'number' ||
+    !Number.isFinite(
+      meta.durationMs
+    )
+  ) {
+    throw new ValidationError(
+      'SolverMeta.durationMs must be a finite number'
+    );
   }
 
-  // Validate deterministic: boolean
-  if (typeof meta.deterministic !== 'boolean') {
-    throw new ValidationError('SolverMeta.deterministic must be a boolean');
+  if (
+    meta.durationMs < 0
+  ) {
+    throw new ValidationError(
+      `SolverMeta.durationMs must be ≥ 0, got: ${meta.durationMs}`
+    );
+  }
+
+  if (
+    typeof meta.deterministic !==
+    'boolean'
+  ) {
+    throw new ValidationError(
+      'SolverMeta.deterministic must be a boolean'
+    );
   }
 }

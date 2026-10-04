@@ -7,6 +7,7 @@ import type {
   SolverCandidatePlan,
   SolverInput,
 } from '../core/solver/contracts.js';
+import { ValidationError } from '../core/units/types.js';
 
 function makeInput(): SolverInput {
   return {
@@ -44,6 +45,28 @@ function makeInput(): SolverInput {
     objective: {
       kind: 'fewest-cartons',
     },
+  };
+}
+
+function addDimensionalWeightSettings(
+  input: SolverInput
+): void {
+  input.dimensionalWeight = {
+    divisor: {
+      value: 1000,
+      lengthUnit: 'cm',
+      massUnit: 'kg',
+    },
+  };
+}
+
+function addExternalDimensions(
+  input: SolverInput
+): void {
+  input.cartons[0].externalDimensions = {
+    length: 200,
+    width: 100,
+    height: 100,
   };
 }
 
@@ -110,6 +133,7 @@ describe('constructPackingPlan', () => {
     expect(plan.explanations).toEqual([]);
 
     expect(plan.cartons).toHaveLength(1);
+
     expect(plan.cartons[0].metrics).toEqual({
       itemCount: 1,
       itemVolumeMm3: 6000,
@@ -133,22 +157,265 @@ describe('constructPackingPlan', () => {
       totalCartonCost: 3,
     });
 
-    expect(plan.solverMeta).toEqual(solverMeta);
+    expect(plan.solverMeta).toEqual(
+      solverMeta
+    );
   });
+
+  it(
+    'constructs DIM and chargeable metrics from external carton dimensions',
+    () => {
+      const input =
+        makeInput();
+
+      addDimensionalWeightSettings(
+        input
+      );
+
+      addExternalDimensions(
+        input
+      );
+
+      const plan =
+        constructPackingPlan(
+          'dim-plan',
+          input,
+          verified(
+            makePlacedCandidate()
+          ),
+          solverMeta
+        );
+
+      expect(
+        plan.cartons[0]
+          .carton
+          .externalDimensions
+      ).toEqual({
+        length: 200,
+        width: 100,
+        height: 100,
+      });
+
+      expect(
+        plan.cartons[0]
+          .metrics
+          .grossWeightG
+      ).toBe(250);
+
+      expect(
+        plan.cartons[0]
+          .metrics
+          .dimWeightG
+      ).toBe(2000);
+
+      expect(
+        plan.cartons[0]
+          .metrics
+          .chargeableWeightG
+      ).toBe(2000);
+
+      expect(
+        plan.metrics
+          .totalDimWeightG
+      ).toBe(2000);
+
+      expect(
+        plan.metrics
+          .totalChargeableWeightG
+      ).toBe(2000);
+    }
+  );
+
+  it(
+    'does not substitute internal dimensions when external dimensions are missing',
+    () => {
+      const input =
+        makeInput();
+
+      addDimensionalWeightSettings(
+        input
+      );
+
+      const plan =
+        constructPackingPlan(
+          'missing-external-dimensions',
+          input,
+          verified(
+            makePlacedCandidate()
+          ),
+          solverMeta
+        );
+
+      expect(
+        plan.cartons[0]
+          .metrics
+          .dimWeightG
+      ).toBeUndefined();
+
+      expect(
+        plan.cartons[0]
+          .metrics
+          .chargeableWeightG
+      ).toBeUndefined();
+
+      expect(
+        plan.metrics
+          .totalDimWeightG
+      ).toBeUndefined();
+
+      expect(
+        plan.metrics
+          .totalChargeableWeightG
+      ).toBeUndefined();
+    }
+  );
+
+  it(
+    'keeps DIM weight known while chargeable weight remains unknown when actual gross weight is unknown',
+    () => {
+      const input =
+        makeInput();
+
+      addDimensionalWeightSettings(
+        input
+      );
+
+      addExternalDimensions(
+        input
+      );
+
+      delete input
+        .cartons[0]
+        .emptyBoxWeightG;
+
+      const plan =
+        constructPackingPlan(
+          'unknown-gross-weight',
+          input,
+          verified(
+            makePlacedCandidate()
+          ),
+          solverMeta
+        );
+
+      expect(
+        plan.cartons[0]
+          .metrics
+          .contentsWeightG
+      ).toBe(200);
+
+      expect(
+        plan.cartons[0]
+          .metrics
+          .grossWeightG
+      ).toBeUndefined();
+
+      expect(
+        plan.cartons[0]
+          .metrics
+          .dimWeightG
+      ).toBe(2000);
+
+      expect(
+        plan.cartons[0]
+          .metrics
+          .chargeableWeightG
+      ).toBeUndefined();
+
+      expect(
+        plan.metrics
+          .totalContentsWeightG
+      ).toBe(200);
+
+      expect(
+        plan.metrics
+          .totalGrossWeightG
+      ).toBeUndefined();
+
+      expect(
+        plan.metrics
+          .totalDimWeightG
+      ).toBe(2000);
+
+      expect(
+        plan.metrics
+          .totalChargeableWeightG
+      ).toBeUndefined();
+    }
+  );
+
+  it(
+    'uses actual gross weight as chargeable weight when it exceeds DIM weight',
+    () => {
+      const input =
+        makeInput();
+
+      input.items[0].unitWeightG =
+        3000;
+
+      addDimensionalWeightSettings(
+        input
+      );
+
+      addExternalDimensions(
+        input
+      );
+
+      const plan =
+        constructPackingPlan(
+          'actual-heavier-plan',
+          input,
+          verified(
+            makePlacedCandidate()
+          ),
+          solverMeta
+        );
+
+      expect(
+        plan.cartons[0]
+          .metrics
+          .grossWeightG
+      ).toBe(3050);
+
+      expect(
+        plan.cartons[0]
+          .metrics
+          .dimWeightG
+      ).toBe(2000);
+
+      expect(
+        plan.cartons[0]
+          .metrics
+          .chargeableWeightG
+      ).toBe(3050);
+
+      expect(
+        plan.metrics
+          .totalChargeableWeightG
+      ).toBe(3050);
+    }
+  );
 
   it('derives canonical status instead of copying candidate status', () => {
     const plan = constructPackingPlan(
       'plan-2',
       makeInput(),
-      verified(makePlacedCandidate('infeasible')),
+      verified(
+        makePlacedCandidate(
+          'infeasible'
+        )
+      ),
       solverMeta
     );
 
-    expect(plan.status).toBe('feasible');
+    expect(plan.status).toBe(
+      'feasible'
+    );
   });
 
   it('derives limit_reached from unplaced reasons', () => {
-    const input = makeInput();
+    const input =
+      makeInput();
 
     const candidate: SolverCandidatePlan = {
       status: 'infeasible',
@@ -157,45 +424,90 @@ describe('constructPackingPlan', () => {
         {
           itemId: 'item-1',
           instanceIndex: 0,
-          reason: 'solver-limit-reached',
+          reason:
+            'solver-limit-reached',
         },
       ],
     };
 
-    const plan = constructPackingPlan(
-      'plan-3',
-      input,
-      verified(candidate),
-      solverMeta
+    const plan =
+      constructPackingPlan(
+        'plan-3',
+        input,
+        verified(candidate),
+        solverMeta
+      );
+
+    expect(plan.status).toBe(
+      'limit_reached'
     );
 
-    expect(plan.status).toBe('limit_reached');
-    expect(plan.metrics.placedItemCount).toBe(0);
-    expect(plan.metrics.unplacedItemCount).toBe(1);
+    expect(
+      plan.metrics
+        .placedItemCount
+    ).toBe(0);
+
+    expect(
+      plan.metrics
+        .unplacedItemCount
+    ).toBe(1);
   });
 
   it('omits unknown weight and cost totals', () => {
-    const input = makeInput();
+    const input =
+      makeInput();
 
-    delete input.items[0].unitWeightG;
-    delete input.cartons[0].emptyBoxWeightG;
-    delete input.cartons[0].costPerBox;
+    delete input
+      .items[0]
+      .unitWeightG;
 
-    const plan = constructPackingPlan(
-      'plan-4',
-      input,
-      verified(makePlacedCandidate()),
-      solverMeta
-    );
+    delete input
+      .cartons[0]
+      .emptyBoxWeightG;
 
-    expect(plan.cartons[0].metrics.contentsWeightG).toBeUndefined();
-    expect(plan.cartons[0].metrics.grossWeightG).toBeUndefined();
-    expect(plan.metrics.totalContentsWeightG).toBeUndefined();
-    expect(plan.metrics.totalGrossWeightG).toBeUndefined();
-    expect(plan.metrics.totalCartonCost).toBeUndefined();
+    delete input
+      .cartons[0]
+      .costPerBox;
+
+    const plan =
+      constructPackingPlan(
+        'plan-4',
+        input,
+        verified(
+          makePlacedCandidate()
+        ),
+        solverMeta
+      );
+
+    expect(
+      plan.cartons[0]
+        .metrics
+        .contentsWeightG
+    ).toBeUndefined();
+
+    expect(
+      plan.cartons[0]
+        .metrics
+        .grossWeightG
+    ).toBeUndefined();
+
+    expect(
+      plan.metrics
+        .totalContentsWeightG
+    ).toBeUndefined();
+
+    expect(
+      plan.metrics
+        .totalGrossWeightG
+    ).toBeUndefined();
+
+    expect(
+      plan.metrics
+        .totalCartonCost
+    ).toBeUndefined();
   });
 
-  it('uses zero totals for an empty plan', () => {
+  it('uses zero totals for an empty plan without DIM settings', () => {
     const input: SolverInput = {
       items: [],
       cartons: [],
@@ -210,14 +522,18 @@ describe('constructPackingPlan', () => {
       unplacedItems: [],
     };
 
-    const plan = constructPackingPlan(
-      'empty-plan',
-      input,
-      verified(candidate),
-      solverMeta
+    const plan =
+      constructPackingPlan(
+        'empty-plan',
+        input,
+        verified(candidate),
+        solverMeta
+      );
+
+    expect(plan.status).toBe(
+      'feasible'
     );
 
-    expect(plan.status).toBe('feasible');
     expect(plan.metrics).toEqual({
       cartonCount: 0,
       placedItemCount: 0,
@@ -232,14 +548,60 @@ describe('constructPackingPlan', () => {
     });
   });
 
+  it(
+    'uses zero DIM and chargeable totals for an empty plan with valid DIM settings',
+    () => {
+      const input: SolverInput = {
+        items: [],
+        cartons: [],
+        objective: {
+          kind: 'balanced',
+        },
+        dimensionalWeight: {
+          divisor: {
+            value: 1000,
+            lengthUnit: 'cm',
+            massUnit: 'kg',
+          },
+        },
+      };
+
+      const candidate: SolverCandidatePlan = {
+        status: 'infeasible',
+        cartons: [],
+        unplacedItems: [],
+      };
+
+      const plan =
+        constructPackingPlan(
+          'empty-dim-plan',
+          input,
+          verified(candidate),
+          solverMeta
+        );
+
+      expect(
+        plan.metrics
+          .totalDimWeightG
+      ).toBe(0);
+
+      expect(
+        plan.metrics
+          .totalChargeableWeightG
+      ).toBe(0);
+    }
+  );
+
   it('rejects an invalid verified candidate', () => {
     const invalid: CandidateVerificationResult = {
-      candidate: makePlacedCandidate(),
+      candidate:
+        makePlacedCandidate(),
       verification: {
         valid: false,
         issues: [
           {
-            code: 'boundary-violation',
+            code:
+              'boundary-violation',
             message: 'invalid',
           },
         ],
@@ -258,28 +620,116 @@ describe('constructPackingPlan', () => {
     );
   });
 
-  it('does not mutate or alias caller-owned input or candidate data', () => {
-    const input = makeInput();
-    const candidate = makePlacedCandidate();
+  it(
+    'rejects invalid dimensional-weight settings before plan construction',
+    () => {
+      const input =
+        makeInput();
 
-    const inputBefore = JSON.stringify(input);
-    const candidateBefore = JSON.stringify(candidate);
-    const metaBefore = JSON.stringify(solverMeta);
+      input.dimensionalWeight = {
+        divisor: {
+          value: 0,
+          lengthUnit: 'cm',
+          massUnit: 'kg',
+        },
+      };
 
-    const plan = constructPackingPlan(
-      'plan-6',
-      input,
-      verified(candidate),
-      solverMeta
-    );
+      expect(() =>
+        constructPackingPlan(
+          'invalid-dim-settings',
+          input,
+          verified(
+            makePlacedCandidate()
+          ),
+          solverMeta
+        )
+      ).toThrow(
+        ValidationError
+      );
+    }
+  );
 
-    plan.cartons[0].placements[0].x = 5;
-    plan.cartons[0].carton.internalDimensions.length = 999;
-    plan.objective.kind = 'balanced';
-    plan.solverMeta.durationMs = 999;
+  it(
+    'does not mutate or alias caller-owned input or candidate data',
+    () => {
+      const input =
+        makeInput();
 
-    expect(JSON.stringify(input)).toBe(inputBefore);
-    expect(JSON.stringify(candidate)).toBe(candidateBefore);
-    expect(JSON.stringify(solverMeta)).toBe(metaBefore);
-  });
+      addDimensionalWeightSettings(
+        input
+      );
+
+      addExternalDimensions(
+        input
+      );
+
+      const candidate =
+        makePlacedCandidate();
+
+      const inputBefore =
+        JSON.stringify(input);
+
+      const candidateBefore =
+        JSON.stringify(candidate);
+
+      const metaBefore =
+        JSON.stringify(
+          solverMeta
+        );
+
+      const plan =
+        constructPackingPlan(
+          'plan-6',
+          input,
+          verified(candidate),
+          solverMeta
+        );
+
+      plan.cartons[0]
+        .placements[0]
+        .x = 5;
+
+      plan.cartons[0]
+        .carton
+        .internalDimensions
+        .length = 999;
+
+      if (
+        plan.cartons[0]
+          .carton
+          .externalDimensions
+      ) {
+        plan.cartons[0]
+          .carton
+          .externalDimensions
+          .length = 999;
+      }
+
+      plan.objective.kind =
+        'balanced';
+
+      plan.solverMeta.durationMs =
+        999;
+
+      expect(
+        JSON.stringify(input)
+      ).toBe(
+        inputBefore
+      );
+
+      expect(
+        JSON.stringify(candidate)
+      ).toBe(
+        candidateBefore
+      );
+
+      expect(
+        JSON.stringify(
+          solverMeta
+        )
+      ).toBe(
+        metaBefore
+      );
+    }
+  );
 });
