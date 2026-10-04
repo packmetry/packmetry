@@ -147,6 +147,8 @@ export interface BusinessWorkspaceResult {
 
 export interface BusinessResultMetrics {
   grossPackedWeightG?: number;
+  dimensionalWeightG?: number;
+  estimatedChargeableWeightG?: number;
   totalCartonCost?: number;
   usedCartonCount: number;
   remainingCartonCount?: number;
@@ -788,6 +790,24 @@ export function buildBusinessResultMetrics(
         }
       : {}),
     ...(plan.metrics
+      .totalDimWeightG !==
+    undefined
+      ? {
+          dimensionalWeightG:
+            plan.metrics
+              .totalDimWeightG,
+        }
+      : {}),
+    ...(plan.metrics
+      .totalChargeableWeightG !==
+    undefined
+      ? {
+          estimatedChargeableWeightG:
+            plan.metrics
+              .totalChargeableWeightG,
+        }
+      : {}),
+    ...(plan.metrics
       .totalCartonCost !==
     undefined
       ? {
@@ -819,6 +839,18 @@ function formatMetricNumber(
     .toFixed(2)
     .replace(/\.00$/, '')
     .replace(/(\.\d)0$/, '$1');
+}
+
+export function formatBusinessWeight(
+  valueG: number | undefined
+): string {
+  if (valueG === undefined) {
+    return 'Not available';
+  }
+
+  return formatPackedWeight(
+    valueG
+  );
 }
 
 export function formatBusinessCartonCost(
@@ -3241,10 +3273,26 @@ export default function BusinessWorkspace({
                   </strong>
 
                   <span>
-                    Gross packed weight:{' '}
-                    {formatPackedWeight(
+                    Actual gross weight:{' '}
+                    {formatBusinessWeight(
                       businessResultMetrics
                         .grossPackedWeightG
+                    )}
+                  </span>
+
+                  <span>
+                    DIM weight:{' '}
+                    {formatBusinessWeight(
+                      businessResultMetrics
+                        .dimensionalWeightG
+                    )}
+                  </span>
+
+                  <span>
+                    Estimated chargeable weight:{' '}
+                    {formatBusinessWeight(
+                      businessResultMetrics
+                        .estimatedChargeableWeightG
                     )}
                   </span>
 
@@ -3261,6 +3309,10 @@ export default function BusinessWorkspace({
                     {formatBusinessStockImpact(
                       businessResultMetrics
                     )}
+                  </span>
+
+                  <span>
+                    Estimated chargeable weight is the greater of actual gross and DIM weight when both are known. Carrier billing rounding, service rules, rates, and shipping prices are not applied here.
                   </span>
 
                   {alternatives.length >
