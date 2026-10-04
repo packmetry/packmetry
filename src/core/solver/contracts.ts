@@ -9,16 +9,28 @@ import type { Carton } from '../domain/carton.js';
 import type { OptimizationObjective } from '../domain/objectives.js';
 import type { ItemPlacement, PlanStatus } from '../domain/result.js';
 import type { UnplacedItem, SolverMeta } from '../domain/plan-contracts.js';
+import type { DimensionalWeightSettings } from '../units/dimensional-weight.js';
 
 /**
  * Input to the solver adapter.
  *
- * Contains the items to pack, available cartons, and optimization objective.
+ * Contains the items to pack, available cartons, optimization objective,
+ * and optional dimensional-weight planning context.
+ *
+ * Dimensional-weight settings are planning/ranking context only.
+ * The baseline solver must not change placement behavior because they exist.
  */
 export interface SolverInput {
   items: Item[];
   cartons: Carton[];
   objective: OptimizationObjective;
+
+  /**
+   * Optional dimensional-weight settings.
+   *
+   * When absent, DIM-derived metrics remain unavailable.
+   */
+  dimensionalWeight?: DimensionalWeightSettings;
 }
 
 /**

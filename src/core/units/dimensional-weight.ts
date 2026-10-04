@@ -50,6 +50,16 @@ export interface DimensionalWeightDivisor {
 }
 
 /**
+ * Optional planning context for dimensional-weight calculations.
+ *
+ * Carrier presets and user-entered values ultimately normalize into this
+ * same unit-safe divisor contract.
+ */
+export interface DimensionalWeightSettings {
+  divisor: DimensionalWeightDivisor;
+}
+
+/**
  * Validate a dimensional-weight divisor.
  *
  * @param value - Candidate divisor value
@@ -120,6 +130,35 @@ export function validateDimensionalWeightDivisor(
       )}`
     );
   }
+}
+
+/**
+ * Validate dimensional-weight planning settings.
+ *
+ * @param value - Candidate settings value
+ * @throws {ValidationError} If settings or divisor are invalid
+ */
+export function validateDimensionalWeightSettings(
+  value: unknown
+): asserts value is DimensionalWeightSettings {
+  if (
+    value === null ||
+    typeof value !== 'object'
+  ) {
+    throw new ValidationError(
+      'Dimensional-weight settings must be an object'
+    );
+  }
+
+  const settings =
+    value as Record<
+      string,
+      unknown
+    >;
+
+  validateDimensionalWeightDivisor(
+    settings.divisor
+  );
 }
 
 /**

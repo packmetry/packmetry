@@ -1,11 +1,23 @@
 import { describe, it, expect } from 'vitest';
 
-import type { SolverInput, SolverCandidateCarton, SolverCandidatePlan, SolverOutput, SolverAdapter } from '../core/solver/contracts.js';
+import type {
+  SolverInput,
+  SolverCandidateCarton,
+  SolverCandidatePlan,
+  SolverOutput,
+  SolverAdapter,
+} from '../core/solver/contracts.js';
 import type { Item } from '../core/domain/item.js';
 import type { Carton } from '../core/domain/carton.js';
 import type { OptimizationObjective } from '../core/domain/objectives.js';
 import type { ItemPlacement, PlanStatus } from '../core/domain/result.js';
-import type { UnplacedItem, SolverMeta } from '../core/domain/plan-contracts.js';
+import type {
+  UnplacedItem,
+  SolverMeta,
+} from '../core/domain/plan-contracts.js';
+import type {
+  DimensionalWeightSettings,
+} from '../core/units/dimensional-weight.js';
 
 describe('solver contracts', () => {
   describe('SolverInput', () => {
@@ -42,6 +54,34 @@ describe('solver contracts', () => {
       expect(input.items).toHaveLength(1);
       expect(input.cartons).toHaveLength(1);
       expect(input.objective.kind).toBe('fewest-cartons');
+      expect(input.dimensionalWeight).toBeUndefined();
+    });
+
+    it('can include optional dimensional-weight planning settings', () => {
+      const dimensionalWeight: DimensionalWeightSettings = {
+        divisor: {
+          value: 1000,
+          lengthUnit: 'cm',
+          massUnit: 'kg',
+        },
+      };
+
+      const input: SolverInput = {
+        items: [],
+        cartons: [],
+        objective: {
+          kind: 'min-dim-weight',
+        },
+        dimensionalWeight,
+      };
+
+      expect(input.dimensionalWeight).toEqual({
+        divisor: {
+          value: 1000,
+          lengthUnit: 'cm',
+          massUnit: 'kg',
+        },
+      });
     });
   });
 
@@ -72,7 +112,12 @@ describe('solver contracts', () => {
 
   describe('SolverCandidatePlan', () => {
     it('can be constructed with all PlanStatus values', () => {
-      const statuses: PlanStatus[] = ['feasible', 'partial', 'infeasible', 'limit_reached'];
+      const statuses: PlanStatus[] = [
+        'feasible',
+        'partial',
+        'infeasible',
+        'limit_reached',
+      ];
 
       statuses.forEach((status) => {
         const candidateCarton: SolverCandidateCarton = {
@@ -143,7 +188,6 @@ describe('solver contracts', () => {
     it('can be implemented as a mock', async () => {
       const mockAdapter: SolverAdapter = {
         solve: async (input: SolverInput): Promise<SolverOutput> => {
-          // Use input to show it's being read
           expect(input).toBeDefined();
 
           const candidatePlan: SolverCandidatePlan = {
@@ -182,7 +226,6 @@ describe('solver contracts', () => {
     it('returns Promise<SolverOutput> as required by interface', () => {
       const mockAdapter: SolverAdapter = {
         solve: async (input: SolverInput) => {
-          // Use input to show it's being read
           expect(input).toBeDefined();
 
           return {
