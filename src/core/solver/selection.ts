@@ -1,6 +1,10 @@
 import type { Carton } from '../domain/carton.js';
 import type { Item } from '../domain/item.js';
 import type { ObjectiveKind } from '../domain/objectives.js';
+import {
+  calculateDimensionalWeightG,
+  validateDimensionalWeightSettings,
+} from '../units/dimensional-weight.js';
 import type {
   SolverCandidatePlan,
   SolverInput,
@@ -23,7 +27,11 @@ export type CandidateSelectionResult =
   | {
       kind: 'insufficient-data';
       objective: ObjectiveKind;
-      missingMetric: 'carton-cost' | 'gross-weight';
+      missingMetric:
+        | 'carton-cost'
+        | 'gross-weight'
+        | 'dim-divisor'
+        | 'external-dimensions';
     };
 
 interface CandidateMetrics {
@@ -38,23 +46,44 @@ interface CandidateMetrics {
   totalCartonCost?: number;
   maxGrossWeightG?: number;
   totalGrossWeightG?: number;
+  totalDimWeightG?: number;
 }
 
-function resolveCarton(input: SolverInput, cartonId: string): Carton {
-  const carton = input.cartons.find(candidate => candidate.id === cartonId);
+function resolveCarton(
+  input: SolverInput,
+  cartonId: string
+): Carton {
+  const carton =
+    input.cartons.find(
+      candidate =>
+        candidate.id ===
+        cartonId
+    );
 
   if (!carton) {
-    throw new Error(`Verified candidate references unknown carton: ${cartonId}`);
+    throw new Error(
+      `Verified candidate references unknown carton: ${cartonId}`
+    );
   }
 
   return carton;
 }
 
-function resolveItem(input: SolverInput, itemId: string): Item {
-  const item = input.items.find(candidate => candidate.id === itemId);
+function resolveItem(
+  input: SolverInput,
+  itemId: string
+): Item {
+  const item =
+    input.items.find(
+      candidate =>
+        candidate.id ===
+        itemId
+    );
 
   if (!item) {
-    throw new Error(`Verified candidate references unknown item: ${itemId}`);
+    throw new Error(
+      `Verified candidate references unknown item: ${itemId}`
+    );
   }
 
   return item;
@@ -76,80 +105,186 @@ function measureCandidate(
   let maxGrossWeightG = 0;
   let totalGrossWeightG = 0;
 
-  for (const candidateCarton of candidate.cartons) {
-    const carton = resolveCarton(input, candidateCarton.cartonId);
+  let dimWeightKnown =
+    input.dimensionalWeight !==
+    undefined;
+
+  let totalDimWeightG = 0;
+
+  for (
+    const candidateCarton
+    of candidate.cartons
+  ) {
+    const carton =
+      resolveCarton(
+        input,
+        candidateCarton.cartonId
+      );
 
     cartonVolumeMm3 +=
-      carton.internalDimensions.length *
-      carton.internalDimensions.width *
-      carton.internalDimensions.height;
+      carton
+        .internalDimensions
+        .length *
+      carton
+        .internalDimensions
+        .width *
+      carton
+        .internalDimensions
+        .height;
 
-    if (carton.costPerBox === undefined) {
-      cartonCostKnown = false;
+    if (
+      carton.costPerBox ===
+      undefined
+    ) {
+      cartonCostKnown =
+        false;
     } else {
-      totalCartonCost += carton.costPerBox;
+      totalCartonCost +=
+        carton.costPerBox;
     }
 
-    let cartonGrossWeightG = 0;
-
-    if (carton.emptyBoxWeightG === undefined) {
-      grossWeightKnown = false;
-    } else {
-      cartonGrossWeightG += carton.emptyBoxWeightG;
+    if (
+      input.dimensionalWeight !==
+      undefined
+    ) {
+      if (
+        carton.externalDimensions ===
+        undefined
+      ) {
+        dimWeightKnown =
+          false;
+      } else {
+        totalDimWeightG +=
+          calculateDimensionalWeightG(
+            carton.externalDimensions,
+            input
+              .dimensionalWeight
+              .divisor
+          );
+      }
     }
 
-    for (const placement of candidateCarton.placements) {
-      const item = resolveItem(input, placement.itemId);
+    let cartonGrossWeightG =
+      0;
+
+    if (
+      carton.emptyBoxWeightG ===
+      undefined
+    ) {
+      grossWeightKnown =
+        false;
+    } else {
+      cartonGrossWeightG +=
+        carton.emptyBoxWeightG;
+    }
+
+    for (
+      const placement
+      of candidateCarton
+        .placements
+    ) {
+      const item =
+        resolveItem(
+          input,
+          placement.itemId
+        );
 
       placedItemCount += 1;
+
       itemVolumeMm3 +=
         placement.length *
         placement.width *
         placement.height;
 
-      if (item.unitWeightG === undefined) {
-        grossWeightKnown = false;
+      if (
+        item.unitWeightG ===
+        undefined
+      ) {
+        grossWeightKnown =
+          false;
       } else {
-        cartonGrossWeightG += item.unitWeightG;
+        cartonGrossWeightG +=
+          item.unitWeightG;
       }
     }
 
-    if (grossWeightKnown) {
-      totalGrossWeightG += cartonGrossWeightG;
-      maxGrossWeightG = Math.max(maxGrossWeightG, cartonGrossWeightG);
+    if (
+      grossWeightKnown
+    ) {
+      totalGrossWeightG +=
+        cartonGrossWeightG;
+
+      maxGrossWeightG =
+        Math.max(
+          maxGrossWeightG,
+          cartonGrossWeightG
+        );
     }
   }
 
-  for (const unplacedItem of candidate.unplacedItems) {
-    resolveItem(input, unplacedItem.itemId);
+  for (
+    const unplacedItem
+    of candidate.unplacedItems
+  ) {
+    resolveItem(
+      input,
+      unplacedItem.itemId
+    );
   }
 
-  const emptyVolumeMm3 = cartonVolumeMm3 - itemVolumeMm3;
+  const emptyVolumeMm3 =
+    cartonVolumeMm3 -
+    itemVolumeMm3;
 
   return {
     index,
     placedItemCount,
-    unplacedItemCount: candidate.unplacedItems.length,
-    cartonCount: candidate.cartons.length,
+    unplacedItemCount:
+      candidate
+        .unplacedItems
+        .length,
+    cartonCount:
+      candidate
+        .cartons
+        .length,
     itemVolumeMm3,
     cartonVolumeMm3,
     emptyVolumeMm3,
     utilization:
       cartonVolumeMm3 === 0
         ? 0
-        : itemVolumeMm3 / cartonVolumeMm3,
-    ...(cartonCostKnown ? { totalCartonCost } : {}),
+        : itemVolumeMm3 /
+          cartonVolumeMm3,
+    ...(cartonCostKnown
+      ? {
+          totalCartonCost,
+        }
+      : {}),
     ...(grossWeightKnown
-      ? { maxGrossWeightG, totalGrossWeightG }
+      ? {
+          maxGrossWeightG,
+          totalGrossWeightG,
+        }
+      : {}),
+    ...(dimWeightKnown
+      ? {
+          totalDimWeightG,
+        }
       : {}),
   };
 }
 
-function compareAscending(first: number, second: number): number {
+function compareAscending(
+  first: number,
+  second: number
+): number {
   return first - second;
 }
 
-function compareDescending(first: number, second: number): number {
+function compareDescending(
+  first: number,
+  second: number
+): number {
   return second - first;
 }
 
@@ -158,10 +293,22 @@ function compareBalanced(
   second: CandidateMetrics
 ): number {
   return (
-    compareAscending(first.cartonCount, second.cartonCount) ||
-    compareAscending(first.emptyVolumeMm3, second.emptyVolumeMm3) ||
-    compareDescending(first.utilization, second.utilization) ||
-    compareAscending(first.index, second.index)
+    compareAscending(
+      first.cartonCount,
+      second.cartonCount
+    ) ||
+    compareAscending(
+      first.emptyVolumeMm3,
+      second.emptyVolumeMm3
+    ) ||
+    compareDescending(
+      first.utilization,
+      second.utilization
+    ) ||
+    compareAscending(
+      first.index,
+      second.index
+    )
   );
 }
 
@@ -170,11 +317,26 @@ function compareLeastWastedVolume(
   second: CandidateMetrics
 ): number {
   return (
-    compareAscending(first.emptyVolumeMm3, second.emptyVolumeMm3) ||
-    compareAscending(first.cartonVolumeMm3, second.cartonVolumeMm3) ||
-    compareAscending(first.cartonCount, second.cartonCount) ||
-    compareDescending(first.utilization, second.utilization) ||
-    compareAscending(first.index, second.index)
+    compareAscending(
+      first.emptyVolumeMm3,
+      second.emptyVolumeMm3
+    ) ||
+    compareAscending(
+      first.cartonVolumeMm3,
+      second.cartonVolumeMm3
+    ) ||
+    compareAscending(
+      first.cartonCount,
+      second.cartonCount
+    ) ||
+    compareDescending(
+      first.utilization,
+      second.utilization
+    ) ||
+    compareAscending(
+      first.index,
+      second.index
+    )
   );
 }
 
@@ -183,11 +345,26 @@ function compareEasierToCarry(
   second: CandidateMetrics
 ): number {
   return (
-    compareAscending(first.maxGrossWeightG!, second.maxGrossWeightG!) ||
-    compareAscending(first.totalGrossWeightG!, second.totalGrossWeightG!) ||
-    compareAscending(first.cartonCount, second.cartonCount) ||
-    compareAscending(first.emptyVolumeMm3, second.emptyVolumeMm3) ||
-    compareAscending(first.index, second.index)
+    compareAscending(
+      first.maxGrossWeightG!,
+      second.maxGrossWeightG!
+    ) ||
+    compareAscending(
+      first.totalGrossWeightG!,
+      second.totalGrossWeightG!
+    ) ||
+    compareAscending(
+      first.cartonCount,
+      second.cartonCount
+    ) ||
+    compareAscending(
+      first.emptyVolumeMm3,
+      second.emptyVolumeMm3
+    ) ||
+    compareAscending(
+      first.index,
+      second.index
+    )
   );
 }
 
@@ -196,109 +373,282 @@ function compareCartonCost(
   second: CandidateMetrics
 ): number {
   return (
-    compareAscending(first.totalCartonCost!, second.totalCartonCost!) ||
-    compareAscending(first.cartonCount, second.cartonCount) ||
-    compareAscending(first.emptyVolumeMm3, second.emptyVolumeMm3) ||
-    compareAscending(first.index, second.index)
+    compareAscending(
+      first.totalCartonCost!,
+      second.totalCartonCost!
+    ) ||
+    compareAscending(
+      first.cartonCount,
+      second.cartonCount
+    ) ||
+    compareAscending(
+      first.emptyVolumeMm3,
+      second.emptyVolumeMm3
+    ) ||
+    compareAscending(
+      first.index,
+      second.index
+    )
   );
 }
 
-function bestCoverage(metrics: CandidateMetrics[]): CandidateMetrics[] {
-  const maxPlacedItemCount = Math.max(
-    ...metrics.map(candidate => candidate.placedItemCount)
+function compareDimWeight(
+  first: CandidateMetrics,
+  second: CandidateMetrics
+): number {
+  return (
+    compareAscending(
+      first.totalDimWeightG!,
+      second.totalDimWeightG!
+    ) ||
+    compareAscending(
+      first.cartonCount,
+      second.cartonCount
+    ) ||
+    compareAscending(
+      first.emptyVolumeMm3,
+      second.emptyVolumeMm3
+    ) ||
+    compareAscending(
+      first.index,
+      second.index
+    )
   );
+}
 
-  const mostPlaced = metrics.filter(
-    candidate => candidate.placedItemCount === maxPlacedItemCount
-  );
+function bestCoverage(
+  metrics: CandidateMetrics[]
+): CandidateMetrics[] {
+  const maxPlacedItemCount =
+    Math.max(
+      ...metrics.map(
+        candidate =>
+          candidate
+            .placedItemCount
+      )
+    );
 
-  const minUnplacedItemCount = Math.min(
-    ...mostPlaced.map(candidate => candidate.unplacedItemCount)
-  );
+  const mostPlaced =
+    metrics.filter(
+      candidate =>
+        candidate
+          .placedItemCount ===
+        maxPlacedItemCount
+    );
+
+  const minUnplacedItemCount =
+    Math.min(
+      ...mostPlaced.map(
+        candidate =>
+          candidate
+            .unplacedItemCount
+      )
+    );
 
   return mostPlaced.filter(
-    candidate => candidate.unplacedItemCount === minUnplacedItemCount
+    candidate =>
+      candidate
+        .unplacedItemCount ===
+      minUnplacedItemCount
   );
 }
 
 function selectedResult(
   ranked: CandidateMetrics[]
 ): CandidateSelectionResult {
-  const rankedCandidateIndexes = ranked.map(candidate => candidate.index);
+  const rankedCandidateIndexes =
+    ranked.map(
+      candidate =>
+        candidate.index
+    );
 
   return {
     kind: 'selected',
-    selectedCandidateIndex: rankedCandidateIndexes[0]!,
+    selectedCandidateIndex:
+      rankedCandidateIndexes[0]!,
     rankedCandidateIndexes,
   };
 }
 
 export function selectVerifiedCandidate(
   input: SolverInput,
-  candidates: readonly CandidateVerificationResult[]
+  candidates:
+    readonly CandidateVerificationResult[]
 ): CandidateSelectionResult {
-  const validMetrics = candidates
-    .map((result, index) => ({ result, index }))
-    .filter(({ result }) => result.verification.valid)
-    .map(({ result, index }) =>
-      measureCandidate(input, result.candidate, index)
+  if (
+    input.dimensionalWeight !==
+    undefined
+  ) {
+    validateDimensionalWeightSettings(
+      input.dimensionalWeight
     );
-
-  if (validMetrics.length === 0) {
-    return { kind: 'no-valid-candidate' };
   }
 
-  const comparable = bestCoverage(validMetrics);
-  const objective = input.objective.kind;
+  const validMetrics =
+    candidates
+      .map(
+        (
+          result,
+          index
+        ) => ({
+          result,
+          index,
+        })
+      )
+      .filter(
+        ({ result }) =>
+          result
+            .verification
+            .valid
+      )
+      .map(
+        ({
+          result,
+          index,
+        }) =>
+          measureCandidate(
+            input,
+            result.candidate,
+            index
+          )
+      );
+
+  if (
+    validMetrics.length ===
+    0
+  ) {
+    return {
+      kind:
+        'no-valid-candidate',
+    };
+  }
+
+  const comparable =
+    bestCoverage(
+      validMetrics
+    );
+
+  const objective =
+    input.objective.kind;
 
   switch (objective) {
     case 'balanced':
     case 'fewest-cartons':
-      return selectedResult([...comparable].sort(compareBalanced));
+      return selectedResult(
+        [
+          ...comparable,
+        ].sort(
+          compareBalanced
+        )
+      );
 
     case 'least-wasted-volume':
       return selectedResult(
-        [...comparable].sort(compareLeastWastedVolume)
+        [
+          ...comparable,
+        ].sort(
+          compareLeastWastedVolume
+        )
       );
 
     case 'easier-to-carry':
       if (
         comparable.some(
           candidate =>
-            candidate.maxGrossWeightG === undefined ||
-            candidate.totalGrossWeightG === undefined
+            candidate
+              .maxGrossWeightG ===
+              undefined ||
+            candidate
+              .totalGrossWeightG ===
+              undefined
         )
       ) {
         return {
-          kind: 'insufficient-data',
+          kind:
+            'insufficient-data',
           objective,
-          missingMetric: 'gross-weight',
+          missingMetric:
+            'gross-weight',
         };
       }
 
       return selectedResult(
-        [...comparable].sort(compareEasierToCarry)
+        [
+          ...comparable,
+        ].sort(
+          compareEasierToCarry
+        )
       );
 
     case 'min-carton-cost':
       if (
         comparable.some(
-          candidate => candidate.totalCartonCost === undefined
+          candidate =>
+            candidate
+              .totalCartonCost ===
+            undefined
         )
       ) {
         return {
-          kind: 'insufficient-data',
+          kind:
+            'insufficient-data',
           objective,
-          missingMetric: 'carton-cost',
+          missingMetric:
+            'carton-cost',
         };
       }
 
-      return selectedResult([...comparable].sort(compareCartonCost));
+      return selectedResult(
+        [
+          ...comparable,
+        ].sort(
+          compareCartonCost
+        )
+      );
+
+    case 'min-dim-weight':
+      if (
+        input.dimensionalWeight ===
+        undefined
+      ) {
+        return {
+          kind:
+            'insufficient-data',
+          objective,
+          missingMetric:
+            'dim-divisor',
+        };
+      }
+
+      if (
+        comparable.some(
+          candidate =>
+            candidate
+              .totalDimWeightG ===
+            undefined
+        )
+      ) {
+        return {
+          kind:
+            'insufficient-data',
+          objective,
+          missingMetric:
+            'external-dimensions',
+        };
+      }
+
+      return selectedResult(
+        [
+          ...comparable,
+        ].sort(
+          compareDimWeight
+        )
+      );
 
     case 'existing-inventory-first':
-    case 'min-dim-weight':
       return {
-        kind: 'objective-unsupported',
+        kind:
+          'objective-unsupported',
         objective,
       };
   }

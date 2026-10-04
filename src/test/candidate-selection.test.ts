@@ -9,6 +9,7 @@ import type {
 } from '../core/solver/contracts.js';
 import type { CandidateVerificationResult } from '../core/solver/integration.js';
 import { selectVerifiedCandidate } from '../core/solver/selection.js';
+import { ValidationError } from '../core/units/types.js';
 
 function makeInput(
   objective: ObjectiveKind = 'balanced'
@@ -68,6 +69,40 @@ function makeInput(
     objective: {
       kind: objective,
     },
+  };
+}
+
+function addDimensionalWeightSettings(
+  input: SolverInput
+): void {
+  input.dimensionalWeight = {
+    divisor: {
+      value: 1000,
+      lengthUnit: 'cm',
+      massUnit: 'kg',
+    },
+  };
+}
+
+function addExternalDimensions(
+  input: SolverInput
+): void {
+  input.cartons[0]!.externalDimensions = {
+    length: 20,
+    width: 20,
+    height: 20,
+  };
+
+  input.cartons[1]!.externalDimensions = {
+    length: 30,
+    width: 30,
+    height: 30,
+  };
+
+  input.cartons[2]!.externalDimensions = {
+    length: 40,
+    width: 40,
+    height: 40,
   };
 }
 
@@ -140,24 +175,35 @@ function twoSmallBoxesTwoItems(): SolverCandidatePlan {
   return candidate([
     {
       cartonId: 'small',
-      placements: [placement(0)],
+      placements: [
+        placement(0),
+      ],
     },
     {
       cartonId: 'small',
-      placements: [placement(1)],
+      placements: [
+        placement(1),
+      ],
     },
   ]);
 }
 
 describe('selectVerifiedCandidate', () => {
   it('returns no-valid-candidate when verification rejects every candidate', () => {
-    const result = selectVerifiedCandidate(
-      makeInput(),
-      [
-        verified(oneLargeBoxTwoItems(), false),
-        verified(twoSmallBoxesTwoItems(), false),
-      ]
-    );
+    const result =
+      selectVerifiedCandidate(
+        makeInput(),
+        [
+          verified(
+            oneLargeBoxTwoItems(),
+            false
+          ),
+          verified(
+            twoSmallBoxesTwoItems(),
+            false
+          ),
+        ]
+      );
 
     expect(result).toEqual({
       kind: 'no-valid-candidate',
@@ -165,349 +211,820 @@ describe('selectVerifiedCandidate', () => {
   });
 
   it('excludes invalid candidates from selection', () => {
-    const result = selectVerifiedCandidate(
-      makeInput('fewest-cartons'),
-      [
-        verified(oneLargeBoxTwoItems(), false),
-        verified(twoSmallBoxesTwoItems()),
-      ]
-    );
+    const result =
+      selectVerifiedCandidate(
+        makeInput(
+          'fewest-cartons'
+        ),
+        [
+          verified(
+            oneLargeBoxTwoItems(),
+            false
+          ),
+          verified(
+            twoSmallBoxesTwoItems()
+          ),
+        ]
+      );
 
     expect(result).toEqual({
       kind: 'selected',
       selectedCandidateIndex: 1,
-      rankedCandidateIndexes: [1],
+      rankedCandidateIndexes: [
+        1,
+      ],
     });
   });
 
   it('maximizes placed-item coverage before applying the objective', () => {
-    const lowerCoverage = candidate([
-      {
-        cartonId: 'small',
-        placements: [placement(0)],
-      },
-    ]);
+    const lowerCoverage =
+      candidate([
+        {
+          cartonId: 'small',
+          placements: [
+            placement(0),
+          ],
+        },
+      ]);
 
-    const higherCoverage = twoSmallBoxesTwoItems();
+    const higherCoverage =
+      twoSmallBoxesTwoItems();
 
-    const result = selectVerifiedCandidate(
-      makeInput('fewest-cartons'),
-      [
-        verified(lowerCoverage),
-        verified(higherCoverage),
-      ]
-    );
+    const result =
+      selectVerifiedCandidate(
+        makeInput(
+          'fewest-cartons'
+        ),
+        [
+          verified(
+            lowerCoverage
+          ),
+          verified(
+            higherCoverage
+          ),
+        ]
+      );
 
     expect(result).toEqual({
       kind: 'selected',
       selectedCandidateIndex: 1,
-      rankedCandidateIndexes: [1],
+      rankedCandidateIndexes: [
+        1,
+      ],
     });
   });
 
   it('minimizes unplaced count after maximizing placed count', () => {
-    const moreUnplaced = candidate(
-      [
-        {
-          cartonId: 'small',
-          placements: [placement(0)],
-        },
-      ],
-      [
-        {
-          itemId: 'item-a',
-          instanceIndex: 1,
-          reason: 'solver-limit-reached',
-        },
-        {
-          itemId: 'item-a',
-          instanceIndex: 2,
-          reason: 'solver-limit-reached',
-        },
-      ]
-    );
+    const moreUnplaced =
+      candidate(
+        [
+          {
+            cartonId: 'small',
+            placements: [
+              placement(0),
+            ],
+          },
+        ],
+        [
+          {
+            itemId: 'item-a',
+            instanceIndex: 1,
+            reason:
+              'solver-limit-reached',
+          },
+          {
+            itemId: 'item-a',
+            instanceIndex: 2,
+            reason:
+              'solver-limit-reached',
+          },
+        ]
+      );
 
-    const fewerUnplaced = candidate(
-      [
-        {
-          cartonId: 'medium',
-          placements: [placement(0)],
-        },
-      ],
-      [
-        {
-          itemId: 'item-a',
-          instanceIndex: 1,
-          reason: 'solver-limit-reached',
-        },
-      ]
-    );
+    const fewerUnplaced =
+      candidate(
+        [
+          {
+            cartonId: 'medium',
+            placements: [
+              placement(0),
+            ],
+          },
+        ],
+        [
+          {
+            itemId: 'item-a',
+            instanceIndex: 1,
+            reason:
+              'solver-limit-reached',
+          },
+        ]
+      );
 
-    const result = selectVerifiedCandidate(
-      makeInput('least-wasted-volume'),
-      [
-        verified(moreUnplaced),
-        verified(fewerUnplaced),
-      ]
-    );
+    const result =
+      selectVerifiedCandidate(
+        makeInput(
+          'least-wasted-volume'
+        ),
+        [
+          verified(
+            moreUnplaced
+          ),
+          verified(
+            fewerUnplaced
+          ),
+        ]
+      );
 
     expect(result).toEqual({
       kind: 'selected',
       selectedCandidateIndex: 1,
-      rankedCandidateIndexes: [1],
+      rankedCandidateIndexes: [
+        1,
+      ],
     });
   });
 
   it('ranks fewest-cartons by carton count before wasted volume', () => {
-    const result = selectVerifiedCandidate(
-      makeInput('fewest-cartons'),
-      [
-        verified(twoSmallBoxesTwoItems()),
-        verified(oneLargeBoxTwoItems()),
-      ]
-    );
+    const result =
+      selectVerifiedCandidate(
+        makeInput(
+          'fewest-cartons'
+        ),
+        [
+          verified(
+            twoSmallBoxesTwoItems()
+          ),
+          verified(
+            oneLargeBoxTwoItems()
+          ),
+        ]
+      );
 
     expect(result).toEqual({
       kind: 'selected',
       selectedCandidateIndex: 1,
-      rankedCandidateIndexes: [1, 0],
+      rankedCandidateIndexes: [
+        1,
+        0,
+      ],
     });
   });
 
   it('uses original solver order as the final deterministic tie-break', () => {
-    const first = oneLargeBoxTwoItems();
-    const second = oneLargeBoxTwoItems();
+    const first =
+      oneLargeBoxTwoItems();
 
-    const result = selectVerifiedCandidate(
-      makeInput('balanced'),
-      [verified(first), verified(second)]
-    );
+    const second =
+      oneLargeBoxTwoItems();
+
+    const result =
+      selectVerifiedCandidate(
+        makeInput('balanced'),
+        [
+          verified(first),
+          verified(second),
+        ]
+      );
 
     expect(result).toEqual({
       kind: 'selected',
       selectedCandidateIndex: 0,
-      rankedCandidateIndexes: [0, 1],
+      rankedCandidateIndexes: [
+        0,
+        1,
+      ],
     });
   });
 
   it('ranks least-wasted-volume by absolute empty volume first', () => {
-    const small = candidate([
-      {
-        cartonId: 'small',
-        placements: [placement(0)],
-      },
-    ]);
+    const small =
+      candidate([
+        {
+          cartonId: 'small',
+          placements: [
+            placement(0),
+          ],
+        },
+      ]);
 
-    const medium = candidate([
-      {
-        cartonId: 'medium',
-        placements: [placement(0)],
-      },
-    ]);
+    const medium =
+      candidate([
+        {
+          cartonId: 'medium',
+          placements: [
+            placement(0),
+          ],
+        },
+      ]);
 
-    const result = selectVerifiedCandidate(
-      makeInput('least-wasted-volume'),
-      [verified(medium), verified(small)]
-    );
+    const result =
+      selectVerifiedCandidate(
+        makeInput(
+          'least-wasted-volume'
+        ),
+        [
+          verified(medium),
+          verified(small),
+        ]
+      );
 
     expect(result).toEqual({
       kind: 'selected',
       selectedCandidateIndex: 1,
-      rankedCandidateIndexes: [1, 0],
+      rankedCandidateIndexes: [
+        1,
+        0,
+      ],
     });
   });
 
   it('ranks min-carton-cost by known total carton cost', () => {
-    const result = selectVerifiedCandidate(
-      makeInput('min-carton-cost'),
-      [
-        verified(oneLargeBoxTwoItems()),
-        verified(twoSmallBoxesTwoItems()),
-      ]
-    );
+    const result =
+      selectVerifiedCandidate(
+        makeInput(
+          'min-carton-cost'
+        ),
+        [
+          verified(
+            oneLargeBoxTwoItems()
+          ),
+          verified(
+            twoSmallBoxesTwoItems()
+          ),
+        ]
+      );
 
     expect(result).toEqual({
       kind: 'selected',
       selectedCandidateIndex: 1,
-      rankedCandidateIndexes: [1, 0],
+      rankedCandidateIndexes: [
+        1,
+        0,
+      ],
     });
   });
 
   it('returns insufficient-data when a best-coverage carton cost is unknown', () => {
-    const input = makeInput('min-carton-cost');
-    delete input.cartons[2]!.costPerBox;
+    const input =
+      makeInput(
+        'min-carton-cost'
+      );
 
-    const result = selectVerifiedCandidate(
-      input,
-      [
-        verified(oneLargeBoxTwoItems()),
-        verified(twoSmallBoxesTwoItems()),
-      ]
-    );
+    delete input
+      .cartons[2]!
+      .costPerBox;
+
+    const result =
+      selectVerifiedCandidate(
+        input,
+        [
+          verified(
+            oneLargeBoxTwoItems()
+          ),
+          verified(
+            twoSmallBoxesTwoItems()
+          ),
+        ]
+      );
 
     expect(result).toEqual({
-      kind: 'insufficient-data',
-      objective: 'min-carton-cost',
-      missingMetric: 'carton-cost',
+      kind:
+        'insufficient-data',
+      objective:
+        'min-carton-cost',
+      missingMetric:
+        'carton-cost',
     });
   });
 
   it('does not let missing cost on a lower-coverage candidate block selection', () => {
-    const input = makeInput('min-carton-cost');
-    delete input.cartons[2]!.costPerBox;
+    const input =
+      makeInput(
+        'min-carton-cost'
+      );
 
-    const lowerCoverage = candidate([
-      {
-        cartonId: 'large',
-        placements: [placement(0)],
-      },
-    ]);
+    delete input
+      .cartons[2]!
+      .costPerBox;
 
-    const result = selectVerifiedCandidate(
-      input,
-      [
-        verified(lowerCoverage),
-        verified(twoSmallBoxesTwoItems()),
-      ]
-    );
+    const lowerCoverage =
+      candidate([
+        {
+          cartonId: 'large',
+          placements: [
+            placement(0),
+          ],
+        },
+      ]);
+
+    const result =
+      selectVerifiedCandidate(
+        input,
+        [
+          verified(
+            lowerCoverage
+          ),
+          verified(
+            twoSmallBoxesTwoItems()
+          ),
+        ]
+      );
 
     expect(result).toEqual({
       kind: 'selected',
       selectedCandidateIndex: 1,
-      rankedCandidateIndexes: [1],
+      rankedCandidateIndexes: [
+        1,
+      ],
     });
   });
 
   it('ranks easier-to-carry by the heaviest individual carton first', () => {
-    const result = selectVerifiedCandidate(
-      makeInput('easier-to-carry'),
-      [
-        verified(oneLargeBoxTwoItems()),
-        verified(twoSmallBoxesTwoItems()),
-      ]
-    );
+    const result =
+      selectVerifiedCandidate(
+        makeInput(
+          'easier-to-carry'
+        ),
+        [
+          verified(
+            oneLargeBoxTwoItems()
+          ),
+          verified(
+            twoSmallBoxesTwoItems()
+          ),
+        ]
+      );
 
     expect(result).toEqual({
       kind: 'selected',
       selectedCandidateIndex: 1,
-      rankedCandidateIndexes: [1, 0],
+      rankedCandidateIndexes: [
+        1,
+        0,
+      ],
     });
   });
 
   it('returns insufficient-data when best-coverage gross weight is unknown', () => {
-    const input = makeInput('easier-to-carry');
-    delete input.items[0]!.unitWeightG;
+    const input =
+      makeInput(
+        'easier-to-carry'
+      );
 
-    const result = selectVerifiedCandidate(
-      input,
-      [
-        verified(oneLargeBoxTwoItems()),
-        verified(twoSmallBoxesTwoItems()),
-      ]
-    );
+    delete input
+      .items[0]!
+      .unitWeightG;
+
+    const result =
+      selectVerifiedCandidate(
+        input,
+        [
+          verified(
+            oneLargeBoxTwoItems()
+          ),
+          verified(
+            twoSmallBoxesTwoItems()
+          ),
+        ]
+      );
 
     expect(result).toEqual({
-      kind: 'insufficient-data',
-      objective: 'easier-to-carry',
-      missingMetric: 'gross-weight',
+      kind:
+        'insufficient-data',
+      objective:
+        'easier-to-carry',
+      missingMetric:
+        'gross-weight',
     });
   });
 
   it('returns objective-unsupported for existing-inventory-first', () => {
-    const result = selectVerifiedCandidate(
-      makeInput('existing-inventory-first'),
-      [verified(oneLargeBoxTwoItems())]
-    );
+    const result =
+      selectVerifiedCandidate(
+        makeInput(
+          'existing-inventory-first'
+        ),
+        [
+          verified(
+            oneLargeBoxTwoItems()
+          ),
+        ]
+      );
 
     expect(result).toEqual({
-      kind: 'objective-unsupported',
-      objective: 'existing-inventory-first',
+      kind:
+        'objective-unsupported',
+      objective:
+        'existing-inventory-first',
     });
   });
 
-  it('returns objective-unsupported for min-dim-weight', () => {
-    const result = selectVerifiedCandidate(
-      makeInput('min-dim-weight'),
-      [verified(oneLargeBoxTwoItems())]
-    );
+  it('returns insufficient-data for min-dim-weight when DIM settings are missing', () => {
+    const result =
+      selectVerifiedCandidate(
+        makeInput(
+          'min-dim-weight'
+        ),
+        [
+          verified(
+            oneLargeBoxTwoItems()
+          ),
+        ]
+      );
 
     expect(result).toEqual({
-      kind: 'objective-unsupported',
-      objective: 'min-dim-weight',
+      kind:
+        'insufficient-data',
+      objective:
+        'min-dim-weight',
+      missingMetric:
+        'dim-divisor',
     });
+  });
+
+  it('returns insufficient-data for min-dim-weight when a best-coverage carton lacks external dimensions', () => {
+    const input =
+      makeInput(
+        'min-dim-weight'
+      );
+
+    addDimensionalWeightSettings(
+      input
+    );
+
+    addExternalDimensions(
+      input
+    );
+
+    delete input
+      .cartons[2]!
+      .externalDimensions;
+
+    const result =
+      selectVerifiedCandidate(
+        input,
+        [
+          verified(
+            oneLargeBoxTwoItems()
+          ),
+          verified(
+            twoSmallBoxesTwoItems()
+          ),
+        ]
+      );
+
+    expect(result).toEqual({
+      kind:
+        'insufficient-data',
+      objective:
+        'min-dim-weight',
+      missingMetric:
+        'external-dimensions',
+    });
+  });
+
+  it('does not let missing external dimensions on a lower-coverage candidate block min-dim-weight selection', () => {
+    const input =
+      makeInput(
+        'min-dim-weight'
+      );
+
+    addDimensionalWeightSettings(
+      input
+    );
+
+    addExternalDimensions(
+      input
+    );
+
+    delete input
+      .cartons[2]!
+      .externalDimensions;
+
+    const lowerCoverage =
+      candidate([
+        {
+          cartonId: 'large',
+          placements: [
+            placement(0),
+          ],
+        },
+      ]);
+
+    const result =
+      selectVerifiedCandidate(
+        input,
+        [
+          verified(
+            lowerCoverage
+          ),
+          verified(
+            twoSmallBoxesTwoItems()
+          ),
+        ]
+      );
+
+    expect(result).toEqual({
+      kind: 'selected',
+      selectedCandidateIndex: 1,
+      rankedCandidateIndexes: [
+        1,
+      ],
+    });
+  });
+
+  it('ranks min-dim-weight by total dimensional weight first', () => {
+    const input =
+      makeInput(
+        'min-dim-weight'
+      );
+
+    addDimensionalWeightSettings(
+      input
+    );
+
+    addExternalDimensions(
+      input
+    );
+
+    const result =
+      selectVerifiedCandidate(
+        input,
+        [
+          verified(
+            oneLargeBoxTwoItems()
+          ),
+          verified(
+            twoSmallBoxesTwoItems()
+          ),
+        ]
+      );
+
+    expect(result).toEqual({
+      kind: 'selected',
+      selectedCandidateIndex: 1,
+      rankedCandidateIndexes: [
+        1,
+        0,
+      ],
+    });
+  });
+
+  it('uses fewer cartons as the min-dim-weight tie-break after equal total DIM weight', () => {
+    const input =
+      makeInput(
+        'min-dim-weight'
+      );
+
+    addDimensionalWeightSettings(
+      input
+    );
+
+    input.cartons[0]!.externalDimensions = {
+      length: 20,
+      width: 20,
+      height: 20,
+    };
+
+    input.cartons[2]!.externalDimensions = {
+      length: 20,
+      width: 20,
+      height: 40,
+    };
+
+    const result =
+      selectVerifiedCandidate(
+        input,
+        [
+          verified(
+            twoSmallBoxesTwoItems()
+          ),
+          verified(
+            oneLargeBoxTwoItems()
+          ),
+        ]
+      );
+
+    expect(result).toEqual({
+      kind: 'selected',
+      selectedCandidateIndex: 1,
+      rankedCandidateIndexes: [
+        1,
+        0,
+      ],
+    });
+  });
+
+  it('uses original solver order as the final min-dim-weight tie-break', () => {
+    const input =
+      makeInput(
+        'min-dim-weight'
+      );
+
+    addDimensionalWeightSettings(
+      input
+    );
+
+    addExternalDimensions(
+      input
+    );
+
+    const first =
+      oneLargeBoxTwoItems();
+
+    const second =
+      oneLargeBoxTwoItems();
+
+    const result =
+      selectVerifiedCandidate(
+        input,
+        [
+          verified(first),
+          verified(second),
+        ]
+      );
+
+    expect(result).toEqual({
+      kind: 'selected',
+      selectedCandidateIndex: 0,
+      rankedCandidateIndexes: [
+        0,
+        1,
+      ],
+    });
+  });
+
+  it('treats zero-carton DIM weight as known zero when DIM settings exist', () => {
+    const input =
+      makeInput(
+        'min-dim-weight'
+      );
+
+    addDimensionalWeightSettings(
+      input
+    );
+
+    const result =
+      selectVerifiedCandidate(
+        input,
+        [
+          verified(
+            candidate([])
+          ),
+        ]
+      );
+
+    expect(result).toEqual({
+      kind: 'selected',
+      selectedCandidateIndex: 0,
+      rankedCandidateIndexes: [
+        0,
+      ],
+    });
+  });
+
+  it('rejects invalid dimensional-weight settings', () => {
+    const input =
+      makeInput(
+        'min-dim-weight'
+      );
+
+    input.dimensionalWeight = {
+      divisor: {
+        value: 0,
+        lengthUnit: 'cm',
+        massUnit: 'kg',
+      },
+    };
+
+    expect(() =>
+      selectVerifiedCandidate(
+        input,
+        [
+          verified(
+            oneLargeBoxTwoItems()
+          ),
+        ]
+      )
+    ).toThrow(
+      ValidationError
+    );
   });
 
   it('does not use solver candidate status as ranking authority', () => {
-    const moreComplete = oneLargeBoxTwoItems();
-    moreComplete.status = 'infeasible';
+    const moreComplete =
+      oneLargeBoxTwoItems();
 
-    const lessComplete = candidate(
-      [
-        {
-          cartonId: 'small',
-          placements: [placement(0)],
-        },
-      ],
-      [
-        {
-          itemId: 'item-a',
-          instanceIndex: 1,
-          reason: 'no-fitting-carton',
-        },
-      ],
-      'feasible'
-    );
+    moreComplete.status =
+      'infeasible';
 
-    const result = selectVerifiedCandidate(
-      makeInput('fewest-cartons'),
-      [verified(lessComplete), verified(moreComplete)]
-    );
+    const lessComplete =
+      candidate(
+        [
+          {
+            cartonId: 'small',
+            placements: [
+              placement(0),
+            ],
+          },
+        ],
+        [
+          {
+            itemId: 'item-a',
+            instanceIndex: 1,
+            reason:
+              'no-fitting-carton',
+          },
+        ],
+        'feasible'
+      );
+
+    const result =
+      selectVerifiedCandidate(
+        makeInput(
+          'fewest-cartons'
+        ),
+        [
+          verified(
+            lessComplete
+          ),
+          verified(
+            moreComplete
+          ),
+        ]
+      );
 
     expect(result).toMatchObject({
       kind: 'selected',
       selectedCandidateIndex: 1,
-      rankedCandidateIndexes: [1],
+      rankedCandidateIndexes: [
+        1,
+      ],
     });
   });
 
   it('treats zero-carton cost and gross weight as known zero', () => {
-    const emptyCandidate = candidate([]);
+    const emptyCandidate =
+      candidate([]);
 
     expect(
       selectVerifiedCandidate(
-        makeInput('min-carton-cost'),
-        [verified(emptyCandidate)]
+        makeInput(
+          'min-carton-cost'
+        ),
+        [
+          verified(
+            emptyCandidate
+          ),
+        ]
       )
     ).toEqual({
       kind: 'selected',
       selectedCandidateIndex: 0,
-      rankedCandidateIndexes: [0],
+      rankedCandidateIndexes: [
+        0,
+      ],
     });
 
     expect(
       selectVerifiedCandidate(
-        makeInput('easier-to-carry'),
-        [verified(emptyCandidate)]
+        makeInput(
+          'easier-to-carry'
+        ),
+        [
+          verified(
+            emptyCandidate
+          ),
+        ]
       )
     ).toEqual({
       kind: 'selected',
       selectedCandidateIndex: 0,
-      rankedCandidateIndexes: [0],
+      rankedCandidateIndexes: [
+        0,
+      ],
     });
   });
 
   it('throws on an unknown carton reference in a verified candidate', () => {
-    const bad = candidate([
-      {
-        cartonId: 'missing-carton',
-        placements: [placement(0)],
-      },
-    ]);
+    const bad =
+      candidate([
+        {
+          cartonId:
+            'missing-carton',
+          placements: [
+            placement(0),
+          ],
+        },
+      ]);
 
     expect(() =>
       selectVerifiedCandidate(
         makeInput(),
-        [verified(bad)]
+        [
+          verified(bad),
+        ]
       )
     ).toThrow(
       'Verified candidate references unknown carton: missing-carton'
@@ -515,19 +1032,26 @@ describe('selectVerifiedCandidate', () => {
   });
 
   it('throws on an unknown item reference in a verified candidate', () => {
-    const bad = candidate([
-      {
-        cartonId: 'small',
-        placements: [
-          placement(0, 0, 'missing-item'),
-        ],
-      },
-    ]);
+    const bad =
+      candidate([
+        {
+          cartonId: 'small',
+          placements: [
+            placement(
+              0,
+              0,
+              'missing-item'
+            ),
+          ],
+        },
+      ]);
 
     expect(() =>
       selectVerifiedCandidate(
         makeInput(),
-        [verified(bad)]
+        [
+          verified(bad),
+        ]
       )
     ).toThrow(
       'Verified candidate references unknown item: missing-item'
@@ -535,29 +1059,65 @@ describe('selectVerifiedCandidate', () => {
   });
 
   it('does not mutate input, candidates, or return an aliased ranking array', () => {
-    const input = makeInput('balanced');
+    const input =
+      makeInput('balanced');
+
     const candidates = [
-      verified(oneLargeBoxTwoItems()),
-      verified(twoSmallBoxesTwoItems()),
+      verified(
+        oneLargeBoxTwoItems()
+      ),
+      verified(
+        twoSmallBoxesTwoItems()
+      ),
     ];
 
-    const inputBefore = JSON.stringify(input);
-    const candidatesBefore = JSON.stringify(candidates);
+    const inputBefore =
+      JSON.stringify(input);
 
-    const result = selectVerifiedCandidate(
-      input,
-      candidates
+    const candidatesBefore =
+      JSON.stringify(
+        candidates
+      );
+
+    const result =
+      selectVerifiedCandidate(
+        input,
+        candidates
+      );
+
+    expect(
+      JSON.stringify(input)
+    ).toBe(
+      inputBefore
     );
 
-    expect(JSON.stringify(input)).toBe(inputBefore);
-    expect(JSON.stringify(candidates)).toBe(candidatesBefore);
+    expect(
+      JSON.stringify(
+        candidates
+      )
+    ).toBe(
+      candidatesBefore
+    );
 
-    if (result.kind !== 'selected') {
-      throw new Error('Expected a selected result');
+    if (
+      result.kind !==
+      'selected'
+    ) {
+      throw new Error(
+        'Expected a selected result'
+      );
     }
 
-    result.rankedCandidateIndexes[0] = 999;
+    result
+      .rankedCandidateIndexes[0] =
+      999;
 
-    expect(JSON.stringify(candidates)).toBe(candidatesBefore);
+    expect(
+      JSON.stringify(
+        candidates
+      )
+    ).toBe(
+      candidatesBefore
+    );
   });
 });
