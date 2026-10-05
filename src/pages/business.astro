@@ -326,6 +326,138 @@ import '../styles/packmetry-workspace.css';
     font-size: 0.86rem;
   }
 
+  /* solved result hierarchy */
+
+  .pm-business-page
+    :global(
+      .pm-result-pane >
+      .pm-context-note:first-child
+    ) {
+    margin: 0 0 17px;
+    padding: 0 0 15px;
+    border-bottom: 1px solid var(--pm-line);
+    border-left: 0;
+  }
+
+  .pm-business-page
+    :global(.pm-summary-metrics) {
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
+  }
+
+  .pm-business-page
+    :global(
+      .pm-summary-metric:nth-child(4)
+    ) {
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .pm-business-page
+    :global(
+      .pm-summary-metric:nth-child(n + 4)
+    ) {
+    border-top: 1px solid var(--pm-line);
+  }
+
+  .pm-business-page
+    :global(.pm-summary-rationale) {
+    padding: 20px 0 18px;
+  }
+
+  .pm-business-page
+    :global(
+      .pm-summary-rationale
+      .pm-section-kicker
+    ) {
+    margin-bottom: 7px;
+  }
+
+  .pm-business-page
+    :global(.pm-summary-rationale h3) {
+    margin: 0;
+    color: var(--pm-ink-strong);
+    font-size: 1rem;
+    font-weight: 720;
+    letter-spacing: -0.012em;
+    line-height: 1.3;
+  }
+
+  .pm-business-page
+    :global(
+      .pm-summary-rationale >
+      p:last-child
+    ) {
+    max-width: 620px;
+    margin: 9px 0 0;
+    color: var(--pm-ink-soft);
+    font-size: 0.82rem;
+    line-height: 1.55;
+  }
+
+  .pm-business-page
+    :global(
+      section[aria-label="Packing plan actions"]
+    ) {
+    padding-top: 14px;
+  }
+
+  .pm-business-page
+    :global(
+      section[aria-label="Packing plan actions"]
+      .pm-result-tabs
+    ) {
+    gap: 7px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .pm-business-page
+    :global(
+      section[aria-label="Packing plan actions"]
+      .pm-result-tabs button
+    ) {
+    min-height: 35px;
+    border: 1px solid var(--pm-line-strong);
+    border-radius: 7px;
+    padding: 6px 11px;
+    background: var(--pm-surface);
+    color: var(--pm-ink);
+    font-size: 0.74rem;
+  }
+
+  .pm-business-page
+    :global(
+      section[aria-label="Packing plan actions"]
+      .pm-result-tabs button:hover
+    ) {
+    border-color: #aebbc7;
+    background: var(--pm-surface-soft);
+  }
+
+  .pm-business-page
+    :global(.pm-summary-details) {
+    margin-top: 13px;
+  }
+
+  .pm-business-page
+    :global(.pm-plan-output > .pm-viz) {
+    margin-top: 21px;
+    padding-top: 20px;
+  }
+
+  .pm-business-page :global(.pm-viz-header) {
+    margin-bottom: 13px;
+  }
+
+  .pm-business-page :global(.pm-viz-caption) {
+    margin-top: 9px;
+  }
+
   @media (max-width: 1099px) {
     .pm-business-page :global(.pm-workspace) {
       width: min(
@@ -401,6 +533,32 @@ import '../styles/packmetry-workspace.css';
     .pm-business-page
       :global(.pm-business-save-project-button) {
       width: 100%;
+    }
+
+    .pm-business-page
+      :global(.pm-summary-metrics) {
+      grid-template-columns:
+        repeat(
+          2,
+          minmax(0, 1fr)
+        );
+    }
+
+    .pm-business-page
+      :global(.pm-summary-metric:nth-child(4)) {
+      border-left: 1px solid var(--pm-line);
+      padding-left: 14px;
+    }
+
+    .pm-business-page
+      :global(.pm-summary-metric:nth-child(odd)) {
+      border-left: 0;
+      padding-left: 0;
+    }
+
+    .pm-business-page
+      :global(.pm-summary-metric:nth-child(n + 3)) {
+      border-top: 1px solid var(--pm-line);
     }
   }
 </style>
