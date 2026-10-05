@@ -52,8 +52,6 @@ import '../styles/packmetry-workspace.css';
     min-height: 445px;
   }
 
-  /* setup header */
-
   .pm-personal-page :global(.pm-pane-header) {
     gap: 22px;
   }
@@ -89,8 +87,6 @@ import '../styles/packmetry-workspace.css';
     color: var(--pm-ink-soft);
     font-size: 0.7rem;
   }
-
-  /* setup sections */
 
   .pm-personal-page :global(.pm-form-section) {
     padding: 18px 0;
@@ -175,8 +171,6 @@ import '../styles/packmetry-workspace.css';
     font-size: 0.87rem;
   }
 
-  /* workflow controls */
-
   .pm-personal-page :global(.pm-mode-selector) {
     gap: 2px;
   }
@@ -202,8 +196,6 @@ import '../styles/packmetry-workspace.css';
     font-size: 0.75rem;
   }
 
-  /* secondary controls */
-
   .pm-personal-page :global(.pm-add-button) {
     min-height: 37px;
     padding: 6px 11px;
@@ -221,8 +213,6 @@ import '../styles/packmetry-workspace.css';
     padding-top: 8px;
     font-size: 0.76rem;
   }
-
-  /* recent plans at top of result surface */
 
   .pm-personal-page
     :global(
@@ -244,8 +234,6 @@ import '../styles/packmetry-workspace.css';
     min-height: 0;
     padding: 0 0 7px;
   }
-
-  /* packing summary */
 
   .pm-personal-page
     :global(.pm-summary-metrics) {
@@ -270,13 +258,6 @@ import '../styles/packmetry-workspace.css';
     ) {
     border-top: 1px solid var(--pm-line);
   }
-
-  /*
-   * ResultSummary intentionally has a semantic
-   * rationale section. Give it its own visual
-   * breathing room instead of letting the kicker
-   * sit directly against the metrics border.
-   */
 
   .pm-personal-page
     :global(.pm-summary-rationale) {
@@ -312,8 +293,6 @@ import '../styles/packmetry-workspace.css';
     font-size: 0.82rem;
     line-height: 1.55;
   }
-
-  /* Save / Share are actions, not selection tabs */
 
   .pm-personal-page
     :global(
@@ -361,8 +340,6 @@ import '../styles/packmetry-workspace.css';
     margin-top: 13px;
   }
 
-  /* 3D result separation */
-
   .pm-personal-page
     :global(.pm-plan-output > .pm-viz) {
     margin-top: 21px;
@@ -378,8 +355,6 @@ import '../styles/packmetry-workspace.css';
     :global(.pm-viz-caption) {
     margin-top: 9px;
   }
-
-  /* primary action */
 
   .pm-personal-page :global(.pm-submit-area) {
     padding-top: 18px;
@@ -415,38 +390,106 @@ import '../styles/packmetry-workspace.css';
   @media (max-width: 639px) {
     .pm-personal-page :global(.pm-workspace) {
       width: calc(100% - 32px);
-      padding-top: 22px;
+      padding-top: 20px;
+    }
+
+    .pm-personal-page :global(.pm-app-header) {
+      padding-bottom: 18px;
+    }
+
+    .pm-personal-page :global(.pm-workbench) {
+      gap: 16px;
+      padding-top: 16px;
     }
 
     .pm-personal-page :global(.pm-setup-pane),
     .pm-personal-page :global(.pm-result-pane) {
-      padding: 18px;
+      padding: 16px;
     }
 
     .pm-personal-page :global(.pm-pane-header) {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns:
+        minmax(0, 1fr)
+        auto;
       gap: 10px;
+      align-items: start;
     }
 
     .pm-personal-page :global(.pm-unit-note) {
-      justify-content: flex-start;
+      justify-content: flex-end;
+    }
+
+    .pm-personal-page :global(.pm-form-section) {
+      padding: 15px 0;
     }
 
     .pm-personal-page
       :global(.pm-carton-fields),
     .pm-personal-page
       :global(.pm-measurement-grid) {
-      grid-template-columns: 1fr;
+      grid-template-columns:
+        repeat(
+          2,
+          minmax(0, 1fr)
+        );
+      gap: 8px;
+    }
+
+    .pm-personal-page
+      :global(
+        .pm-measurement-grid
+        .pm-field:last-child
+      ) {
+      grid-column: auto;
     }
 
     .pm-personal-page :global(.pm-mode-selector) {
-      grid-template-columns: 1fr;
+      grid-template-columns:
+        repeat(
+          3,
+          minmax(0, 1fr)
+        );
     }
 
     .pm-personal-page :global(.pm-mode-option) {
-      min-height: 42px;
-      text-align: left;
+      min-height: 44px;
+      padding: 6px 5px;
+      font-size: 0.69rem;
+      text-align: center;
+    }
+
+    .pm-personal-page :global(.pm-field-label) {
+      font-size: 0.69rem;
+    }
+
+    .pm-personal-page :global(.pm-number-input) {
+      height: 40px;
+    }
+
+    .pm-personal-page :global(.pm-add-button) {
+      min-height: 36px;
+    }
+
+    .pm-personal-page :global(.pm-result-pane) {
+      min-height: 340px;
+    }
+
+    .pm-personal-page :global(.pm-empty-result) {
+      min-height: 300px;
+    }
+
+    .pm-personal-page :global(.pm-summary-header) {
+      display: grid;
+      grid-template-columns:
+        1fr auto;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .pm-personal-page :global(.pm-summary-status) {
+      width: fit-content;
+      justify-self: end;
     }
 
     .pm-personal-page
@@ -473,6 +516,27 @@ import '../styles/packmetry-workspace.css';
     .pm-personal-page
       :global(.pm-summary-metric:nth-child(n + 3)) {
       border-top: 1px solid var(--pm-line);
+    }
+
+    .pm-personal-page :global(.pm-viz-canvas) {
+      min-height: 270px;
+    }
+  }
+
+  @media (max-width: 359px) {
+    .pm-personal-page
+      :global(.pm-carton-fields),
+    .pm-personal-page
+      :global(.pm-measurement-grid) {
+      grid-template-columns: 1fr;
+    }
+
+    .pm-personal-page :global(.pm-mode-selector) {
+      grid-template-columns: 1fr;
+    }
+
+    .pm-personal-page :global(.pm-mode-option) {
+      text-align: left;
     }
   }
 </style>

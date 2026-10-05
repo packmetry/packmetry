@@ -340,6 +340,195 @@ function isCurrent(path: string) {
       flex-direction: column;
       gap: 2px;
     }
+
+    /*
+     * Mobile workspace polish.
+     * Keep desktop route design untouched while making
+     * 360–639px screens substantially less tall.
+     */
+
+    .pm-personal-page :where(.pm-workbench),
+    .pm-business-page :where(.pm-workbench) {
+      gap: 16px !important;
+      padding-top: 16px !important;
+    }
+
+    .pm-personal-page :where(.pm-setup-pane),
+    .pm-personal-page :where(.pm-result-pane),
+    .pm-business-page :where(.pm-setup-pane),
+    .pm-business-page :where(.pm-result-pane) {
+      padding: 16px !important;
+    }
+
+    .pm-personal-page :where(.pm-form-section),
+    .pm-business-page :where(.pm-form-section) {
+      padding-top: 15px !important;
+      padding-bottom: 15px !important;
+    }
+
+    .pm-personal-page :where(.pm-summary-status),
+    .pm-business-page :where(.pm-summary-status) {
+      width: fit-content;
+      justify-self: start;
+    }
+
+    .pm-personal-page :where(.pm-empty-result),
+    .pm-business-page :where(.pm-empty-result) {
+      min-height: 300px !important;
+    }
+
+    .pm-personal-page :where(.pm-result-pane),
+    .pm-business-page :where(.pm-result-pane) {
+      min-height: 340px !important;
+    }
+
+    .pm-personal-page :where(.pm-add-button),
+    .pm-business-page :where(.pm-add-button) {
+      min-height: 36px !important;
+    }
+
+    .pm-personal-page :where(.pm-number-input),
+    .pm-business-page :where(.pm-number-input) {
+      height: 40px !important;
+    }
+  }
+
+  @media (min-width: 360px) and (max-width: 639px) {
+    /*
+     * Personal: keep the compact desktop relationships
+     * instead of turning every control into a full row.
+     */
+
+    .pm-personal-page :where(.pm-mode-selector) {
+      grid-template-columns:
+        repeat(
+          3,
+          minmax(0, 1fr)
+        ) !important;
+    }
+
+    .pm-personal-page :where(.pm-mode-option) {
+      min-height: 44px !important;
+      padding: 6px 5px !important;
+      font-size: 0.69rem !important;
+      text-align: center !important;
+    }
+
+    .pm-personal-page
+      :where(
+        .pm-measurement-grid,
+        .pm-carton-fields
+      ) {
+      grid-template-columns:
+        repeat(
+          2,
+          minmax(0, 1fr)
+        ) !important;
+    }
+
+    .pm-personal-page
+      :where(
+        .pm-measurement-grid
+        .pm-field:last-child
+      ) {
+      grid-column: auto !important;
+    }
+
+    .pm-personal-page :where(.pm-field-label) {
+      font-size: 0.69rem !important;
+    }
+
+    /*
+     * Business: two-column data entry cuts a large amount
+     * of scrolling while preserving readable touch targets.
+     */
+
+    .pm-business-page
+      :where(
+        .pm-carton-fields,
+        .pm-measurement-grid
+      ) {
+      grid-template-columns:
+        repeat(
+          2,
+          minmax(0, 1fr)
+        ) !important;
+    }
+
+    .pm-business-page :where(.pm-mode-selector) {
+      grid-template-columns:
+        repeat(
+          2,
+          minmax(0, 1fr)
+        ) !important;
+    }
+
+    .pm-business-page
+      :where(
+        .pm-mode-selector[
+          aria-label^="Handling"
+        ]
+      ) {
+      grid-template-columns:
+        repeat(
+          3,
+          minmax(0, 1fr)
+        ) !important;
+    }
+
+    .pm-business-page :where(.pm-mode-option) {
+      min-height: 43px !important;
+      padding: 6px 5px !important;
+      font-size: 0.68rem !important;
+      text-align: center !important;
+    }
+
+    .pm-business-page :where(.pm-field-label) {
+      font-size: 0.68rem !important;
+    }
+
+    .pm-business-page
+      :where(
+        .pm-business-disclosure-summary
+      ) {
+      min-height: 54px !important;
+    }
+
+    .pm-business-page
+      :where(
+        .pm-business-disclosure-summary strong
+      ) {
+      font-size: 0.88rem !important;
+    }
+
+    .pm-business-page
+      :where(
+        .pm-business-disclosure-summary small
+      ) {
+      font-size: 0.68rem !important;
+    }
+  }
+
+  @media (max-width: 359px) {
+    .pm-site-header-inner {
+      width: calc(100% - 24px);
+    }
+
+    .pm-site-brand {
+      gap: 6px;
+      font-size: 0.88rem;
+    }
+
+    .pm-site-mark {
+      width: 21px;
+      height: 21px;
+    }
+
+    .pm-site-nav a {
+      padding-right: 6px;
+      padding-left: 6px;
+      font-size: 0.7rem;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

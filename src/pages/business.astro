@@ -326,8 +326,6 @@ import '../styles/packmetry-workspace.css';
     font-size: 0.86rem;
   }
 
-  /* solved result hierarchy */
-
   .pm-business-page
     :global(
       .pm-result-pane >
@@ -482,18 +480,39 @@ import '../styles/packmetry-workspace.css';
   @media (max-width: 639px) {
     .pm-business-page :global(.pm-workspace) {
       width: calc(100% - 32px);
-      padding-top: 22px;
+      padding-top: 20px;
+    }
+
+    .pm-business-page :global(.pm-app-header) {
+      padding-bottom: 18px;
+    }
+
+    .pm-business-page :global(.pm-workbench) {
+      gap: 16px;
+      padding-top: 16px;
     }
 
     .pm-business-page :global(.pm-setup-pane),
     .pm-business-page :global(.pm-result-pane) {
-      padding: 18px;
+      padding: 16px;
+    }
+
+    .pm-business-page :global(.pm-form-section) {
+      padding: 14px 0;
     }
 
     .pm-business-page
       :global(.pm-carton-fields),
     .pm-business-page
-      :global(.pm-measurement-grid),
+      :global(.pm-measurement-grid) {
+      grid-template-columns:
+        repeat(
+          2,
+          minmax(0, 1fr)
+        );
+      gap: 8px;
+    }
+
     .pm-business-page
       :global(.pm-business-project-save-row),
     .pm-business-page
@@ -505,24 +524,46 @@ import '../styles/packmetry-workspace.css';
       :global(
         .pm-mode-selector[aria-label^="Handling"]
       ) {
-      grid-template-columns: 1fr;
+      grid-template-columns:
+        repeat(
+          3,
+          minmax(0, 1fr)
+        );
     }
 
     .pm-business-page :global(.pm-mode-selector) {
-      grid-template-columns: 1fr;
+      grid-template-columns:
+        repeat(
+          2,
+          minmax(0, 1fr)
+        );
     }
 
     .pm-business-page :global(.pm-mode-option) {
-      min-height: 42px;
-      text-align: left;
+      min-height: 43px;
+      padding: 6px 5px;
+      font-size: 0.68rem;
+      text-align: center;
+    }
+
+    .pm-business-page :global(.pm-field-label) {
+      font-size: 0.68rem;
+    }
+
+    .pm-business-page :global(.pm-number-input) {
+      height: 40px;
+    }
+
+    .pm-business-page :global(.pm-add-button) {
+      min-height: 36px;
     }
 
     .pm-business-page
       :global(.pm-business-disclosure-summary) {
-      align-items: flex-start;
-      flex-wrap: wrap;
+      min-height: 54px;
+      align-items: center;
       gap: 8px 12px;
-      padding: 6px 0;
+      padding: 4px 0;
     }
 
     .pm-business-page
@@ -533,6 +574,27 @@ import '../styles/packmetry-workspace.css';
     .pm-business-page
       :global(.pm-business-save-project-button) {
       width: 100%;
+    }
+
+    .pm-business-page :global(.pm-result-pane) {
+      min-height: 330px;
+    }
+
+    .pm-business-page :global(.pm-empty-result) {
+      min-height: 290px;
+    }
+
+    .pm-business-page :global(.pm-summary-header) {
+      display: grid;
+      grid-template-columns:
+        1fr auto;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .pm-business-page :global(.pm-summary-status) {
+      width: fit-content;
+      justify-self: end;
     }
 
     .pm-business-page
@@ -559,6 +621,28 @@ import '../styles/packmetry-workspace.css';
     .pm-business-page
       :global(.pm-summary-metric:nth-child(n + 3)) {
       border-top: 1px solid var(--pm-line);
+    }
+
+    .pm-business-page :global(.pm-viz-canvas) {
+      min-height: 270px;
+    }
+  }
+
+  @media (max-width: 359px) {
+    .pm-business-page
+      :global(.pm-carton-fields),
+    .pm-business-page
+      :global(.pm-measurement-grid),
+    .pm-business-page :global(.pm-mode-selector),
+    .pm-business-page
+      :global(
+        .pm-mode-selector[aria-label^="Handling"]
+      ) {
+      grid-template-columns: 1fr;
+    }
+
+    .pm-business-page :global(.pm-mode-option) {
+      text-align: left;
     }
   }
 </style>
