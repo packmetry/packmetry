@@ -2976,162 +2976,156 @@ export default function BusinessWorkspace({
             />
           </section>
 
-          <section className="pm-form-section">
-            <div className="pm-form-section-heading">
-              <span className="pm-section-number">
-                03
-              </span>
-
-              <div>
-                <h3>
+          <details className="pm-form-section pm-business-disclosure">
+            <summary className="pm-business-disclosure-summary">
+              <span>
+                <strong>
                   Dimensional weight
-                </h3>
+                </strong>
 
-                <p>
-                  Optionally configure an
-                  explicit DIM divisor and
-                  its units. Packmetry does
-                  not assume a carrier
-                  divisor.
-                </p>
-              </div>
-            </div>
-
-            <div className="pm-context-note">
-              <strong>
-                Explicit divisor only
-              </strong>
-
-              <span>
-                Enter the divisor used by
-                your carrier or workflow.
-                External carton dimensions
-                are required for DIM
-                metrics. Leave the divisor
-                blank to disable DIM
-                calculations.
+                <small>
+                  Optional divisor and units for DIM analysis
+                </small>
               </span>
 
-              <span>
-                Core DIM calculations do
-                not apply carrier billing
-                rounding, service rules,
-                rates, or shipping prices.
+              <span className="pm-business-disclosure-state">
+                {dimensionalWeightValues.divisorValue !== undefined
+                  ? 'Configured'
+                  : 'Optional'}
               </span>
-            </div>
+            </summary>
 
-            <div className="pm-carton-fields">
-              <label className="pm-field">
-                <span className="pm-field-label">
-                  DIM divisor value
-                  (optional)
+            <div className="pm-business-disclosure-body">
+              <div className="pm-context-note">
+                <strong>
+                  Explicit divisor only
+                </strong>
+
+                <span>
+                  Packmetry does not assume a carrier divisor. Enter the divisor used by your carrier or workflow. External carton dimensions are required for DIM metrics. Leave the divisor blank to disable DIM calculations.
                 </span>
 
-                <input
-                  className="pm-number-input"
-                  type="number"
-                  min="0.001"
-                  step="any"
-                  value={
-                    dimensionalWeightValues
-                      .divisorValue ??
-                    ''
-                  }
-                  onChange={event =>
-                    updateDimensionalWeight(
-                      {
-                        divisorValue:
-                          optionalNumber(
+                <span>
+                  Core DIM calculations do
+                  not apply carrier billing
+                  rounding, service rules,
+                  rates, or shipping prices.
+                </span>
+              </div>
+
+              <div className="pm-carton-fields">
+                <label className="pm-field">
+                  <span className="pm-field-label">
+                    DIM divisor value
+                    (optional)
+                  </span>
+
+                  <input
+                    className="pm-number-input"
+                    type="number"
+                    min="0.001"
+                    step="any"
+                    value={
+                      dimensionalWeightValues
+                        .divisorValue ??
+                      ''
+                    }
+                    onChange={event =>
+                      updateDimensionalWeight(
+                        {
+                          divisorValue:
+                            optionalNumber(
+                              event
+                                .currentTarget
+                                .value
+                            ),
+                        }
+                      )
+                    }
+                  />
+                </label>
+
+                <label className="pm-field">
+                  <span className="pm-field-label">
+                    Divisor length unit
+                  </span>
+
+                  <select
+                    className="pm-number-input"
+                    value={
+                      dimensionalWeightValues
+                        .lengthUnit
+                    }
+                    onChange={event =>
+                      updateDimensionalWeight(
+                        {
+                          lengthUnit:
                             event
                               .currentTarget
-                              .value
-                          ),
-                      }
-                    )
-                  }
-                />
-              </label>
+                              .value as
+                              LengthUnit,
+                        }
+                      )
+                    }
+                  >
+                    <option value="mm">
+                      Millimeters (mm)
+                    </option>
+                    <option value="cm">
+                      Centimeters (cm)
+                    </option>
+                    <option value="m">
+                      Meters (m)
+                    </option>
+                    <option value="in">
+                      Inches (in)
+                    </option>
+                    <option value="ft">
+                      Feet (ft)
+                    </option>
+                  </select>
+                </label>
 
-              <label className="pm-field">
-                <span className="pm-field-label">
-                  Divisor length unit
-                </span>
+                <label className="pm-field">
+                  <span className="pm-field-label">
+                    Divisor mass unit
+                  </span>
 
-                <select
-                  className="pm-number-input"
-                  value={
-                    dimensionalWeightValues
-                      .lengthUnit
-                  }
-                  onChange={event =>
-                    updateDimensionalWeight(
-                      {
-                        lengthUnit:
-                          event
-                            .currentTarget
-                            .value as
-                            LengthUnit,
-                      }
-                    )
-                  }
-                >
-                  <option value="mm">
-                    Millimeters (mm)
-                  </option>
-                  <option value="cm">
-                    Centimeters (cm)
-                  </option>
-                  <option value="m">
-                    Meters (m)
-                  </option>
-                  <option value="in">
-                    Inches (in)
-                  </option>
-                  <option value="ft">
-                    Feet (ft)
-                  </option>
-                </select>
-              </label>
-
-              <label className="pm-field">
-                <span className="pm-field-label">
-                  Divisor mass unit
-                </span>
-
-                <select
-                  className="pm-number-input"
-                  value={
-                    dimensionalWeightValues
-                      .massUnit
-                  }
-                  onChange={event =>
-                    updateDimensionalWeight(
-                      {
-                        massUnit:
-                          event
-                            .currentTarget
-                            .value as
-                            MassUnit,
-                      }
-                    )
-                  }
-                >
-                  <option value="g">
-                    Grams (g)
-                  </option>
-                  <option value="kg">
-                    Kilograms (kg)
-                  </option>
-                  <option value="oz">
-                    Ounces (oz)
-                  </option>
-                  <option value="lb">
-                    Pounds (lb)
-                  </option>
-                </select>
-              </label>
+                  <select
+                    className="pm-number-input"
+                    value={
+                      dimensionalWeightValues
+                        .massUnit
+                    }
+                    onChange={event =>
+                      updateDimensionalWeight(
+                        {
+                          massUnit:
+                            event
+                              .currentTarget
+                              .value as
+                              MassUnit,
+                        }
+                      )
+                    }
+                  >
+                    <option value="g">
+                      Grams (g)
+                    </option>
+                    <option value="kg">
+                      Kilograms (kg)
+                    </option>
+                    <option value="oz">
+                      Ounces (oz)
+                    </option>
+                    <option value="lb">
+                      Pounds (lb)
+                    </option>
+                  </select>
+                </label>
+              </div>
             </div>
-          </section>
+          </details>
 
           <section className="pm-form-section">
             <div className="pm-form-section-heading">
@@ -3211,108 +3205,110 @@ export default function BusinessWorkspace({
             </div>
           </section>
 
-          <section className="pm-form-section">
-            <div className="pm-form-section-heading">
-              <span className="pm-section-number">
-                05
+          <details className="pm-form-section pm-business-disclosure">
+            <summary className="pm-business-disclosure-summary">
+              <span>
+                <strong>
+                  Project & backup
+                </strong>
+
+                <small>
+                  Save locally, export JSON, or reopen recent work
+                </small>
               </span>
 
-              <div>
-                <h3>
-                  Project
-                </h3>
-
-                <p>
-                  Save this Business setup
-                  in this browser, export a
-                  JSON backup, import a
-                  backup, or reopen a recent
-                  project.
-                </p>
-              </div>
-            </div>
-
-            <label className="pm-field">
-              <span className="pm-field-label">
-                Project name
+              <span className="pm-business-disclosure-state">
+                {recentProjects.length > 0
+                  ? `${recentProjects.length} recent`
+                  : 'Local tools'}
               </span>
+            </summary>
 
-              <input
-                className="pm-number-input"
-                type="text"
-                value={projectName}
-                placeholder="e.g. October orders"
-                onChange={event => {
-                  setProjectName(
-                    event.currentTarget
-                      .value
-                  );
-                  setProjectMessage(
-                    null
-                  );
-                }}
-              />
-            </label>
+            <div className="pm-business-disclosure-body">
+              <div className="pm-business-project-save-row">
+                <label className="pm-field">
+                  <span className="pm-field-label">
+                    Project name
+                  </span>
 
-            <button
-              type="button"
-              className="pm-add-button"
-              onClick={() => {
-                void saveCurrentProject();
-              }}
-            >
-              Save project
-            </button>
+                  <input
+                    className="pm-number-input"
+                    type="text"
+                    value={projectName}
+                    placeholder="e.g. October orders"
+                    onChange={event => {
+                      setProjectName(
+                        event.currentTarget
+                          .value
+                      );
+                      setProjectMessage(
+                        null
+                      );
+                    }}
+                  />
+                </label>
 
-            <div className="pm-carton-fields">
-              <button
-                type="button"
-                className="pm-add-button"
-                onClick={
-                  exportCurrentProject
-                }
-              >
-                Export project JSON
-              </button>
-
-              <label className="pm-field">
-                <span className="pm-field-label">
-                  Import project JSON
-                </span>
-
-                <input
-                  className="pm-number-input"
-                  type="file"
-                  accept=".json,application/json"
-                  onChange={event => {
-                    void importProjectJson(
-                      event
-                    );
+                <button
+                  type="button"
+                  className="pm-add-button pm-business-save-project-button"
+                  onClick={() => {
+                    void saveCurrentProject();
                   }}
-                />
-              </label>
+                >
+                  Save project
+                </button>
+              </div>
+
+              <div className="pm-business-project-actions">
+                <button
+                  type="button"
+                  className="pm-add-button"
+                  onClick={
+                    exportCurrentProject
+                  }
+                >
+                  Export project JSON
+                </button>
+
+                <label className="pm-field pm-business-import-field">
+                  <span className="pm-field-label">
+                    Import project JSON
+                  </span>
+
+                  <input
+                    className="pm-number-input"
+                    type="file"
+                    accept=".json,application/json"
+                    onChange={event => {
+                      void importProjectJson(
+                        event
+                      );
+                    }}
+                  />
+                </label>
+              </div>
+
+              <p className="pm-submit-note">
+                Imported projects are
+                restored to this workspace
+                only. Use Save project to
+                keep one in recent
+                projects.
+              </p>
+
+              <BusinessRecentProjects
+                projects={
+                  recentProjects
+                }
+                message={
+                  projectMessage
+                }
+                onOpen={
+                  openRecentProject
+                }
+              />
             </div>
-
-            <p className="pm-submit-note">
-              Imported projects are
-              restored to this workspace
-              only. Use Save project to
-              keep one in recent
-              projects.
-            </p>
-
-            <BusinessRecentProjects
-              projects={
-                recentProjects
-              }
-              message={
-                projectMessage
-              }
-              onOpen={
-                openRecentProject
-              }
-            />
-          </section>
+          </details>
 
           <div className="pm-submit-area">
             <button

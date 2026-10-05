@@ -4,6 +4,403 @@ import BusinessWorkspace from '../components/BusinessWorkspace';
 import '../styles/packmetry-workspace.css';
 ---
 
-<BaseLayout>
-  <BusinessWorkspace client:load />
+<BaseLayout
+  title="Packmetry Business — Carton inventory packing"
+  description="Optimize verified packing plans against your carton inventory, product quantities, weights, costs and dimensional-weight settings."
+>
+  <div class="pm-business-page">
+    <BusinessWorkspace client:load />
+  </div>
 </BaseLayout>
+
+<style>
+  .pm-business-page :global(.pm-workspace) {
+    width: min(
+      calc(100% - 48px),
+      1380px
+    );
+    padding-top: 34px;
+  }
+
+  .pm-business-page :global(.pm-app-header) {
+    max-width: 820px;
+    padding-bottom: 24px;
+  }
+
+  .pm-business-page :global(.pm-app-header h1) {
+    max-width: 720px;
+  }
+
+  .pm-business-page :global(.pm-app-intro) {
+    max-width: 720px;
+  }
+
+  .pm-business-page :global(.pm-workbench) {
+    grid-template-columns:
+      minmax(560px, 1.18fr)
+      minmax(420px, 0.82fr);
+    gap: 22px;
+    padding-top: 22px;
+  }
+
+  .pm-business-page :global(.pm-setup-pane) {
+    padding: 22px 24px 24px;
+  }
+
+  .pm-business-page :global(.pm-result-pane) {
+    min-height: 430px;
+    padding: 24px;
+  }
+
+  .pm-business-page :global(.pm-empty-result) {
+    min-height: 375px;
+  }
+
+  .pm-business-page :global(.pm-form-section) {
+    padding: 17px 0;
+  }
+
+  .pm-business-page :global(.pm-form-section-heading) {
+    gap: 0;
+    margin-bottom: 12px;
+  }
+
+  .pm-business-page :global(.pm-section-number) {
+    display: none;
+  }
+
+  .pm-business-page
+    :global(.pm-form-section-heading h3) {
+    font-size: 0.96rem;
+  }
+
+  .pm-business-page
+    :global(.pm-form-section-heading p) {
+    max-width: 620px;
+    margin-top: 3px;
+    font-size: 0.75rem;
+    line-height: 1.42;
+  }
+
+  .pm-business-page :global(.pm-context-note) {
+    gap: 2px;
+    margin: 2px 0 14px;
+    padding: 7px 0 7px 10px;
+    font-size: 0.74rem;
+    line-height: 1.42;
+  }
+
+  .pm-business-page :global(.pm-carton-row) {
+    padding: 11px 0 13px;
+  }
+
+  .pm-business-page
+    :global(.pm-carton-row-header) {
+    margin-bottom: 8px;
+  }
+
+  .pm-business-page
+    :global(.pm-carton-fields),
+  .pm-business-page
+    :global(.pm-measurement-grid) {
+    gap: 8px;
+  }
+
+  .pm-business-page :global(.pm-field) {
+    gap: 4px;
+  }
+
+  .pm-business-page :global(.pm-field-label) {
+    font-size: 0.73rem;
+    line-height: 1.25;
+  }
+
+  .pm-business-page :global(.pm-number-input) {
+    height: 40px;
+    padding-right: 9px;
+    padding-left: 9px;
+    font-size: 0.86rem;
+  }
+
+  .pm-business-page :global(.pm-add-button) {
+    min-height: 38px;
+    padding: 7px 12px;
+    border-radius: 7px;
+    font-size: 0.77rem;
+  }
+
+  .pm-business-page :global(.pm-remove-button) {
+    min-height: 30px;
+    padding: 3px 0 3px 10px;
+    font-size: 0.72rem;
+  }
+
+  .pm-business-page :global(.pm-mode-selector) {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+    gap: 2px;
+  }
+
+  .pm-business-page
+    :global(
+      .pm-mode-selector[aria-label^="Handling"]
+    ) {
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
+  }
+
+  .pm-business-page :global(.pm-mode-option) {
+    min-height: 38px;
+    padding: 6px 8px;
+    font-size: 0.76rem;
+  }
+
+  .pm-business-page :global(.pm-mode-explainer) {
+    margin-top: 9px;
+    padding-left: 10px;
+  }
+
+  .pm-business-page
+    :global(.pm-mode-explainer strong) {
+    font-size: 0.81rem;
+  }
+
+  .pm-business-page
+    :global(.pm-mode-explainer span) {
+    font-size: 0.74rem;
+  }
+
+  .pm-business-page
+    :global(.pm-business-disclosure) {
+    margin: 0;
+  }
+
+  .pm-business-page
+    :global(.pm-business-disclosure-summary) {
+    display: flex;
+    min-height: 58px;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: center;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .pm-business-page
+    :global(.pm-business-disclosure-summary::-webkit-details-marker) {
+    display: none;
+  }
+
+  .pm-business-page
+    :global(.pm-business-disclosure-summary > span:first-child) {
+    display: grid;
+    gap: 2px;
+  }
+
+  .pm-business-page
+    :global(.pm-business-disclosure-summary strong) {
+    color: var(--pm-ink-strong);
+    font-size: 0.94rem;
+    font-weight: 720;
+  }
+
+  .pm-business-page
+    :global(.pm-business-disclosure-summary small) {
+    color: var(--pm-ink-soft);
+    font-size: 0.72rem;
+    line-height: 1.35;
+  }
+
+  .pm-business-page
+    :global(.pm-business-disclosure-state) {
+    flex: none;
+    border: 1px solid var(--pm-line);
+    border-radius: 999px;
+    padding: 3px 8px;
+    background: var(--pm-surface-soft);
+    color: var(--pm-ink-soft);
+    font-size: 0.67rem;
+    font-weight: 680;
+  }
+
+  .pm-business-page
+    :global(.pm-business-disclosure-summary::after) {
+    flex: 0 0 auto;
+    margin-left: -8px;
+    color: var(--pm-ink-soft);
+    content: "+";
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .pm-business-page
+    :global(.pm-business-disclosure[open] > .pm-business-disclosure-summary::after) {
+    content: "−";
+  }
+
+  .pm-business-page
+    :global(.pm-business-disclosure-body) {
+    padding: 3px 0 2px;
+  }
+
+  .pm-business-page
+    :global(.pm-business-disclosure-body > .pm-context-note:first-child) {
+    margin-top: 0;
+  }
+
+  .pm-business-page
+    :global(.pm-business-project-save-row) {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto;
+    gap: 9px;
+    align-items: end;
+  }
+
+  .pm-business-page
+    :global(.pm-business-save-project-button) {
+    min-width: 112px;
+  }
+
+  .pm-business-page
+    :global(.pm-business-project-actions) {
+    display: grid;
+    grid-template-columns:
+      minmax(150px, 0.7fr)
+      minmax(0, 1.3fr);
+    gap: 9px;
+    align-items: end;
+    margin-top: 10px;
+  }
+
+  .pm-business-page
+    :global(.pm-business-project-actions > .pm-add-button) {
+    width: 100%;
+  }
+
+  .pm-business-page
+    :global(input[type="file"].pm-number-input) {
+    height: 40px;
+    padding: 4px;
+    color: var(--pm-ink-soft);
+    font-size: 0.72rem;
+  }
+
+  .pm-business-page
+    :global(
+      input[type="file"].pm-number-input::file-selector-button
+    ) {
+    height: 30px;
+    margin-right: 9px;
+    border: 1px solid var(--pm-line-strong);
+    border-radius: 6px;
+    padding: 0 9px;
+    background: var(--pm-surface-soft);
+    color: var(--pm-ink);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 680;
+  }
+
+  .pm-business-page
+    :global(
+      input[type="file"].pm-number-input::file-selector-button:hover
+    ) {
+    background: var(--pm-surface);
+  }
+
+  .pm-business-page :global(.pm-submit-area) {
+    padding-top: 17px;
+  }
+
+  .pm-business-page :global(.pm-primary-button) {
+    min-height: 46px;
+    border-radius: 8px;
+    font-size: 0.86rem;
+  }
+
+  @media (max-width: 1099px) {
+    .pm-business-page :global(.pm-workspace) {
+      width: min(
+        calc(100% - 40px),
+        940px
+      );
+    }
+
+    .pm-business-page :global(.pm-workbench) {
+      grid-template-columns: 1fr;
+    }
+
+    .pm-business-page :global(.pm-result-pane) {
+      min-height: 400px;
+    }
+
+    .pm-business-page :global(.pm-empty-result) {
+      min-height: 340px;
+    }
+  }
+
+  @media (max-width: 639px) {
+    .pm-business-page :global(.pm-workspace) {
+      width: calc(100% - 32px);
+      padding-top: 22px;
+    }
+
+    .pm-business-page :global(.pm-setup-pane),
+    .pm-business-page :global(.pm-result-pane) {
+      padding: 18px;
+    }
+
+    .pm-business-page
+      :global(.pm-carton-fields),
+    .pm-business-page
+      :global(.pm-measurement-grid),
+    .pm-business-page
+      :global(.pm-business-project-save-row),
+    .pm-business-page
+      :global(.pm-business-project-actions) {
+      grid-template-columns: 1fr;
+    }
+
+    .pm-business-page
+      :global(
+        .pm-mode-selector[aria-label^="Handling"]
+      ) {
+      grid-template-columns: 1fr;
+    }
+
+    .pm-business-page :global(.pm-mode-selector) {
+      grid-template-columns: 1fr;
+    }
+
+    .pm-business-page :global(.pm-mode-option) {
+      min-height: 42px;
+      text-align: left;
+    }
+
+    .pm-business-page
+      :global(.pm-business-disclosure-summary) {
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      padding: 6px 0;
+    }
+
+    .pm-business-page
+      :global(.pm-business-disclosure-state) {
+      margin-left: auto;
+    }
+
+    .pm-business-page
+      :global(.pm-business-save-project-button) {
+      width: 100%;
+    }
+  }
+</style>

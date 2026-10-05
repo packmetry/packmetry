@@ -3,87 +3,935 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import '../styles/packmetry-workspace.css';
 ---
 
-<BaseLayout>
-  <main class="pm-workspace">
-    <header class="pm-app-header">
-      <p class="pm-app-kicker">
-        Packmetry
-      </p>
+<BaseLayout
+  title="Packmetry — Practical packing decisions"
+  description="Find practical, verified packing plans for personal shipments and business carton workflows."
+>
+  <main class="pm-home">
+    <section class="pm-home-hero">
+      <div class="pm-home-hero-inner">
+        <div class="pm-home-copy">
+          <p class="pm-home-eyebrow">
+            Browser-first packing workbench
+          </p>
 
-      <h1>
-        Find the right way to pack it.
-      </h1>
+          <h1>
+            Find the right way
+            <span>to pack it.</span>
+          </h1>
 
-      <p class="pm-app-intro">
-        Tell us what you are packing and we will help you choose the right boxes,
-        use the ones you already have, and pack the space efficiently.
-      </p>
+          <p class="pm-home-lead">
+            Work out which boxes to use,
+            how your items fit, and how much
+            space the plan leaves behind —
+            without turning packing into a
+            spreadsheet exercise.
+          </p>
 
-      <p class="pm-status-label">
-        Free · No signup required · Runs in your browser
-      </p>
-    </header>
+          <div class="pm-home-actions">
+            <a
+              class="pm-home-primary-action"
+              href="/personal/"
+            >
+              Pack my items
+
+              <svg
+                viewBox="0 0 20 20"
+                aria-hidden="true"
+              >
+                <path d="M4 10h11M11 6l4 4-4 4" />
+              </svg>
+            </a>
+
+            <a
+              class="pm-home-secondary-action"
+              href="/business/"
+            >
+              Business workspace
+            </a>
+          </div>
+
+          <p class="pm-home-trust">
+            Free
+            <span aria-hidden="true">·</span>
+            No signup required
+            <span aria-hidden="true">·</span>
+            Runs in your browser
+          </p>
+        </div>
+
+        <div
+          class="pm-home-geometry"
+          aria-hidden="true"
+        >
+          <div class="pm-home-geometry-caption">
+            <span>
+              Verified packing geometry
+            </span>
+
+            <span>
+              3D arrangement
+            </span>
+          </div>
+
+          <svg
+            class="pm-home-geometry-drawing"
+            viewBox="0 0 620 430"
+          >
+            <g class="pm-home-box-outline">
+              <path d="M108 111 310 49 512 111 310 177 108 111Z" />
+              <path d="M108 111v211l202 66 202-66V111" />
+              <path d="M310 177v211" />
+            </g>
+
+            <g class="pm-home-item pm-home-item-a">
+              <path d="M138 236 226 208l86 28-88 29-86-29Z" />
+              <path d="M138 236v74l86 28 88-28v-74" />
+              <path d="M224 265v73" />
+            </g>
+
+            <g class="pm-home-item pm-home-item-b">
+              <path d="M320 235 404 209l74 24-84 27-74-25Z" />
+              <path d="M320 235v91l74 25 84-28v-90" />
+              <path d="M394 260v91" />
+            </g>
+
+            <g class="pm-home-item pm-home-item-c">
+              <path d="M177 169 276 138l81 26-99 32-81-27Z" />
+              <path d="M177 169v57l81 27 99-32v-57" />
+              <path d="M258 196v57" />
+            </g>
+
+            <g class="pm-home-dimension-lines">
+              <path d="M88 111v211" />
+              <path d="M76 111h24M76 322h24" />
+
+              <path d="M108 345 310 412" />
+              <path d="M108 333v24M310 400v24" />
+            </g>
+          </svg>
+
+          <div class="pm-home-geometry-meta">
+            <div>
+              <span>Placement</span>
+              <strong>Verified</strong>
+            </div>
+
+            <div>
+              <span>View</span>
+              <strong>Canonical plan</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <section
-      class="pm-workbench"
+      class="pm-home-choice"
       aria-label="Choose your packing experience"
     >
-      <article class="pm-pane">
-        <div class="pm-pane-header">
-          <div>
-            <p class="pm-pane-kicker">
+      <div class="pm-home-choice-heading">
+        <p>
+          Choose your packing experience
+        </p>
+
+        <h2>
+          One packing engine.
+          Two ways to work.
+        </h2>
+      </div>
+
+      <div class="pm-home-choice-surface">
+        <article class="pm-home-path">
+          <div class="pm-home-path-top">
+            <span class="pm-home-path-label">
               Home &amp; Personal
-            </p>
+            </span>
 
-            <h2>
-              Pack occasional shipments and everyday items
-            </h2>
+            <svg
+              class="pm-home-path-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="m4 10 8-6 8 6v9H4v-9Z" />
+              <path d="M9 19v-6h6v6" />
+            </svg>
           </div>
-        </div>
 
-        <p>
-          Moving, gifts, storage, household items and occasional shipping.
-        </p>
+          <h3>
+            Pack everyday items without
+            overthinking the box.
+          </h3>
 
-        <div class="pm-submit-area">
-          <a
-            class="pm-primary-button"
-            href="/personal/"
-            style="display:flex;align-items:center;justify-content:center;text-decoration:none;"
-          >
+          <p>
+            Moving, storage, gifts and
+            occasional shipping. Add what
+            you are packing and work from
+            the boxes you have — or find
+            what size you need.
+          </p>
+
+          <div class="pm-home-path-facts">
+            <span>Multiple items</span>
+            <span>Metric or imperial</span>
+            <span>3D packing view</span>
+          </div>
+
+          <a href="/personal/">
             Pack my items
+
+            <svg
+              viewBox="0 0 20 20"
+              aria-hidden="true"
+            >
+              <path d="M4 10h11M11 6l4 4-4 4" />
+            </svg>
           </a>
-        </div>
-      </article>
+        </article>
 
-      <article class="pm-pane">
-        <div class="pm-pane-header">
-          <div>
-            <p class="pm-pane-kicker">
+        <article class="pm-home-path">
+          <div class="pm-home-path-top">
+            <span class="pm-home-path-label">
               Business
-            </p>
+            </span>
 
-            <h2>
-              Optimize repeat packing against carton inventory
-            </h2>
+            <svg
+              class="pm-home-path-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="m4 7 8-4 8 4v10l-8 4-8-4V7Z" />
+              <path d="m4 7 8 4 8-4M12 11v10" />
+            </svg>
           </div>
-        </div>
 
+          <h3>
+            Make repeat packing decisions
+            against real carton inventory.
+          </h3>
+
+          <p>
+            Work with product quantities,
+            carton stock, handling rules,
+            optional weights, costs and
+            dimensional-weight inputs in
+            one verified workflow.
+          </p>
+
+          <div class="pm-home-path-facts">
+            <span>Carton inventory</span>
+            <span>Objective ranking</span>
+            <span>DIM analysis</span>
+          </div>
+
+          <a href="/business/">
+            Optimize my packing
+
+            <svg
+              viewBox="0 0 20 20"
+              aria-hidden="true"
+            >
+              <path d="M4 10h11M11 6l4 4-4 4" />
+            </svg>
+          </a>
+        </article>
+      </div>
+    </section>
+
+    <section class="pm-home-system">
+      <div class="pm-home-system-heading">
         <p>
-          Ecommerce orders, carton inventory, packaging efficiency and repeat
-          workflows.
+          Built around the packing decision
         </p>
 
-        <div class="pm-submit-area">
-          <a
-            class="pm-primary-button"
-            href="/business/"
-            style="display:flex;align-items:center;justify-content:center;text-decoration:none;"
-          >
-            Optimize my packing
-          </a>
-        </div>
-      </article>
+        <h2>
+          Start with the boxes you actually
+          have — or do not have.
+        </h2>
+      </div>
+
+      <div class="pm-home-system-copy">
+        <p>
+          Packmetry handles the three situations
+          that matter in practice:
+          <strong>find boxes to buy</strong>,
+          <strong>pack into existing boxes</strong>,
+          or
+          <strong>use existing stock and cover the remainder</strong>.
+        </p>
+
+        <p>
+          Solver candidates are independently
+          verified before a successful packing
+          result is presented. The 3D view follows
+          that verified plan instead of inventing
+          a separate arrangement.
+        </p>
+      </div>
+    </section>
+
+    <section class="pm-home-close">
+      <div>
+        <p class="pm-home-eyebrow">
+          Practical by design
+        </p>
+
+        <h2>
+          Your measurements stay useful
+          without needing an account.
+        </h2>
+      </div>
+
+      <p>
+        Personal preferences, recent packing
+        work and Business project data can stay
+        browser-local. Start with the tool you
+        need and keep the workflow as simple as
+        the job allows.
+      </p>
     </section>
   </main>
 </BaseLayout>
+
+<style>
+  .pm-home {
+    background: #fbfcfb;
+    color: var(--pm-ink);
+  }
+
+  .pm-home-hero {
+    border-bottom: 1px solid var(--pm-line);
+    background: #fbfcfb;
+  }
+
+  .pm-home-hero-inner {
+    display: grid;
+    width: min(
+      calc(100% - 40px),
+      1240px
+    );
+    min-height: 590px;
+    margin: 0 auto;
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(420px, 0.88fr);
+    gap: clamp(56px, 8vw, 116px);
+    align-items: center;
+    padding: 82px 0 86px;
+  }
+
+  .pm-home-copy {
+    max-width: 620px;
+  }
+
+  .pm-home-eyebrow {
+    margin: 0 0 19px;
+    color: var(--pm-forest);
+    font-size: 0.72rem;
+    font-weight: 730;
+    letter-spacing: 0.095em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .pm-home-copy h1 {
+    margin: 0;
+    color: var(--pm-ink-strong);
+    font-size:
+      clamp(
+        3.15rem,
+        6vw,
+        5.75rem
+      );
+    font-weight: 690;
+    letter-spacing: -0.065em;
+    line-height: 0.92;
+  }
+
+  .pm-home-copy h1 span {
+    display: block;
+    color: #4f5b5f;
+    font-weight: 560;
+  }
+
+  .pm-home-lead {
+    max-width: 570px;
+    margin: 26px 0 0;
+    color: var(--pm-ink-soft);
+    font-size: clamp(
+      1rem,
+      1.5vw,
+      1.18rem
+    );
+    line-height: 1.65;
+  }
+
+  .pm-home-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    align-items: center;
+    margin-top: 31px;
+  }
+
+  .pm-home-primary-action {
+    display: inline-flex;
+    min-height: 46px;
+    gap: 11px;
+    align-items: center;
+    border: 1px solid var(--pm-navy);
+    border-radius: 8px;
+    padding: 10px 17px;
+    background: var(--pm-navy);
+    color: #ffffff;
+    font-size: 0.86rem;
+    font-weight: 710;
+    text-decoration: none;
+    transition:
+      background 140ms ease,
+      border-color 140ms ease;
+  }
+
+  .pm-home-primary-action:hover {
+    border-color: #10283d;
+    background: #10283d;
+  }
+
+  .pm-home-primary-action svg,
+  .pm-home-path a svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.65;
+  }
+
+  .pm-home-secondary-action {
+    color: var(--pm-ink);
+    font-size: 0.86rem;
+    font-weight: 680;
+    text-decoration-color:
+      var(--pm-line-strong);
+    text-underline-offset: 5px;
+  }
+
+  .pm-home-secondary-action:hover {
+    color: var(--pm-navy);
+    text-decoration-color:
+      var(--pm-navy);
+  }
+
+  .pm-home-trust {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin: 25px 0 0;
+    color: #798184;
+    font-size: 0.73rem;
+    font-weight: 590;
+  }
+
+  .pm-home-trust span {
+    color: #b0b7b9;
+  }
+
+  .pm-home-geometry {
+    align-self: stretch;
+    display: flex;
+    min-height: 430px;
+    flex-direction: column;
+    justify-content: center;
+    border-left: 1px solid var(--pm-line);
+    padding-left: clamp(
+      35px,
+      5vw,
+      72px
+    );
+  }
+
+  .pm-home-geometry-caption {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 5px;
+    color: #7b8487;
+    font-size: 0.68rem;
+    font-weight: 650;
+  }
+
+  .pm-home-geometry-drawing {
+    display: block;
+    width: 100%;
+    max-width: 560px;
+    overflow: visible;
+  }
+
+  .pm-home-box-outline {
+    fill: rgba(
+      255,
+      255,
+      255,
+      0.18
+    );
+    stroke: #5c696d;
+    stroke-width: 1.25;
+  }
+
+  .pm-home-item {
+    stroke-linejoin: round;
+    stroke-width: 1.1;
+  }
+
+  .pm-home-item-a {
+    fill: rgba(
+      46,
+      93,
+      80,
+      0.08
+    );
+    stroke: #4d756a;
+  }
+
+  .pm-home-item-b {
+    fill: rgba(
+      24,
+      50,
+      74,
+      0.075
+    );
+    stroke: #536b7f;
+  }
+
+  .pm-home-item-c {
+    fill: rgba(
+      107,
+      119,
+      121,
+      0.055
+    );
+    stroke: #7b888b;
+  }
+
+  .pm-home-dimension-lines {
+    fill: none;
+    stroke: #bcc4c6;
+    stroke-width: 0.9;
+  }
+
+  .pm-home-geometry-meta {
+    display: grid;
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+    margin-top: 2px;
+    border-top: 1px solid var(--pm-line);
+  }
+
+  .pm-home-geometry-meta div {
+    display: grid;
+    gap: 3px;
+    padding: 13px 0 0;
+  }
+
+  .pm-home-geometry-meta div + div {
+    border-left: 1px solid var(--pm-line);
+    padding-left: 18px;
+  }
+
+  .pm-home-geometry-meta span {
+    color: #818a8d;
+    font-size: 0.67rem;
+  }
+
+  .pm-home-geometry-meta strong {
+    color: var(--pm-ink);
+    font-size: 0.78rem;
+    font-weight: 680;
+  }
+
+  .pm-home-choice {
+    width: min(
+      calc(100% - 40px),
+      1240px
+    );
+    margin: 0 auto;
+    padding: 96px 0;
+  }
+
+  .pm-home-choice-heading {
+    display: grid;
+    max-width: 690px;
+    grid-template-columns:
+      180px
+      minmax(0, 1fr);
+    gap: 32px;
+    align-items: baseline;
+    margin-bottom: 37px;
+  }
+
+  .pm-home-choice-heading p,
+  .pm-home-system-heading p {
+    margin: 0;
+    color: var(--pm-forest);
+    font-size: 0.7rem;
+    font-weight: 720;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .pm-home-choice-heading h2,
+  .pm-home-system-heading h2,
+  .pm-home-close h2 {
+    margin: 0;
+    color: var(--pm-ink-strong);
+    font-size: clamp(
+      1.8rem,
+      3vw,
+      2.75rem
+    );
+    font-weight: 630;
+    letter-spacing: -0.045em;
+    line-height: 1.06;
+  }
+
+  .pm-home-choice-surface {
+    display: grid;
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+    overflow: hidden;
+    border: 1px solid var(--pm-line-strong);
+    border-radius: 14px;
+    background: var(--pm-surface);
+  }
+
+  .pm-home-path {
+    display: flex;
+    min-height: 430px;
+    flex-direction: column;
+    padding:
+      clamp(30px, 4vw, 48px);
+  }
+
+  .pm-home-path + .pm-home-path {
+    border-left: 1px solid var(--pm-line);
+  }
+
+  .pm-home-path-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    align-items: center;
+  }
+
+  .pm-home-path-label {
+    color: var(--pm-forest);
+    font-size: 0.74rem;
+    font-weight: 730;
+    letter-spacing: 0.075em;
+    text-transform: uppercase;
+  }
+
+  .pm-home-path-icon {
+    width: 27px;
+    height: 27px;
+    fill: none;
+    stroke: #758185;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.35;
+  }
+
+  .pm-home-path h3 {
+    max-width: 500px;
+    margin: 52px 0 0;
+    color: var(--pm-ink-strong);
+    font-size: clamp(
+      1.55rem,
+      2.3vw,
+      2.15rem
+    );
+    font-weight: 620;
+    letter-spacing: -0.037em;
+    line-height: 1.1;
+  }
+
+  .pm-home-path > p {
+    max-width: 510px;
+    margin: 17px 0 0;
+    color: var(--pm-ink-soft);
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .pm-home-path-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px 17px;
+    margin-top: 25px;
+    color: #697376;
+    font-size: 0.72rem;
+    font-weight: 620;
+  }
+
+  .pm-home-path-facts span {
+    position: relative;
+  }
+
+  .pm-home-path-facts span +
+  span::before {
+    margin-right: 17px;
+    color: #c2c8ca;
+    content: "·";
+  }
+
+  .pm-home-path a {
+    display: inline-flex;
+    width: fit-content;
+    gap: 10px;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 37px;
+    color: var(--pm-navy);
+    font-size: 0.86rem;
+    font-weight: 720;
+    text-decoration: none;
+  }
+
+  .pm-home-path a:hover {
+    color: var(--pm-forest);
+  }
+
+  .pm-home-system {
+    display: grid;
+    width: min(
+      calc(100% - 40px),
+      1240px
+    );
+    margin: 0 auto;
+    grid-template-columns:
+      minmax(0, 0.9fr)
+      minmax(0, 1.1fr);
+    gap: clamp(
+      50px,
+      8vw,
+      110px
+    );
+    padding: 91px 0;
+    border-top: 1px solid var(--pm-line);
+  }
+
+  .pm-home-system-heading p {
+    margin-bottom: 14px;
+  }
+
+  .pm-home-system-copy {
+    display: grid;
+    align-content: center;
+    gap: 24px;
+  }
+
+  .pm-home-system-copy p {
+    margin: 0;
+    color: var(--pm-ink-soft);
+    font-size: 0.92rem;
+    line-height: 1.72;
+  }
+
+  .pm-home-system-copy strong {
+    color: var(--pm-ink);
+    font-weight: 680;
+  }
+
+  .pm-home-close {
+    display: grid;
+    width: min(
+      calc(100% - 40px),
+      1240px
+    );
+    margin: 0 auto 72px;
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(300px, 0.72fr);
+    gap: clamp(
+      44px,
+      8vw,
+      100px
+    );
+    align-items: end;
+    border: 1px solid #dbe2df;
+    border-radius: 14px;
+    padding:
+      clamp(30px, 5vw, 58px);
+    background: #f4f7f5;
+  }
+
+  .pm-home-close .pm-home-eyebrow {
+    margin-bottom: 12px;
+  }
+
+  .pm-home-close p:last-child {
+    margin: 0;
+    color: var(--pm-ink-soft);
+    font-size: 0.88rem;
+    line-height: 1.65;
+  }
+
+  @media (max-width: 959px) {
+    .pm-home-hero-inner {
+      min-height: 0;
+      grid-template-columns: 1fr;
+      gap: 60px;
+      padding: 68px 0;
+    }
+
+    .pm-home-copy {
+      max-width: 690px;
+    }
+
+    .pm-home-geometry {
+      min-height: 0;
+      border-top: 1px solid var(--pm-line);
+      border-left: 0;
+      padding-top: 42px;
+      padding-left: 0;
+    }
+
+    .pm-home-geometry-drawing {
+      max-width: 620px;
+      margin: 0 auto;
+    }
+
+    .pm-home-choice {
+      padding: 74px 0;
+    }
+
+    .pm-home-choice-heading {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .pm-home-system {
+      grid-template-columns: 1fr;
+      gap: 32px;
+      padding: 72px 0;
+    }
+
+    .pm-home-close {
+      grid-template-columns: 1fr;
+      gap: 26px;
+      margin-bottom: 56px;
+    }
+  }
+
+  @media (max-width: 639px) {
+    .pm-home-hero-inner,
+    .pm-home-choice,
+    .pm-home-system,
+    .pm-home-close {
+      width: calc(100% - 32px);
+    }
+
+    .pm-home-hero-inner {
+      gap: 48px;
+      padding: 52px 0 58px;
+    }
+
+    .pm-home-copy h1 {
+      font-size: clamp(
+        2.85rem,
+        15vw,
+        4.2rem
+      );
+    }
+
+    .pm-home-lead {
+      margin-top: 21px;
+      font-size: 0.98rem;
+    }
+
+    .pm-home-actions {
+      align-items: stretch;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .pm-home-primary-action {
+      justify-content: center;
+    }
+
+    .pm-home-secondary-action {
+      width: fit-content;
+      padding: 5px 0;
+    }
+
+    .pm-home-geometry {
+      padding-top: 31px;
+    }
+
+    .pm-home-geometry-caption {
+      font-size: 0.63rem;
+    }
+
+    .pm-home-choice {
+      padding: 60px 0;
+    }
+
+    .pm-home-choice-surface {
+      grid-template-columns: 1fr;
+    }
+
+    .pm-home-path {
+      min-height: 0;
+      padding: 30px 24px;
+    }
+
+    .pm-home-path +
+    .pm-home-path {
+      border-top: 1px solid var(--pm-line);
+      border-left: 0;
+    }
+
+    .pm-home-path h3 {
+      margin-top: 40px;
+    }
+
+    .pm-home-path a {
+      margin-top: 35px;
+      padding-top: 0;
+    }
+
+    .pm-home-path-facts {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .pm-home-path-facts span +
+    span::before {
+      margin-right: 0;
+      content: none;
+    }
+
+    .pm-home-system {
+      padding: 59px 0;
+    }
+
+    .pm-home-close {
+      margin-bottom: 40px;
+      padding: 27px 23px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pm-home-primary-action {
+      transition: none;
+    }
+  }
+</style>
