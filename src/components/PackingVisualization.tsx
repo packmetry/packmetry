@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+import './PackingVisualization.css';
+
 import type { PackedCarton } from '../core/domain/packed-carton.js';
 import type { PackingPlan } from '../core/domain/packing-plan.js';
 
@@ -668,12 +670,6 @@ export default function PackingVisualization({
                     className="pm-viz-legend-swatch"
                     aria-hidden="true"
                     style={{
-                      display:
-                        'inline-block',
-                      width: '12px',
-                      height: '12px',
-                      flex: '0 0 12px',
-                      borderRadius: '3px',
                       backgroundColor:
                         colorToCss(
                           item.color
