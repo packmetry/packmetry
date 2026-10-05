@@ -9,37 +9,51 @@ const personalPageSource = readFileSync(
 
 describe('personal page', () => {
   it('uses the shared Packmetry base layout', () => {
-    expect(personalPageSource).toContain(
+    expect(
+      personalPageSource
+    ).toContain(
       "import BaseLayout from '../layouts/BaseLayout.astro';"
     );
 
-    expect(personalPageSource).toContain(
-      '<BaseLayout>'
+    expect(
+      personalPageSource
+    ).toContain(
+      '<BaseLayout'
     );
 
-    expect(personalPageSource).toContain(
+    expect(
+      personalPageSource
+    ).toContain(
       '</BaseLayout>'
     );
   });
 
   it('loads the existing Personal PackingWorkspace as a client island', () => {
-    expect(personalPageSource).toContain(
+    expect(
+      personalPageSource
+    ).toContain(
       "import PackingWorkspace from '../components/PackingWorkspace';"
     );
 
-    expect(personalPageSource).toContain(
+    expect(
+      personalPageSource
+    ).toContain(
       '<PackingWorkspace client:load />'
     );
   });
 
   it('reuses the shared workspace stylesheet', () => {
-    expect(personalPageSource).toContain(
+    expect(
+      personalPageSource
+    ).toContain(
       "import '../styles/packmetry-workspace.css';"
     );
   });
 
   it('does not render BusinessWorkspace on the personal route', () => {
-    expect(personalPageSource).not.toContain(
+    expect(
+      personalPageSource
+    ).not.toContain(
       'BusinessWorkspace'
     );
   });

@@ -4,6 +4,475 @@ import PackingWorkspace from '../components/PackingWorkspace';
 import '../styles/packmetry-workspace.css';
 ---
 
-<BaseLayout>
-  <PackingWorkspace client:load />
+<BaseLayout
+  title="Packmetry Personal — Find your packing plan"
+  description="Find a practical verified packing plan for moving, storage, gifts and everyday shipping."
+>
+  <div class="pm-personal-page">
+    <PackingWorkspace client:load />
+  </div>
 </BaseLayout>
+
+<style>
+  .pm-personal-page :global(.pm-workspace) {
+    width: min(
+      calc(100% - 48px),
+      1280px
+    );
+    padding-top: 34px;
+  }
+
+  .pm-personal-page :global(.pm-app-header) {
+    max-width: 800px;
+    padding-bottom: 24px;
+  }
+
+  .pm-personal-page :global(.pm-app-intro) {
+    max-width: 700px;
+  }
+
+  .pm-personal-page :global(.pm-workbench) {
+    grid-template-columns:
+      minmax(470px, 0.46fr)
+      minmax(0, 0.54fr);
+    gap: 22px;
+    padding-top: 22px;
+  }
+
+  .pm-personal-page :global(.pm-setup-pane) {
+    padding: 22px 24px 24px;
+  }
+
+  .pm-personal-page :global(.pm-result-pane) {
+    min-height: 500px;
+    padding: 24px;
+  }
+
+  .pm-personal-page :global(.pm-empty-result) {
+    min-height: 445px;
+  }
+
+  /* setup header */
+
+  .pm-personal-page :global(.pm-pane-header) {
+    gap: 22px;
+  }
+
+  .pm-personal-page :global(.pm-unit-note) {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding-top: 1px;
+    white-space: nowrap;
+  }
+
+  .pm-personal-page :global(.pm-unit-note label) {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+
+  .pm-personal-page :global(.pm-unit-note select) {
+    height: 29px;
+    border: 1px solid var(--pm-line-strong);
+    border-radius: 6px;
+    padding: 0 25px 0 7px;
+    background: var(--pm-surface);
+    color: var(--pm-ink);
+    font: inherit;
+    font-size: 0.73rem;
+    font-weight: 650;
+  }
+
+  .pm-personal-page
+    :global(.pm-unit-note > span) {
+    color: var(--pm-ink-soft);
+    font-size: 0.7rem;
+  }
+
+  /* setup sections */
+
+  .pm-personal-page :global(.pm-form-section) {
+    padding: 18px 0;
+  }
+
+  .pm-personal-page
+    :global(.pm-form-section-heading) {
+    gap: 0;
+    margin-bottom: 13px;
+  }
+
+  .pm-personal-page :global(.pm-section-number) {
+    display: none;
+  }
+
+  .pm-personal-page
+    :global(.pm-form-section-heading h3) {
+    font-size: 0.98rem;
+  }
+
+  .pm-personal-page
+    :global(.pm-form-section-heading p) {
+    margin-top: 3px;
+    font-size: 0.76rem;
+    line-height: 1.45;
+  }
+
+  .pm-personal-page :global(.pm-context-note) {
+    gap: 2px;
+    margin: 2px 0 15px;
+    padding: 8px 0 8px 10px;
+    font-size: 0.75rem;
+    line-height: 1.43;
+  }
+
+  .pm-personal-page :global(.pm-carton-row) {
+    padding: 12px 0 14px;
+  }
+
+  .pm-personal-page
+    :global(.pm-carton-row-header) {
+    margin-bottom: 9px;
+  }
+
+  .pm-personal-page
+    :global(
+      .pm-carton-row-header > div:last-child
+      .pm-remove-button
+    ) {
+    border-radius: 5px;
+    padding: 4px 6px;
+  }
+
+  .pm-personal-page
+    :global(
+      .pm-carton-row-header > div:last-child
+      .pm-remove-button:hover
+    ) {
+    background: var(--pm-surface-soft);
+  }
+
+  .pm-personal-page
+    :global(.pm-carton-fields),
+  .pm-personal-page
+    :global(.pm-measurement-grid) {
+    gap: 8px;
+  }
+
+  .pm-personal-page :global(.pm-field) {
+    gap: 4px;
+  }
+
+  .pm-personal-page :global(.pm-field-label) {
+    font-size: 0.72rem;
+    line-height: 1.3;
+  }
+
+  .pm-personal-page :global(.pm-number-input) {
+    height: 41px;
+    padding-right: 10px;
+    padding-left: 10px;
+    font-size: 0.87rem;
+  }
+
+  /* workflow controls */
+
+  .pm-personal-page :global(.pm-mode-selector) {
+    gap: 2px;
+  }
+
+  .pm-personal-page :global(.pm-mode-option) {
+    min-height: 40px;
+    padding: 7px 9px;
+    font-size: 0.78rem;
+  }
+
+  .pm-personal-page :global(.pm-mode-explainer) {
+    margin-top: 9px;
+    padding-left: 10px;
+  }
+
+  .pm-personal-page
+    :global(.pm-mode-explainer strong) {
+    font-size: 0.82rem;
+  }
+
+  .pm-personal-page
+    :global(.pm-mode-explainer span) {
+    font-size: 0.75rem;
+  }
+
+  /* secondary controls */
+
+  .pm-personal-page :global(.pm-add-button) {
+    min-height: 37px;
+    padding: 6px 11px;
+    border-radius: 7px;
+    font-size: 0.77rem;
+  }
+
+  .pm-personal-page :global(.pm-remove-button) {
+    min-height: 30px;
+    font-size: 0.72rem;
+  }
+
+  .pm-personal-page :global(.pm-details summary) {
+    min-height: 34px;
+    padding-top: 8px;
+    font-size: 0.76rem;
+  }
+
+  /* recent plans at top of result surface */
+
+  .pm-personal-page
+    :global(
+      .pm-result-pane >
+      .pm-details:first-child
+    ) {
+    margin: 0 0 17px;
+    border-top: 0;
+    border-bottom: 1px solid var(--pm-line);
+    padding-bottom: 9px;
+  }
+
+  .pm-personal-page
+    :global(
+      .pm-result-pane >
+      .pm-details:first-child >
+      summary
+    ) {
+    min-height: 0;
+    padding: 0 0 7px;
+  }
+
+  /* packing summary */
+
+  .pm-personal-page
+    :global(.pm-summary-metrics) {
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
+  }
+
+  .pm-personal-page
+    :global(
+      .pm-summary-metric:nth-child(4)
+    ) {
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .pm-personal-page
+    :global(
+      .pm-summary-metric:nth-child(n + 4)
+    ) {
+    border-top: 1px solid var(--pm-line);
+  }
+
+  /*
+   * ResultSummary intentionally has a semantic
+   * rationale section. Give it its own visual
+   * breathing room instead of letting the kicker
+   * sit directly against the metrics border.
+   */
+
+  .pm-personal-page
+    :global(.pm-summary-rationale) {
+    padding: 20px 0 18px;
+  }
+
+  .pm-personal-page
+    :global(
+      .pm-summary-rationale
+      .pm-section-kicker
+    ) {
+    margin-bottom: 7px;
+  }
+
+  .pm-personal-page
+    :global(.pm-summary-rationale h3) {
+    margin: 0;
+    color: var(--pm-ink-strong);
+    font-size: 1rem;
+    font-weight: 720;
+    letter-spacing: -0.012em;
+    line-height: 1.3;
+  }
+
+  .pm-personal-page
+    :global(
+      .pm-summary-rationale >
+      p:last-child
+    ) {
+    max-width: 620px;
+    margin: 9px 0 0;
+    color: var(--pm-ink-soft);
+    font-size: 0.82rem;
+    line-height: 1.55;
+  }
+
+  /* Save / Share are actions, not selection tabs */
+
+  .pm-personal-page
+    :global(
+      section[aria-label="Packing plan actions"]
+    ) {
+    padding-top: 14px;
+  }
+
+  .pm-personal-page
+    :global(
+      section[aria-label="Packing plan actions"]
+      .pm-result-tabs
+    ) {
+    gap: 7px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .pm-personal-page
+    :global(
+      section[aria-label="Packing plan actions"]
+      .pm-result-tabs button
+    ) {
+    min-height: 35px;
+    border: 1px solid var(--pm-line-strong);
+    border-radius: 7px;
+    padding: 6px 11px;
+    background: var(--pm-surface);
+    color: var(--pm-ink);
+    font-size: 0.74rem;
+  }
+
+  .pm-personal-page
+    :global(
+      section[aria-label="Packing plan actions"]
+      .pm-result-tabs button:hover
+    ) {
+    border-color: #aebbc7;
+    background: var(--pm-surface-soft);
+  }
+
+  .pm-personal-page
+    :global(.pm-summary-details) {
+    margin-top: 13px;
+  }
+
+  /* 3D result separation */
+
+  .pm-personal-page
+    :global(.pm-plan-output > .pm-viz) {
+    margin-top: 21px;
+    padding-top: 20px;
+  }
+
+  .pm-personal-page
+    :global(.pm-viz-header) {
+    margin-bottom: 13px;
+  }
+
+  .pm-personal-page
+    :global(.pm-viz-caption) {
+    margin-top: 9px;
+  }
+
+  /* primary action */
+
+  .pm-personal-page :global(.pm-submit-area) {
+    padding-top: 18px;
+  }
+
+  .pm-personal-page :global(.pm-primary-button) {
+    min-height: 46px;
+    border-radius: 8px;
+    font-size: 0.87rem;
+  }
+
+  @media (max-width: 999px) {
+    .pm-personal-page :global(.pm-workspace) {
+      width: min(
+        calc(100% - 40px),
+        820px
+      );
+    }
+
+    .pm-personal-page :global(.pm-workbench) {
+      grid-template-columns: 1fr;
+    }
+
+    .pm-personal-page :global(.pm-result-pane) {
+      min-height: 420px;
+    }
+
+    .pm-personal-page :global(.pm-empty-result) {
+      min-height: 360px;
+    }
+  }
+
+  @media (max-width: 639px) {
+    .pm-personal-page :global(.pm-workspace) {
+      width: calc(100% - 32px);
+      padding-top: 22px;
+    }
+
+    .pm-personal-page :global(.pm-setup-pane),
+    .pm-personal-page :global(.pm-result-pane) {
+      padding: 18px;
+    }
+
+    .pm-personal-page :global(.pm-pane-header) {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .pm-personal-page :global(.pm-unit-note) {
+      justify-content: flex-start;
+    }
+
+    .pm-personal-page
+      :global(.pm-carton-fields),
+    .pm-personal-page
+      :global(.pm-measurement-grid) {
+      grid-template-columns: 1fr;
+    }
+
+    .pm-personal-page :global(.pm-mode-selector) {
+      grid-template-columns: 1fr;
+    }
+
+    .pm-personal-page :global(.pm-mode-option) {
+      min-height: 42px;
+      text-align: left;
+    }
+
+    .pm-personal-page
+      :global(.pm-summary-metrics) {
+      grid-template-columns:
+        repeat(
+          2,
+          minmax(0, 1fr)
+        );
+    }
+
+    .pm-personal-page
+      :global(.pm-summary-metric:nth-child(4)) {
+      border-left: 1px solid var(--pm-line);
+      padding-left: 14px;
+    }
+
+    .pm-personal-page
+      :global(.pm-summary-metric:nth-child(odd)) {
+      border-left: 0;
+      padding-left: 0;
+    }
+
+    .pm-personal-page
+      :global(.pm-summary-metric:nth-child(n + 3)) {
+      border-top: 1px solid var(--pm-line);
+    }
+  }
+</style>
