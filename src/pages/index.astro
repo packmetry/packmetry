@@ -74,42 +74,68 @@ import '../styles/packmetry-workspace.css';
             </span>
           </div>
 
-          <svg
-            class="pm-home-geometry-drawing"
-            viewBox="0 0 620 430"
-          >
-            <g class="pm-home-box-outline">
-              <path d="M108 111 310 49 512 111 310 177 108 111Z" />
-              <path d="M108 111v211l202 66 202-66V111" />
-              <path d="M310 177v211" />
-            </g>
+          <div class="pm-home-geometry-scene">
+            <svg
+              class="pm-home-geometry-drawing"
+              viewBox="0 0 620 430"
+            >
+              <defs>
+                <filter
+                  id="pm-home-item-shadow"
+                  x="-30%"
+                  y="-30%"
+                  width="160%"
+                  height="180%"
+                >
+                  <feDropShadow
+                    dx="0"
+                    dy="9"
+                    stdDeviation="8"
+                    flood-color="#17212b"
+                    flood-opacity="0.08"
+                  />
+                </filter>
+              </defs>
 
-            <g class="pm-home-item pm-home-item-a">
-              <path d="M138 236 226 208l86 28-88 29-86-29Z" />
-              <path d="M138 236v74l86 28 88-28v-74" />
-              <path d="M224 265v73" />
-            </g>
+              <g class="pm-home-box-outline">
+                <path d="M108 111 310 49 512 111 310 177 108 111Z" />
+                <path d="M108 111v211l202 66 202-66V111" />
+                <path d="M310 177v211" />
+              </g>
 
-            <g class="pm-home-item pm-home-item-b">
-              <path d="M320 235 404 209l74 24-84 27-74-25Z" />
-              <path d="M320 235v91l74 25 84-28v-90" />
-              <path d="M394 260v91" />
-            </g>
+              <g
+                class="pm-home-item pm-home-item-a"
+                filter="url(#pm-home-item-shadow)"
+              >
+                <path d="M138 236 226 208l86 28-88 29-86-29Z" />
+                <path d="M138 236v74l86 28 88-28v-74" />
+                <path d="M224 265v73" />
+              </g>
 
-            <g class="pm-home-item pm-home-item-c">
-              <path d="M177 169 276 138l81 26-99 32-81-27Z" />
-              <path d="M177 169v57l81 27 99-32v-57" />
-              <path d="M258 196v57" />
-            </g>
+              <g
+                class="pm-home-item pm-home-item-b"
+                filter="url(#pm-home-item-shadow)"
+              >
+                <path d="M320 235 404 209l74 24-84 27-74-25Z" />
+                <path d="M320 235v91l74 25 84-28v-90" />
+                <path d="M394 260v91" />
+              </g>
 
-            <g class="pm-home-dimension-lines">
-              <path d="M88 111v211" />
-              <path d="M76 111h24M76 322h24" />
+              <g class="pm-home-item pm-home-item-c">
+                <path d="M177 169 276 138l81 26-99 32-81-27Z" />
+                <path d="M177 169v57l81 27 99-32v-57" />
+                <path d="M258 196v57" />
+              </g>
 
-              <path d="M108 345 310 412" />
-              <path d="M108 333v24M310 400v24" />
-            </g>
-          </svg>
+              <g class="pm-home-dimension-lines">
+                <path d="M88 111v211" />
+                <path d="M76 111h24M76 322h24" />
+
+                <path d="M108 345 310 412" />
+                <path d="M108 333v24M310 400v24" />
+              </g>
+            </svg>
+          </div>
 
           <div class="pm-home-geometry-meta">
             <div>
@@ -130,14 +156,14 @@ import '../styles/packmetry-workspace.css';
       class="pm-home-choice"
       aria-label="Choose your packing experience"
     >
-      <div class="pm-home-choice-heading">
-        <p>
+      <div class="pm-home-section-heading pm-home-choice-heading">
+        <p class="pm-home-section-eyebrow">
           Choose your packing experience
         </p>
 
         <h2>
-          One packing engine.
-          Two ways to work.
+          <span>One packing engine.</span>
+          <span>Two ways to work.</span>
         </h2>
       </div>
 
@@ -239,8 +265,8 @@ import '../styles/packmetry-workspace.css';
     </section>
 
     <section class="pm-home-system">
-      <div class="pm-home-system-heading">
-        <p>
+      <div class="pm-home-section-heading pm-home-system-heading">
+        <p class="pm-home-section-eyebrow">
           Built around the packing decision
         </p>
 
@@ -251,6 +277,14 @@ import '../styles/packmetry-workspace.css';
       </div>
 
       <div class="pm-home-system-copy">
+        <div class="pm-home-mode-line">
+          <span>Need boxes</span>
+          <span aria-hidden="true">/</span>
+          <span>Have boxes</span>
+          <span aria-hidden="true">/</span>
+          <span>Hybrid</span>
+        </div>
+
         <p>
           Packmetry handles the three situations
           that matter in practice:
@@ -260,7 +294,25 @@ import '../styles/packmetry-workspace.css';
           <strong>use existing stock and cover the remainder</strong>.
         </p>
 
-        <p>
+        <div class="pm-home-verification-flow">
+          <span>Solver candidate</span>
+          <span
+            class="pm-home-flow-arrow"
+            aria-hidden="true"
+          >
+            →
+          </span>
+          <span>Independent verification</span>
+          <span
+            class="pm-home-flow-arrow"
+            aria-hidden="true"
+          >
+            →
+          </span>
+          <span>Canonical plan</span>
+        </div>
+
+        <p class="pm-home-system-note">
           Solver candidates are independently
           verified before a successful packing
           result is presented. The 3D view follows
@@ -272,7 +324,7 @@ import '../styles/packmetry-workspace.css';
 
     <section class="pm-home-close">
       <div>
-        <p class="pm-home-eyebrow">
+        <p class="pm-home-section-eyebrow">
           Practical by design
         </p>
 
@@ -282,13 +334,45 @@ import '../styles/packmetry-workspace.css';
         </h2>
       </div>
 
-      <p>
-        Personal preferences, recent packing
-        work and Business project data can stay
-        browser-local. Start with the tool you
-        need and keep the workflow as simple as
-        the job allows.
-      </p>
+      <div class="pm-home-close-copy">
+        <p>
+          Personal preferences, recent packing
+          work and Business project data can stay
+          browser-local. Start with the tool you
+          need and keep the workflow as simple as
+          the job allows.
+        </p>
+
+        <div class="pm-home-close-actions">
+          <a
+            class="pm-home-primary-action pm-home-close-button"
+            href="/personal/"
+          >
+            Personal workspace
+
+            <svg
+              viewBox="0 0 20 20"
+              aria-hidden="true"
+            >
+              <path d="M4 10h11M11 6l4 4-4 4" />
+            </svg>
+          </a>
+
+          <a
+            class="pm-home-close-button pm-home-close-button-secondary"
+            href="/business/"
+          >
+            Business workspace
+
+            <svg
+              viewBox="0 0 20 20"
+              aria-hidden="true"
+            >
+              <path d="M4 10h11M11 6l4 4-4 4" />
+            </svg>
+          </a>
+        </div>
+      </div>
     </section>
   </main>
 </BaseLayout>
@@ -301,7 +385,13 @@ import '../styles/packmetry-workspace.css';
 
   .pm-home-hero {
     border-bottom: 1px solid var(--pm-line);
-    background: #fbfcfb;
+    background:
+      linear-gradient(
+        180deg,
+        #fbfcfb 0%,
+        #fbfcfb 77%,
+        #f9fbfa 100%
+      );
   }
 
   .pm-home-hero-inner {
@@ -310,28 +400,33 @@ import '../styles/packmetry-workspace.css';
       calc(100% - 40px),
       1240px
     );
-    min-height: 590px;
+    min-height: 605px;
     margin: 0 auto;
     grid-template-columns:
       minmax(0, 1fr)
-      minmax(420px, 0.88fr);
+      minmax(420px, 0.9fr);
     gap: clamp(56px, 8vw, 116px);
     align-items: center;
-    padding: 82px 0 86px;
+    padding: 82px 0 88px;
   }
 
   .pm-home-copy {
     max-width: 620px;
   }
 
-  .pm-home-eyebrow {
-    margin: 0 0 19px;
+  .pm-home-eyebrow,
+  .pm-home-section-eyebrow {
+    margin: 0;
     color: var(--pm-forest);
-    font-size: 0.72rem;
+    font-size: 0.71rem;
     font-weight: 730;
-    letter-spacing: 0.095em;
+    letter-spacing: 0.09em;
     line-height: 1.3;
     text-transform: uppercase;
+  }
+
+  .pm-home-copy > .pm-home-eyebrow {
+    margin-bottom: 19px;
   }
 
   .pm-home-copy h1 {
@@ -389,16 +484,19 @@ import '../styles/packmetry-workspace.css';
     text-decoration: none;
     transition:
       background 140ms ease,
-      border-color 140ms ease;
+      border-color 140ms ease,
+      transform 140ms ease;
   }
 
   .pm-home-primary-action:hover {
     border-color: #10283d;
     background: #10283d;
+    transform: translateY(-1px);
   }
 
   .pm-home-primary-action svg,
-  .pm-home-path a svg {
+  .pm-home-path a svg,
+  .pm-home-close-button svg {
     width: 18px;
     height: 18px;
     fill: none;
@@ -437,10 +535,13 @@ import '../styles/packmetry-workspace.css';
     color: #b0b7b9;
   }
 
+  /* hero geometry */
+
   .pm-home-geometry {
+    position: relative;
     align-self: stretch;
     display: flex;
-    min-height: 430px;
+    min-height: 440px;
     flex-direction: column;
     justify-content: center;
     border-left: 1px solid var(--pm-line);
@@ -451,21 +552,81 @@ import '../styles/packmetry-workspace.css';
     );
   }
 
+  .pm-home-geometry::before {
+    position: absolute;
+    top: 50%;
+    left: 58%;
+    width: 310px;
+    height: 310px;
+    border-radius: 50%;
+    background:
+      radial-gradient(
+        circle,
+        rgba(46, 93, 80, 0.055) 0%,
+        rgba(46, 93, 80, 0.018) 42%,
+        transparent 70%
+      );
+    content: "";
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+  }
+
   .pm-home-geometry-caption {
+    position: relative;
+    z-index: 2;
     display: flex;
     justify-content: space-between;
     gap: 18px;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
     color: #7b8487;
     font-size: 0.68rem;
     font-weight: 650;
   }
 
+  .pm-home-geometry-scene {
+    position: relative;
+    z-index: 1;
+  }
+
+  .pm-home-geometry-scene::after {
+    position: absolute;
+    right: 7%;
+    bottom: 8%;
+    left: 7%;
+    height: 1px;
+    background:
+      linear-gradient(
+        90deg,
+        transparent,
+        #d7dddf 18%,
+        #d7dddf 82%,
+        transparent
+      );
+    content: "";
+  }
+
   .pm-home-geometry-drawing {
+    position: relative;
+    z-index: 2;
     display: block;
     width: 100%;
     max-width: 560px;
     overflow: visible;
+    filter:
+      drop-shadow(
+        0 16px 20px
+        rgba(23, 33, 43, 0.025)
+      );
+    transform:
+      perspective(820px)
+      rotateX(0deg)
+      rotateY(0deg)
+      translate3d(0, 0, 0);
+    transform-origin: 50% 52%;
+    transition:
+      transform 150ms
+      cubic-bezier(0.2, 0.7, 0.2, 1);
+    will-change: transform;
   }
 
   .pm-home-box-outline {
@@ -475,13 +636,19 @@ import '../styles/packmetry-workspace.css';
       255,
       0.18
     );
-    stroke: #5c696d;
+    stroke: #526064;
     stroke-width: 1.25;
   }
 
   .pm-home-item {
+    transform-box: fill-box;
+    transform-origin: center;
     stroke-linejoin: round;
     stroke-width: 1.1;
+    transition:
+      transform 170ms
+      cubic-bezier(0.2, 0.7, 0.2, 1);
+    will-change: transform;
   }
 
   .pm-home-item-a {
@@ -489,9 +656,9 @@ import '../styles/packmetry-workspace.css';
       46,
       93,
       80,
-      0.08
+      0.095
     );
-    stroke: #4d756a;
+    stroke: #497468;
   }
 
   .pm-home-item-b {
@@ -499,9 +666,9 @@ import '../styles/packmetry-workspace.css';
       24,
       50,
       74,
-      0.075
+      0.085
     );
-    stroke: #536b7f;
+    stroke: #506a80;
   }
 
   .pm-home-item-c {
@@ -521,13 +688,15 @@ import '../styles/packmetry-workspace.css';
   }
 
   .pm-home-geometry-meta {
+    position: relative;
+    z-index: 2;
     display: grid;
     grid-template-columns:
       repeat(
         2,
         minmax(0, 1fr)
       );
-    margin-top: 2px;
+    margin-top: 3px;
     border-top: 1px solid var(--pm-line);
   }
 
@@ -553,38 +722,29 @@ import '../styles/packmetry-workspace.css';
     font-weight: 680;
   }
 
-  .pm-home-choice {
-    width: min(
-      calc(100% - 40px),
-      1240px
-    );
-    margin: 0 auto;
-    padding: 96px 0;
-  }
+  /* consistent section headings */
 
-  .pm-home-choice-heading {
-    display: grid;
+  .pm-home-section-heading {
+    display: block !important;
+    width: 100%;
     max-width: 690px;
-    grid-template-columns:
-      180px
-      minmax(0, 1fr);
-    gap: 32px;
-    align-items: baseline;
-    margin-bottom: 37px;
+    grid-template-columns: none !important;
   }
 
-  .pm-home-choice-heading p,
-  .pm-home-system-heading p {
-    margin: 0;
-    color: var(--pm-forest);
-    font-size: 0.7rem;
-    font-weight: 720;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+  .pm-home-section-heading
+    .pm-home-section-eyebrow {
+    display: block;
+    width: 100%;
+    margin: 0 0 13px;
   }
 
-  .pm-home-choice-heading h2,
-  .pm-home-system-heading h2,
+  .pm-home-choice-heading,
+  .pm-home-system-heading {
+    display: block !important;
+    grid-template-columns: none !important;
+  }
+
+  .pm-home-section-heading h2,
   .pm-home-close h2 {
     margin: 0;
     color: var(--pm-ink-strong);
@@ -598,6 +758,25 @@ import '../styles/packmetry-workspace.css';
     line-height: 1.06;
   }
 
+  /* experience choice */
+
+  .pm-home-choice {
+    width: min(
+      calc(100% - 40px),
+      1240px
+    );
+    margin: 0 auto;
+    padding: 92px 0 96px;
+  }
+
+  .pm-home-choice-heading {
+    margin-bottom: 36px;
+  }
+
+  .pm-home-choice-heading h2 span {
+    display: block;
+  }
+
   .pm-home-choice-surface {
     display: grid;
     grid-template-columns:
@@ -609,14 +788,23 @@ import '../styles/packmetry-workspace.css';
     border: 1px solid var(--pm-line-strong);
     border-radius: 14px;
     background: var(--pm-surface);
+    box-shadow:
+      0 1px 2px rgba(23, 33, 43, 0.02);
   }
 
   .pm-home-path {
+    position: relative;
     display: flex;
     min-height: 430px;
     flex-direction: column;
     padding:
       clamp(30px, 4vw, 48px);
+    transition:
+      background 150ms ease;
+  }
+
+  .pm-home-path:hover {
+    background: #fcfdfc;
   }
 
   .pm-home-path + .pm-home-path {
@@ -646,11 +834,20 @@ import '../styles/packmetry-workspace.css';
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-width: 1.35;
+    transition:
+      stroke 150ms ease,
+      transform 150ms ease;
+  }
+
+  .pm-home-path:hover
+    .pm-home-path-icon {
+    stroke: var(--pm-forest);
+    transform: translateY(-1px);
   }
 
   .pm-home-path h3 {
     max-width: 500px;
-    margin: 52px 0 0;
+    margin: 50px 0 0;
     color: var(--pm-ink-strong);
     font-size: clamp(
       1.55rem,
@@ -708,6 +905,8 @@ import '../styles/packmetry-workspace.css';
     color: var(--pm-forest);
   }
 
+  /* packing decision section */
+
   .pm-home-system {
     display: grid;
     width: min(
@@ -723,31 +922,77 @@ import '../styles/packmetry-workspace.css';
       8vw,
       110px
     );
-    padding: 91px 0;
+    padding: 91px 0 94px;
     border-top: 1px solid var(--pm-line);
   }
 
-  .pm-home-system-heading p {
-    margin-bottom: 14px;
+  .pm-home-system-heading {
+    max-width: 500px;
   }
 
   .pm-home-system-copy {
     display: grid;
     align-content: center;
-    gap: 24px;
   }
 
-  .pm-home-system-copy p {
+  .pm-home-mode-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px 10px;
+    align-items: center;
+    margin-bottom: 18px;
+    color: var(--pm-forest);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .pm-home-mode-line
+    span[aria-hidden="true"] {
+    color: #bdc6c3;
+    font-weight: 500;
+  }
+
+  .pm-home-system-copy > p {
     margin: 0;
     color: var(--pm-ink-soft);
-    font-size: 0.92rem;
-    line-height: 1.72;
+    font-size: 0.91rem;
+    line-height: 1.7;
   }
 
   .pm-home-system-copy strong {
     color: var(--pm-ink);
     font-weight: 680;
   }
+
+  .pm-home-verification-flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin: 24px 0 18px;
+    padding: 11px 0;
+    border-top: 1px solid var(--pm-line);
+    border-bottom: 1px solid var(--pm-line);
+    color: #657174;
+    font-size: 0.7rem;
+    font-weight: 650;
+  }
+
+  .pm-home-flow-arrow {
+    color: #9ba6a9;
+    font-size: 0.72rem;
+    font-weight: 650;
+    line-height: 1;
+  }
+
+  .pm-home-system-copy
+    .pm-home-system-note {
+    color: #7a8386;
+    font-size: 0.79rem;
+    line-height: 1.62;
+  }
+
+  /* closing section */
 
   .pm-home-close {
     display: grid;
@@ -764,30 +1009,84 @@ import '../styles/packmetry-workspace.css';
       8vw,
       100px
     );
-    align-items: end;
+    align-items: center;
     border: 1px solid #dbe2df;
     border-radius: 14px;
     padding:
       clamp(30px, 5vw, 58px);
-    background: #f4f7f5;
+    background:
+      linear-gradient(
+        135deg,
+        #f3f7f5 0%,
+        #f6f8f7 100%
+      );
   }
 
-  .pm-home-close .pm-home-eyebrow {
+  .pm-home-close
+    .pm-home-section-eyebrow {
     margin-bottom: 12px;
   }
 
-  .pm-home-close p:last-child {
+  .pm-home-close-copy {
+    display: grid;
+    gap: 18px;
+  }
+
+  .pm-home-close-copy > p {
     margin: 0;
     color: var(--pm-ink-soft);
     font-size: 0.88rem;
     line-height: 1.65;
   }
 
+  .pm-home-close-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 16px;
+    border-top: 1px solid #dce4e1;
+  }
+
+  .pm-home-close-button {
+    min-height: 41px;
+    border-radius: 8px;
+    padding: 8px 13px;
+    font-size: 0.76rem;
+  }
+
+  .pm-home-close-button-secondary {
+    display: inline-flex;
+    min-height: 41px;
+    gap: 9px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #c7d3cf;
+    border-radius: 8px;
+    padding: 8px 13px;
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--pm-navy);
+    font-size: 0.76rem;
+    font-weight: 710;
+    text-decoration: none;
+    transition:
+      background 140ms ease,
+      border-color 140ms ease,
+      color 140ms ease,
+      transform 140ms ease;
+  }
+
+  .pm-home-close-button-secondary:hover {
+    border-color: #aebfba;
+    background: #ffffff;
+    color: var(--pm-forest);
+    transform: translateY(-1px);
+  }
+
   @media (max-width: 959px) {
     .pm-home-hero-inner {
       min-height: 0;
       grid-template-columns: 1fr;
-      gap: 60px;
+      gap: 58px;
       padding: 68px 0;
     }
 
@@ -812,15 +1111,14 @@ import '../styles/packmetry-workspace.css';
       padding: 74px 0;
     }
 
-    .pm-home-choice-heading {
-      grid-template-columns: 1fr;
-      gap: 10px;
-    }
-
     .pm-home-system {
       grid-template-columns: 1fr;
       gap: 32px;
       padding: 72px 0;
+    }
+
+    .pm-home-system-heading {
+      max-width: 650px;
     }
 
     .pm-home-close {
@@ -923,15 +1221,186 @@ import '../styles/packmetry-workspace.css';
       padding: 59px 0;
     }
 
+    .pm-home-verification-flow {
+      gap: 6px 8px;
+    }
+
+    .pm-home-flow-arrow {
+      font-size: 0.68rem;
+    }
+
     .pm-home-close {
       margin-bottom: 40px;
       padding: 27px 23px;
     }
+
+    .pm-home-close-actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .pm-home-close-button,
+    .pm-home-close-button-secondary {
+      width: 100%;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .pm-home-primary-action {
+    .pm-home-primary-action,
+    .pm-home-geometry-drawing,
+    .pm-home-path,
+    .pm-home-path-icon,
+    .pm-home-close-button-secondary {
       transition: none;
     }
   }
 </style>
+
+<script is:inline>
+  (() => {
+    const region =
+      document.querySelector(
+        '.pm-home-geometry'
+      );
+
+    const drawing =
+      document.querySelector(
+        '.pm-home-geometry-drawing'
+      );
+
+    const itemA =
+      document.querySelector(
+        '.pm-home-item-a'
+      );
+
+    const itemB =
+      document.querySelector(
+        '.pm-home-item-b'
+      );
+
+    const itemC =
+      document.querySelector(
+        '.pm-home-item-c'
+      );
+
+    if (
+      !(region instanceof HTMLElement) ||
+      !(drawing instanceof SVGElement)
+    ) {
+      return;
+    }
+
+    let frame = 0;
+
+    const setTransforms = (
+      x,
+      y
+    ) => {
+      drawing.style.transform =
+        `perspective(820px) rotateX(${
+          (-y * 10).toFixed(2)
+        }deg) rotateY(${
+          (x * 12).toFixed(2)
+        }deg) translate3d(${
+          (x * 7).toFixed(2)
+        }px, ${
+          (y * 5).toFixed(2)
+        }px, 0)`;
+
+      if (itemA instanceof SVGElement) {
+        itemA.style.transform =
+          `translate(${
+            (x * -8).toFixed(2)
+          }px, ${
+            (y * -4).toFixed(2)
+          }px)`;
+      }
+
+      if (itemB instanceof SVGElement) {
+        itemB.style.transform =
+          `translate(${
+            (x * 9).toFixed(2)
+          }px, ${
+            (y * 3).toFixed(2)
+          }px)`;
+      }
+
+      if (itemC instanceof SVGElement) {
+        itemC.style.transform =
+          `translate(${
+            (x * -3).toFixed(2)
+          }px, ${
+            (y * 5).toFixed(2)
+          }px)`;
+      }
+    };
+
+    const reset = () => {
+      cancelAnimationFrame(frame);
+
+      drawing.style.transform =
+        'perspective(820px) rotateX(0deg) rotateY(0deg) translate3d(0, 0, 0)';
+
+      if (itemA instanceof SVGElement) {
+        itemA.style.transform =
+          'translate(0, 0)';
+      }
+
+      if (itemB instanceof SVGElement) {
+        itemB.style.transform =
+          'translate(0, 0)';
+      }
+
+      if (itemC instanceof SVGElement) {
+        itemC.style.transform =
+          'translate(0, 0)';
+      }
+    };
+
+    region.addEventListener(
+      'mousemove',
+      event => {
+        const rect =
+          region.getBoundingClientRect();
+
+        const x =
+          Math.max(
+            -0.5,
+            Math.min(
+              0.5,
+              (event.clientX - rect.left) /
+                rect.width -
+                0.5
+            )
+          );
+
+        const y =
+          Math.max(
+            -0.5,
+            Math.min(
+              0.5,
+              (event.clientY - rect.top) /
+                rect.height -
+                0.5
+            )
+          );
+
+        cancelAnimationFrame(frame);
+
+        frame = requestAnimationFrame(
+          () => setTransforms(x, y)
+        );
+      }
+    );
+
+    region.addEventListener(
+      'mouseleave',
+      reset
+    );
+
+    window.addEventListener(
+      'blur',
+      reset
+    );
+  })();
+</script>
