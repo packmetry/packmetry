@@ -1,0 +1,645 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/packmetry-workspace.css';
+---
+
+<BaseLayout
+  title="Packmetry Privacy — How the current browser-first product handles data"
+  description="Packmetry's current privacy approach: browser-local workspace data, email contact, technical hosting data and the boundaries of the current product."
+>
+  <main class="pm-privacy">
+    <header class="pm-privacy-hero">
+      <p class="pm-privacy-eyebrow">
+        Privacy
+      </p>
+
+      <h1>
+        Privacy,
+        <span>explained plainly.</span>
+      </h1>
+
+      <p>
+        Packmetry is currently designed as a
+        browser-first workbench. This page explains
+        what stays in your browser, what you may
+        choose to send to Packmetry, and where
+        third-party infrastructure can still be
+        involved.
+      </p>
+
+      <p class="pm-privacy-updated">
+        Last updated: 6 October 2026
+      </p>
+    </header>
+
+    <section
+      class="pm-privacy-summary"
+      aria-labelledby="privacy-summary-title"
+    >
+      <div>
+        <p class="pm-privacy-eyebrow">
+          At a glance
+        </p>
+
+        <h2 id="privacy-summary-title">
+          The current product keeps the core
+          packing workflow local.
+        </h2>
+      </div>
+
+      <div class="pm-privacy-summary-points">
+        <article>
+          <span aria-hidden="true">01</span>
+
+          <div>
+            <strong>
+              Workspace data is browser-local
+            </strong>
+
+            <p>
+              Recent items, plans, saved cartons,
+              projects and preferences are stored
+              in your browser in the current
+              product.
+            </p>
+          </div>
+        </article>
+
+        <article>
+          <span aria-hidden="true">02</span>
+
+          <div>
+            <strong>
+              No account is required
+            </strong>
+
+            <p>
+              Packmetry does not currently require
+              a user account or cloud workspace to
+              run the Personal or Business packing
+              tools.
+            </p>
+          </div>
+        </article>
+
+        <article>
+          <span aria-hidden="true">03</span>
+
+          <div>
+            <strong>
+              Email is user-initiated
+            </strong>
+
+            <p>
+              Information reaches Packmetry
+              directly when you choose to send an
+              email or otherwise provide it.
+            </p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="pm-privacy-policy">
+      <aside class="pm-privacy-index">
+        <p class="pm-privacy-eyebrow">
+          Current policy
+        </p>
+
+        <nav aria-label="Privacy policy sections">
+          <a href="#browser-local">
+            Browser-local data
+          </a>
+
+          <a href="#contact-data">
+            Information you send
+          </a>
+
+          <a href="#technical-data">
+            Technical data
+          </a>
+
+          <a href="#tracking">
+            Cookies &amp; analytics
+          </a>
+
+          <a href="#control">
+            Your control
+          </a>
+
+          <a href="#changes">
+            Future changes
+          </a>
+        </nav>
+      </aside>
+
+      <div class="pm-privacy-prose">
+        <section id="browser-local">
+          <p class="pm-privacy-section-number">
+            01
+          </p>
+
+          <h2>Browser-local workspace data</h2>
+
+          <p>
+            The current Packmetry application uses
+            browser storage to keep parts of your
+            workspace available between visits.
+            Depending on the feature, this includes
+            technologies such as
+            <strong>IndexedDB</strong> and
+            <strong>localStorage</strong>.
+          </p>
+
+          <p>
+            Examples include recent Personal items
+            and packing plans, unit preferences,
+            saved Business cartons, recent Business
+            projects, and selected handling or
+            optimization preferences.
+          </p>
+
+          <p>
+            This data is stored on the device and
+            browser profile where you use
+            Packmetry. The current product does not
+            require that workspace data to be
+            uploaded to a Packmetry account or
+            cloud workspace.
+          </p>
+        </section>
+
+        <section id="contact-data">
+          <p class="pm-privacy-section-number">
+            02
+          </p>
+
+          <h2>Information you choose to send</h2>
+
+          <p>
+            If you email
+            <a href="mailto:packmetry@gmail.com">
+              packmetry@gmail.com
+            </a>,
+            Packmetry may receive the information
+            included in your message, such as your
+            email address, message text,
+            attachments and ordinary email
+            metadata.
+          </p>
+
+          <p>
+            That information may be retained as
+            reasonably necessary to respond,
+            understand feedback, investigate a
+            reported issue, or maintain relevant
+            correspondence.
+          </p>
+
+          <div class="pm-privacy-note">
+            <strong>
+              Please avoid sensitive information
+            </strong>
+
+            <p>
+              Do not send passwords, payment card
+              details, authentication secrets or
+              other information that is not needed
+              to explain your question or issue.
+            </p>
+          </div>
+        </section>
+
+        <section id="technical-data">
+          <p class="pm-privacy-section-number">
+            03
+          </p>
+
+          <h2>Technical and hosting data</h2>
+
+          <p>
+            Even when application workspace data
+            stays in your browser, the services
+            used to host and deliver a website may
+            process standard technical request
+            information.
+          </p>
+
+          <p>
+            Depending on the hosting or network
+            provider, this can include information
+            such as an IP address, browser or
+            user-agent information, requested URLs,
+            request times, and security or error
+            logs. Those infrastructure practices
+            are separate from Packmetry's
+            browser-local workspace storage.
+          </p>
+        </section>
+
+        <section id="tracking">
+          <p class="pm-privacy-section-number">
+            04
+          </p>
+
+          <h2>Cookies, analytics and advertising</h2>
+
+          <p>
+            At the time of this policy, the current
+            Packmetry application code does not
+            include advertising trackers or
+            analytics trackers, and Packmetry does
+            not use application-set advertising
+            cookies.
+          </p>
+
+          <p>
+            If analytics, advertising, cloud
+            accounts or similar services are added
+            later, this policy should be updated to
+            explain what is collected and why.
+          </p>
+        </section>
+
+        <section id="control">
+          <p class="pm-privacy-section-number">
+            05
+          </p>
+
+          <h2>Your control over current data</h2>
+
+          <p>
+            Browser-local Packmetry data is tied to
+            your browser storage. You can remove
+            local data using your browser's site
+            data or storage controls. Clearing that
+            data can also remove recent work,
+            preferences, saved cartons or projects
+            stored only in that browser.
+          </p>
+
+          <p>
+            Business project JSON exports are files
+            you control directly. If you export,
+            copy or share one of those files, its
+            handling depends on where you save or
+            send it.
+          </p>
+
+          <p>
+            For personal information that you sent
+            directly to Packmetry by email, you can
+            contact
+            <a href="mailto:packmetry@gmail.com">
+              packmetry@gmail.com
+            </a>
+            with a privacy-related request.
+            Applicable legal or operational
+            retention requirements may still
+            apply.
+          </p>
+        </section>
+
+        <section id="changes">
+          <p class="pm-privacy-section-number">
+            06
+          </p>
+
+          <h2>Future product changes</h2>
+
+          <p>
+            Packmetry is still expanding. Future
+            versions may add accounts, cloud
+            storage, integrations, APIs, analytics
+            or other services that change how data
+            is handled.
+          </p>
+
+          <p>
+            When a material change affects privacy,
+            this page should be updated so the
+            published policy matches the product
+            that users actually receive.
+          </p>
+
+          <p>
+            Questions about this policy can be sent
+            to
+            <a href="mailto:packmetry@gmail.com">
+              packmetry@gmail.com
+            </a>.
+          </p>
+        </section>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .pm-privacy {
+    width: min(
+      calc(100% - 40px),
+      1240px
+    );
+    margin: 0 auto;
+    padding: 82px 0 84px;
+  }
+
+  .pm-privacy-eyebrow {
+    margin: 0;
+    color: var(--pm-forest);
+    font-size: 0.71rem;
+    font-weight: 740;
+    letter-spacing: 0.09em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .pm-privacy-hero {
+    max-width: 900px;
+    padding-bottom: 70px;
+  }
+
+  .pm-privacy-hero h1 {
+    margin: 18px 0 0;
+    color: var(--pm-ink-strong);
+    font-size: clamp(
+      3.2rem,
+      6vw,
+      5.8rem
+    );
+    font-weight: 680;
+    letter-spacing: -0.062em;
+    line-height: 0.94;
+  }
+
+  .pm-privacy-hero h1 span {
+    display: block;
+    color: #556165;
+    font-weight: 560;
+  }
+
+  .pm-privacy-hero > p:not(
+    .pm-privacy-eyebrow,
+    .pm-privacy-updated
+  ) {
+    max-width: 720px;
+    margin: 27px 0 0;
+    color: var(--pm-ink-soft);
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .pm-privacy-updated {
+    margin: 22px 0 0;
+    color: #7c8588;
+    font-size: 0.72rem;
+    font-weight: 610;
+  }
+
+  .pm-privacy-summary {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 0.9fr)
+      minmax(0, 1.1fr);
+    gap: clamp(
+      46px,
+      7vw,
+      88px
+    );
+    align-items: start;
+    border: 1px solid #dbe2df;
+    border-radius: 14px;
+    padding:
+      clamp(32px, 5vw, 56px);
+    background:
+      linear-gradient(
+        135deg,
+        #f3f7f5 0%,
+        #f8faf9 100%
+      );
+  }
+
+  .pm-privacy-summary h2 {
+    max-width: 500px;
+    margin: 12px 0 0;
+    color: var(--pm-ink-strong);
+    font-size: clamp(
+      1.9rem,
+      3.4vw,
+      3rem
+    );
+    font-weight: 640;
+    letter-spacing: -0.045em;
+    line-height: 1.05;
+  }
+
+  .pm-privacy-summary-points {
+    border-top: 1px solid #d8e1de;
+  }
+
+  .pm-privacy-summary-points article {
+    display: grid;
+    grid-template-columns:
+      34px
+      minmax(0, 1fr);
+    gap: 16px;
+    border-bottom: 1px solid #d8e1de;
+    padding: 18px 0;
+  }
+
+  .pm-privacy-summary-points article > span {
+    color: #93a09c;
+    font-size: 0.67rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pm-privacy-summary-points strong {
+    color: var(--pm-ink-strong);
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .pm-privacy-summary-points p {
+    margin: 6px 0 0;
+    color: var(--pm-ink-soft);
+    font-size: 0.8rem;
+    line-height: 1.55;
+  }
+
+  .pm-privacy-policy {
+    display: grid;
+    grid-template-columns:
+      230px
+      minmax(0, 760px);
+    gap: clamp(
+      60px,
+      10vw,
+      130px
+    );
+    margin-top: 78px;
+    border-top: 1px solid var(--pm-line);
+    padding-top: 62px;
+  }
+
+  .pm-privacy-index {
+    align-self: start;
+    position: sticky;
+    top: 28px;
+  }
+
+  .pm-privacy-index nav {
+    display: grid;
+    margin-top: 18px;
+    border-top: 1px solid var(--pm-line);
+  }
+
+  .pm-privacy-index a {
+    border-bottom: 1px solid var(--pm-line);
+    padding: 11px 0;
+    color: var(--pm-ink-soft);
+    font-size: 0.76rem;
+    font-weight: 640;
+    text-decoration: none;
+  }
+
+  .pm-privacy-index a:hover {
+    color: var(--pm-forest);
+  }
+
+  .pm-privacy-prose > section {
+    scroll-margin-top: 30px;
+    border-bottom: 1px solid var(--pm-line);
+    padding: 0 0 46px;
+    margin-bottom: 46px;
+  }
+
+  .pm-privacy-prose > section:last-child {
+    margin-bottom: 0;
+  }
+
+  .pm-privacy-section-number {
+    margin: 0 0 12px;
+    color: var(--pm-forest);
+    font-size: 0.67rem;
+    font-weight: 740;
+    letter-spacing: 0.07em;
+  }
+
+  .pm-privacy-prose h2 {
+    margin: 0 0 18px;
+    color: var(--pm-ink-strong);
+    font-size: clamp(
+      1.55rem,
+      2.5vw,
+      2.15rem
+    );
+    font-weight: 660;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+  }
+
+  .pm-privacy-prose p {
+    margin: 0 0 18px;
+    color: #465055;
+    font-size: 0.94rem;
+    line-height: 1.75;
+  }
+
+  .pm-privacy-prose p:last-child {
+    margin-bottom: 0;
+  }
+
+  .pm-privacy-prose strong {
+    color: var(--pm-ink-strong);
+    font-weight: 690;
+  }
+
+  .pm-privacy-prose a {
+    color: var(--pm-forest);
+    font-weight: 650;
+    text-underline-offset: 3px;
+  }
+
+  .pm-privacy-note {
+    margin: 30px 0;
+    border-left: 2px solid var(--pm-forest);
+    padding: 4px 0 4px 17px;
+  }
+
+  .pm-privacy-note strong {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--pm-forest);
+    font-size: 0.75rem;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+  }
+
+  .pm-privacy-note p {
+    margin: 0;
+    color: var(--pm-ink-soft);
+    font-size: 0.84rem;
+    line-height: 1.62;
+  }
+
+  @media (max-width: 760px) {
+    .pm-privacy {
+      width: calc(100% - 32px);
+      padding: 48px 0 56px;
+    }
+
+    .pm-privacy-hero {
+      padding-bottom: 50px;
+    }
+
+    .pm-privacy-hero h1 {
+      font-size: clamp(
+        2.8rem,
+        14vw,
+        4rem
+      );
+    }
+
+    .pm-privacy-summary {
+      grid-template-columns: 1fr;
+      gap: 28px;
+      padding: 26px 22px;
+    }
+
+    .pm-privacy-policy {
+      grid-template-columns: 1fr;
+      gap: 38px;
+      margin-top: 54px;
+      padding-top: 44px;
+    }
+
+    .pm-privacy-index {
+      position: static;
+    }
+
+    .pm-privacy-index nav {
+      grid-template-columns:
+        repeat(
+          2,
+          minmax(0, 1fr)
+        );
+    }
+
+    .pm-privacy-index a {
+      padding-right: 12px;
+    }
+
+    .pm-privacy-prose > section {
+      padding-bottom: 38px;
+      margin-bottom: 38px;
+    }
+  }
+
+  @media (max-width: 359px) {
+    .pm-privacy-index nav {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
