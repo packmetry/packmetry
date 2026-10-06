@@ -1,0 +1,98 @@
+---
+import GuideArticleLayout from '../../layouts/GuideArticleLayout.astro';
+---
+
+<GuideArticleLayout
+  title="DIM weight without the carrier guesswork"
+  description="Understand what dimensional weight measures, why external carton dimensions matter, and what Packmetry deliberately does not assume."
+  category="Dimensional weight"
+  readTime="7 min read"
+>
+  <h2>DIM weight describes package size as a weight</h2>
+
+  <p>
+    Dimensional weight converts the outside volume of a
+    package into a weight value using a divisor. It exists
+    because a large, light carton can consume substantial
+    transport space even when its physical mass is low.
+  </p>
+
+  <p>
+    Packmetry keeps that calculation separate from packing
+    geometry. Items are still placed using the carton’s
+    internal dimensions. DIM analysis uses the carton’s
+    <strong>external dimensions</strong>.
+  </p>
+
+  <div class="pm-guide-note">
+    <strong>No hidden carrier default</strong>
+    <p>
+      Packmetry does not assume a universal DIM divisor.
+      Enter the divisor and units required by the carrier or
+      workflow you are actually evaluating.
+    </p>
+  </div>
+
+  <h2>Why external dimensions are required</h2>
+
+  <p>
+    Dimensional weight describes the space occupied by the
+    package from the outside. Falling back to internal
+    dimensions would make the value look precise while
+    measuring the wrong geometry.
+  </p>
+
+  <p>
+    For that reason, if DIM analysis is enabled, Packmetry
+    expects external length, width and height for the cartons
+    involved in that analysis.
+  </p>
+
+  <h2>Actual weight and DIM weight are different signals</h2>
+
+  <p>
+    Physical gross weight comes from the packed contents plus
+    carton tare when those values are known. DIM weight comes
+    from external package volume and the configured divisor.
+    Neither value should silently stand in for the other.
+  </p>
+
+  <p>
+    When both are known, Packmetry can show an estimated
+    chargeable weight as the greater of actual gross weight
+    and DIM weight. That is intentionally described as an
+    estimate rather than a shipping quote.
+  </p>
+
+  <h2>Packmetry is not a carrier-rate engine</h2>
+
+  <p>
+    Core DIM calculations do not apply carrier-specific
+    billing rounding, service-level pricing, zone tables,
+    surcharges or live rates. Those rules vary by carrier,
+    service and contract and belong to a different layer of
+    the product.
+  </p>
+
+  <p>
+    This boundary is useful: you can compare packing plans
+    on dimensional-weight behavior without pretending that
+    the result is a final shipping price.
+  </p>
+
+  <h2>When “Lowest DIM weight” is useful</h2>
+
+  <p>
+    The Business workspace can rank verified candidates by
+    total dimensional weight when the required DIM settings
+    and external carton dimensions are available. This can
+    surface a different recommendation than simply choosing
+    the fewest cartons or the least empty internal volume.
+  </p>
+
+  <p>
+    The important part is that the objective ranks verified
+    packing candidates; it does not change the underlying
+    physical fit rules.
+  </p>
+</GuideArticleLayout>

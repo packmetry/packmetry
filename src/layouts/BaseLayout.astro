@@ -13,7 +13,14 @@ const {
 const pathname = Astro.url.pathname;
 
 function isCurrent(path: string) {
-  return pathname === path;
+  if (path === '/') {
+    return pathname === '/';
+  }
+
+  return (
+    pathname === path ||
+    pathname.startsWith(path)
+  );
 }
 ---
 
@@ -66,67 +73,42 @@ function isCurrent(path: string) {
             viewBox="0 0 64 64"
             aria-hidden="true"
           >
-            <defs>
-              <linearGradient
-                id="pm-mark-top"
-                x1="10"
-                y1="10"
-                x2="49"
-                y2="26"
-                gradientUnits="userSpaceOnUse"
-              >
-                <stop
-                  offset="0"
-                  stop-color="#0f6a55"
-                />
-                <stop
-                  offset="1"
-                  stop-color="#0a453a"
-                />
-              </linearGradient>
+            <path
+              class="pm-mark-outline"
+              d="M50.8 18.6 32 7.8 13.2 18.6v27.1L32 56.2"
+              fill="none"
+              stroke="#0f5a48"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="4.2"
+            />
 
-              <linearGradient
-                id="pm-mark-face"
-                x1="29"
-                y1="25"
-                x2="54"
-                y2="48"
-                gradientUnits="userSpaceOnUse"
-              >
-                <stop
-                  offset="0"
-                  stop-color="#4bab8b"
-                />
-                <stop
-                  offset="1"
-                  stop-color="#8fd4bd"
-                />
-              </linearGradient>
-            </defs>
+            <path
+              class="pm-mark-outline pm-mark-outline-short"
+              d="M13.2 18.6 31.9 29.4"
+              fill="none"
+              stroke="#0f5a48"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="3.8"
+            />
 
             <path
               class="pm-mark-top"
-              d="M10 18.4 29.1 7.2 52.7 19.1 42.6 24.9 29.6 18.6 20.1 24.2Z"
+              d="M23 23.9 36.6 16l13.7 7.9-13.7 8Z"
+              fill="#cfeadf"
             />
 
             <path
-              class="pm-mark-fold"
-              d="M40.7 13.1 52.7 19.1 42.6 24.9 34.2 20.8Z"
+              class="pm-mark-left-face"
+              d="M23 23.9 36.6 31.9v16.2L23 40.2Z"
+              fill="#58b796"
             />
 
             <path
-              class="pm-mark-stem"
-              d="M10 18.4 20.1 24.2 20.1 53.6 10 59.4Z"
-            />
-
-            <path
-              class="pm-mark-stem-shadow"
-              d="M10 41.6 20.1 47.3 20.1 53.6 10 59.4Z"
-            />
-
-            <path
-              class="pm-mark-face"
-              d="M30.8 29.2 42.6 24.9 52.7 19.1 52.7 38.8 30.8 51.4Z"
+              class="pm-mark-right-face"
+              d="M36.6 31.9 50.3 23.9v16.3l-13.7 7.9Z"
+              fill="#2f8d72"
             />
           </svg>
 
@@ -169,6 +151,17 @@ function isCurrent(path: string) {
           >
             Business
           </a>
+
+          <a
+            href="/guides/"
+            aria-current={
+              isCurrent('/guides/')
+                ? 'page'
+                : undefined
+            }
+          >
+            Guides
+          </a>
         </nav>
       </div>
     </header>
@@ -197,6 +190,10 @@ function isCurrent(path: string) {
 
           <a href="/business/">
             Business
+          </a>
+
+          <a href="/guides/">
+            Guides
           </a>
         </nav>
       </div>
@@ -264,35 +261,39 @@ function isCurrent(path: string) {
   }
 
   .pm-site-mark {
-    width: 38px;
-    height: 38px;
+    width: 42px;
+    height: 42px;
     flex: none;
     overflow: visible;
     filter:
       drop-shadow(
         0 4px 7px
-        rgba(15, 90, 72, 0.08)
+        rgba(15, 90, 72, 0.07)
       );
   }
 
+  .pm-site-mark .pm-mark-outline {
+    fill: none;
+    stroke: #0f5a48;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 4.2;
+  }
+
+  .pm-site-mark .pm-mark-outline-short {
+    stroke-width: 3.8;
+  }
+
   .pm-site-mark .pm-mark-top {
-    fill: url(#pm-mark-top);
+    fill: #cfeadf;
   }
 
-  .pm-site-mark .pm-mark-fold {
-    fill: #287b67;
+  .pm-site-mark .pm-mark-left-face {
+    fill: #58b796;
   }
 
-  .pm-site-mark .pm-mark-stem {
-    fill: #0f5a48;
-  }
-
-  .pm-site-mark .pm-mark-stem-shadow {
-    fill: #0a4036;
-  }
-
-  .pm-site-mark .pm-mark-face {
-    fill: url(#pm-mark-face);
+  .pm-site-mark .pm-mark-right-face {
+    fill: #2f8d72;
   }
 
   .pm-site-nav {
@@ -390,13 +391,17 @@ function isCurrent(path: string) {
     }
 
     .pm-site-mark {
-      width: 34px;
-      height: 34px;
+      width: 36px;
+      height: 36px;
     }
 
     .pm-site-brand {
       gap: 8px;
       font-size: 0.96rem;
+    }
+
+    .pm-site-brand span {
+      display: none;
     }
 
     .pm-site-nav {
@@ -405,14 +410,14 @@ function isCurrent(path: string) {
 
     .pm-site-nav a {
       min-height: 38px;
-      padding-right: 8px;
-      padding-left: 8px;
-      font-size: 0.76rem;
+      padding-right: 7px;
+      padding-left: 7px;
+      font-size: 0.74rem;
     }
 
     .pm-site-nav a[aria-current="page"]::after {
-      right: 8px;
-      left: 8px;
+      right: 7px;
+      left: 7px;
     }
 
     .pm-site-footer-inner {
@@ -604,13 +609,13 @@ function isCurrent(path: string) {
     }
 
     .pm-site-brand {
-      gap: 6px;
+      gap: 0;
       font-size: 0.88rem;
     }
 
     .pm-site-mark {
-      width: 30px;
-      height: 30px;
+      width: 32px;
+      height: 32px;
     }
 
     .pm-site-nav a {

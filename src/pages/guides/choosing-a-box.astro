@@ -1,0 +1,94 @@
+---
+import GuideArticleLayout from '../../layouts/GuideArticleLayout.astro';
+---
+
+<GuideArticleLayout
+  title="Choosing a box without wasting space"
+  description="A practical way to think about internal dimensions, fit, empty space and why the smallest-looking box is not always the best packing decision."
+  category="Box selection"
+  readTime="6 min read"
+>
+  <h2>Start with usable space, not the box label</h2>
+
+  <p>
+    A carton can look large enough and still be a poor fit.
+    What matters for packing is the usable space inside the
+    carton and whether the item can be placed there in an
+    allowed orientation.
+  </p>
+
+  <p>
+    That is why Packmetry treats <strong>internal carton
+    dimensions</strong> as the geometry used for placement.
+    External package dimensions have a different purpose:
+    they matter when dimensional-weight analysis is enabled.
+  </p>
+
+  <div class="pm-guide-note">
+    <strong>Useful distinction</strong>
+    <p>
+      Internal dimensions answer “will it fit?” External
+      dimensions answer questions about the outside package,
+      including dimensional-weight calculations.
+    </p>
+  </div>
+
+  <h2>Do not optimize empty space in isolation</h2>
+
+  <p>
+    A lower empty-volume number is useful, but it is not the
+    only thing that can make one plan better than another.
+    The number of cartons, available inventory, supported
+    handling rules and your selected packing objective can
+    all change the preferred result.
+  </p>
+
+  <p>
+    For an everyday shipment, a practical decision often
+    starts with a simpler question: can all requested items
+    be packed into fewer cartons without violating the
+    dimensions and constraints you entered?
+  </p>
+
+  <h3>When two boxes both fit</h3>
+
+  <p>
+    If two candidate cartons both produce verified plans,
+    empty space becomes a useful tie-breaker. A tighter plan
+    usually means less unused internal volume, but you should
+    still leave any real-world cushioning or spacing needs in
+    the inputs rather than assuming a perfectly tight pack.
+  </p>
+
+  <h2>Rotation can change the answer</h2>
+
+  <p>
+    The same item can fit in very different ways depending
+    on its rotation policy. An unrestricted item may use any
+    solver-supported orientation. An upright or fixed item
+    has fewer valid placements, which can require a larger
+    carton even when raw volume suggests otherwise.
+  </p>
+
+  <p>
+    Volume alone cannot prove that an item fits. Geometry
+    matters because the length, width and height still need
+    to occupy valid positions inside the carton.
+  </p>
+
+  <h2>Use the verified arrangement as the source of truth</h2>
+
+  <p>
+    Packmetry does not treat the 3D view as a decorative
+    reconstruction. The visualization follows the canonical
+    verified placement plan. That means the result summary
+    and the 3D arrangement refer to the same packing result.
+  </p>
+
+  <p>
+    A good box decision is therefore not simply “pick the
+    smallest dimensions.” It is: choose a carton that
+    produces a verified plan under the constraints that
+    actually matter for the job.
+  </p>
+</GuideArticleLayout>

@@ -66,11 +66,13 @@ import '../styles/packmetry-workspace.css';
         >
           <div class="pm-home-geometry-caption">
             <span>
-              Verified packing geometry
+              <strong>Arrangement</strong>
+              <span>3D</span>
             </span>
 
             <span>
-              3D arrangement
+              <strong>Verified</strong>
+              <span>Packing geometry</span>
             </span>
           </div>
 
@@ -578,9 +580,29 @@ import '../styles/packmetry-workspace.css';
     justify-content: space-between;
     gap: 18px;
     margin-bottom: 4px;
-    color: #7b8487;
-    font-size: 0.68rem;
-    font-weight: 650;
+  }
+
+  .pm-home-geometry-caption > span {
+    display: grid;
+    gap: 2px;
+  }
+
+  .pm-home-geometry-caption > span:last-child {
+    text-align: left;
+  }
+
+  .pm-home-geometry-caption strong {
+    color: var(--pm-ink);
+    font-size: 0.78rem;
+    font-weight: 680;
+    line-height: 1.2;
+  }
+
+  .pm-home-geometry-caption > span > span {
+    color: #818a8d;
+    font-size: 0.67rem;
+    font-weight: 400;
+    line-height: 1.2;
   }
 
   .pm-home-geometry-scene {

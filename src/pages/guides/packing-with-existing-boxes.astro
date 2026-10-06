@@ -1,0 +1,94 @@
+---
+import GuideArticleLayout from '../../layouts/GuideArticleLayout.astro';
+---
+
+<GuideArticleLayout
+  title="Packing with boxes you already have"
+  description="How to treat carton stock as a real constraint, what available quantity changes, and when a hybrid packing workflow becomes useful."
+  category="Existing inventory"
+  readTime="5 min read"
+>
+  <h2>Your inventory is part of the packing problem</h2>
+
+  <p>
+    When you already own cartons, the question is no longer
+    just “what box size would work?” It becomes “what can I
+    pack with the box types and quantities I actually have?”
+  </p>
+
+  <p>
+    In Packmetry’s existing-box workflow, available quantity
+    is a real limit. If a carton type has one unit available,
+    a plan cannot silently open a second carton of that type.
+    A zero quantity means that carton cannot be used.
+  </p>
+
+  <div class="pm-guide-note">
+    <strong>Inventory means inventory</strong>
+    <p>
+      The existing-box workflow does not invent purchase
+      cartons when your stock runs out. It works only with
+      the carton types and quantities you entered.
+    </p>
+  </div>
+
+  <h2>Use multiple carton types when that reflects reality</h2>
+
+  <p>
+    Real stockrooms are rarely made of one perfect box size.
+    Entering several carton types gives the solver a more
+    realistic set of choices. A verified plan may use one
+    type exclusively or combine different types when that is
+    a better fit for the order.
+  </p>
+
+  <p>
+    This is also why carton quantity should be maintained
+    carefully. A mathematically suitable carton is not a
+    usable option if there is no stock available.
+  </p>
+
+  <h2>Hybrid is different from “have boxes”</h2>
+
+  <p>
+    Hybrid packing is useful when existing stock should be
+    used first but buying additional cartons is acceptable
+    for the remainder. It answers a different operational
+    question from strict inventory-only packing.
+  </p>
+
+  <p>
+    In practical terms, the three workflows are:
+  </p>
+
+  <ul>
+    <li>
+      <strong>Need boxes:</strong> find suitable cartons for
+      the items you need to pack.
+    </li>
+    <li>
+      <strong>Have boxes:</strong> pack only into the stock
+      and quantities you entered.
+    </li>
+    <li>
+      <strong>Hybrid:</strong> use existing stock and cover
+      the remainder when inventory is insufficient.
+    </li>
+  </ul>
+
+  <h2>Review inventory usage, not only the 3D picture</h2>
+
+  <p>
+    A successful plan should tell you both how the items were
+    arranged and what happened to your carton stock. The
+    inventory summary is useful because it makes the
+    operational consequence of the plan visible: what was
+    used and what remains.
+  </p>
+
+  <p>
+    The 3D arrangement explains fit. Inventory usage explains
+    the stock decision. Together they give a more complete
+    view than either one on its own.
+  </p>
+</GuideArticleLayout>

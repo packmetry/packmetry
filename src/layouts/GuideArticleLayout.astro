@@ -1,0 +1,346 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import '../styles/packmetry-workspace.css';
+
+interface Props {
+  title: string;
+  description: string;
+  category: string;
+  readTime: string;
+  updated?: string;
+}
+
+const {
+  title,
+  description,
+  category,
+  readTime,
+  updated = 'October 2026',
+} = Astro.props;
+---
+
+<BaseLayout
+  title={`${title} — Packmetry Guides`}
+  description={description}
+>
+  <main class="pm-guide-article">
+    <header class="pm-guide-article-header">
+      <a
+        class="pm-guide-back"
+        href="/guides/"
+      >
+        <span aria-hidden="true">←</span>
+        All guides
+      </a>
+
+      <p class="pm-guide-kicker">
+        {category}
+      </p>
+
+      <h1>{title}</h1>
+
+      <p class="pm-guide-dek">
+        {description}
+      </p>
+
+      <div class="pm-guide-meta">
+        <span>{readTime}</span>
+        <span aria-hidden="true">·</span>
+        <span>Updated {updated}</span>
+      </div>
+    </header>
+
+    <article class="pm-guide-prose">
+      <slot />
+    </article>
+
+    <footer class="pm-guide-article-footer">
+      <div>
+        <p class="pm-guide-kicker">
+          Continue with Packmetry
+        </p>
+
+        <strong>
+          Put the idea into a real packing plan.
+        </strong>
+      </div>
+
+      <div class="pm-guide-footer-actions">
+        <a
+          class="pm-guide-primary-link"
+          href="/personal/"
+        >
+          Personal workspace
+          <span aria-hidden="true">→</span>
+        </a>
+
+        <a
+          class="pm-guide-secondary-link"
+          href="/business/"
+        >
+          Business workspace
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </footer>
+  </main>
+</BaseLayout>
+
+<style>
+  .pm-guide-article {
+    width: min(
+      calc(100% - 40px),
+      1120px
+    );
+    margin: 0 auto;
+    padding: 72px 0 84px;
+  }
+
+  .pm-guide-article-header {
+    max-width: 820px;
+    padding-bottom: 38px;
+    border-bottom: 1px solid var(--pm-line);
+  }
+
+  .pm-guide-back {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 42px;
+    color: var(--pm-ink-soft);
+    font-size: 0.78rem;
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .pm-guide-back:hover {
+    color: var(--pm-forest);
+  }
+
+  .pm-guide-kicker {
+    margin: 0 0 11px;
+    color: var(--pm-forest);
+    font-size: 0.7rem;
+    font-weight: 740;
+    letter-spacing: 0.085em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .pm-guide-article-header h1 {
+    margin: 0;
+    max-width: 780px;
+    color: var(--pm-ink-strong);
+    font-size: clamp(
+      2.6rem,
+      5.3vw,
+      4.9rem
+    );
+    font-weight: 680;
+    letter-spacing: -0.058em;
+    line-height: 0.98;
+  }
+
+  .pm-guide-dek {
+    max-width: 720px;
+    margin: 24px 0 0;
+    color: var(--pm-ink-soft);
+    font-size: clamp(
+      1rem,
+      1.5vw,
+      1.16rem
+    );
+    line-height: 1.65;
+  }
+
+  .pm-guide-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 24px;
+    color: #7a8386;
+    font-size: 0.72rem;
+    font-weight: 610;
+  }
+
+  .pm-guide-prose {
+    width: min(
+      100%,
+      760px
+    );
+    padding: 48px 0 60px;
+    color: var(--pm-ink);
+  }
+
+  .pm-guide-prose :global(h2) {
+    margin: 48px 0 15px;
+    color: var(--pm-ink-strong);
+    font-size: clamp(
+      1.5rem,
+      2.4vw,
+      2rem
+    );
+    font-weight: 680;
+    letter-spacing: -0.032em;
+    line-height: 1.12;
+  }
+
+  .pm-guide-prose :global(h2:first-child) {
+    margin-top: 0;
+  }
+
+  .pm-guide-prose :global(h3) {
+    margin: 30px 0 10px;
+    color: var(--pm-ink-strong);
+    font-size: 1.02rem;
+    font-weight: 720;
+  }
+
+  .pm-guide-prose :global(p),
+  .pm-guide-prose :global(li) {
+    color: #465055;
+    font-size: 0.96rem;
+    line-height: 1.78;
+  }
+
+  .pm-guide-prose :global(p) {
+    margin: 0 0 19px;
+  }
+
+  .pm-guide-prose :global(ul) {
+    margin: 18px 0 24px;
+    padding-left: 22px;
+  }
+
+  .pm-guide-prose :global(li + li) {
+    margin-top: 7px;
+  }
+
+  .pm-guide-prose :global(strong) {
+    color: var(--pm-ink-strong);
+    font-weight: 690;
+  }
+
+  .pm-guide-prose :global(.pm-guide-note) {
+    margin: 32px 0;
+    border-left: 2px solid var(--pm-forest);
+    padding: 4px 0 4px 17px;
+  }
+
+  .pm-guide-prose
+    :global(.pm-guide-note strong) {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--pm-forest);
+    font-size: 0.78rem;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+  }
+
+  .pm-guide-prose
+    :global(.pm-guide-note p) {
+    margin: 0;
+    color: var(--pm-ink-soft);
+    font-size: 0.86rem;
+    line-height: 1.62;
+  }
+
+  .pm-guide-article-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 32px;
+    align-items: center;
+    border: 1px solid #dce4e1;
+    border-radius: 14px;
+    padding: 28px 30px;
+    background: #f3f7f5;
+  }
+
+  .pm-guide-article-footer strong {
+    display: block;
+    max-width: 430px;
+    color: var(--pm-ink-strong);
+    font-size: 1.25rem;
+    font-weight: 680;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+  }
+
+  .pm-guide-footer-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+  }
+
+  .pm-guide-primary-link,
+  .pm-guide-secondary-link {
+    display: inline-flex;
+    min-height: 40px;
+    gap: 9px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    padding: 8px 13px;
+    font-size: 0.75rem;
+    font-weight: 710;
+    text-decoration: none;
+  }
+
+  .pm-guide-primary-link {
+    border: 1px solid var(--pm-navy);
+    background: var(--pm-navy);
+    color: #ffffff;
+  }
+
+  .pm-guide-secondary-link {
+    border: 1px solid #c7d3cf;
+    background: #ffffff;
+    color: var(--pm-navy);
+  }
+
+  @media (max-width: 639px) {
+    .pm-guide-article {
+      width: calc(100% - 32px);
+      padding: 44px 0 56px;
+    }
+
+    .pm-guide-back {
+      margin-bottom: 30px;
+    }
+
+    .pm-guide-article-header {
+      padding-bottom: 30px;
+    }
+
+    .pm-guide-article-header h1 {
+      font-size: clamp(
+        2.3rem,
+        12vw,
+        3.4rem
+      );
+    }
+
+    .pm-guide-prose {
+      padding: 36px 0 44px;
+    }
+
+    .pm-guide-prose :global(h2) {
+      margin-top: 39px;
+    }
+
+    .pm-guide-article-footer {
+      align-items: stretch;
+      flex-direction: column;
+      padding: 24px 22px;
+    }
+
+    .pm-guide-footer-actions {
+      flex-direction: column;
+    }
+
+    .pm-guide-primary-link,
+    .pm-guide-secondary-link {
+      width: 100%;
+    }
+  }
+</style>
