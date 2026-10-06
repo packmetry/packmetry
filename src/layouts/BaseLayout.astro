@@ -32,6 +32,17 @@ function isCurrent(path: string) {
       content={description}
     />
 
+    <meta
+      name="theme-color"
+      content="#0f5a48"
+    />
+
+    <link
+      rel="icon"
+      href="/favicon.svg"
+      type="image/svg+xml"
+    />
+
     <title>{title}</title>
   </head>
 
@@ -52,15 +63,70 @@ function isCurrent(path: string) {
         >
           <svg
             class="pm-site-mark"
-            viewBox="0 0 28 28"
+            viewBox="0 0 64 64"
             aria-hidden="true"
           >
+            <defs>
+              <linearGradient
+                id="pm-mark-top"
+                x1="10"
+                y1="10"
+                x2="49"
+                y2="26"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop
+                  offset="0"
+                  stop-color="#0f6a55"
+                />
+                <stop
+                  offset="1"
+                  stop-color="#0a453a"
+                />
+              </linearGradient>
+
+              <linearGradient
+                id="pm-mark-face"
+                x1="29"
+                y1="25"
+                x2="54"
+                y2="48"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop
+                  offset="0"
+                  stop-color="#4bab8b"
+                />
+                <stop
+                  offset="1"
+                  stop-color="#8fd4bd"
+                />
+              </linearGradient>
+            </defs>
+
             <path
-              d="M5.5 8.2 14 3.5l8.5 4.7v10L14 23l-8.5-4.8v-10Z"
+              class="pm-mark-top"
+              d="M10 18.4 29.1 7.2 52.7 19.1 42.6 24.9 29.6 18.6 20.1 24.2Z"
             />
 
             <path
-              d="m5.8 8.3 8.2 4.6 8.2-4.6M14 13v9.6"
+              class="pm-mark-fold"
+              d="M40.7 13.1 52.7 19.1 42.6 24.9 34.2 20.8Z"
+            />
+
+            <path
+              class="pm-mark-stem"
+              d="M10 18.4 20.1 24.2 20.1 53.6 10 59.4Z"
+            />
+
+            <path
+              class="pm-mark-stem-shadow"
+              d="M10 41.6 20.1 47.3 20.1 53.6 10 59.4Z"
+            />
+
+            <path
+              class="pm-mark-face"
+              d="M30.8 29.2 42.6 24.9 52.7 19.1 52.7 38.8 30.8 51.4Z"
             />
           </svg>
 
@@ -192,19 +258,41 @@ function isCurrent(path: string) {
       BlinkMacSystemFont,
       sans-serif;
     font-size: 1rem;
-    font-weight: 730;
-    letter-spacing: -0.025em;
+    font-weight: 760;
+    letter-spacing: -0.03em;
     text-decoration: none;
   }
 
   .pm-site-mark {
-    width: 25px;
-    height: 25px;
-    fill: none;
-    stroke: #2e5d50;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.45;
+    width: 38px;
+    height: 38px;
+    flex: none;
+    overflow: visible;
+    filter:
+      drop-shadow(
+        0 4px 7px
+        rgba(15, 90, 72, 0.08)
+      );
+  }
+
+  .pm-site-mark .pm-mark-top {
+    fill: url(#pm-mark-top);
+  }
+
+  .pm-site-mark .pm-mark-fold {
+    fill: #287b67;
+  }
+
+  .pm-site-mark .pm-mark-stem {
+    fill: #0f5a48;
+  }
+
+  .pm-site-mark .pm-mark-stem-shadow {
+    fill: #0a4036;
+  }
+
+  .pm-site-mark .pm-mark-face {
+    fill: url(#pm-mark-face);
   }
 
   .pm-site-nav {
@@ -302,12 +390,13 @@ function isCurrent(path: string) {
     }
 
     .pm-site-mark {
-      width: 23px;
-      height: 23px;
+      width: 34px;
+      height: 34px;
     }
 
     .pm-site-brand {
-      font-size: 0.95rem;
+      gap: 8px;
+      font-size: 0.96rem;
     }
 
     .pm-site-nav {
@@ -520,8 +609,8 @@ function isCurrent(path: string) {
     }
 
     .pm-site-mark {
-      width: 21px;
-      height: 21px;
+      width: 30px;
+      height: 30px;
     }
 
     .pm-site-nav a {
