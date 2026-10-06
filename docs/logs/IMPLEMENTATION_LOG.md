@@ -1029,3 +1029,54 @@ Phase 12 complete.
 Phase 12.5 — Product UI & Visual Integration Sprint
 
 This focused sprint covers homepage, Personal, Business, result surfaces, 3D presentation, responsive/accessibility polish, and design consistency without rewriting the solver/core or inventing unsupported metrics.
+
+2026-10-06 — Phase 12.5 Product UI & Visual Integration Sprint complete
+Completed
+- Polished the Packmetry homepage while preserving the browser-first product position
+- Added a clearer Personal-vs-Business entry hierarchy
+- Added an interactive homepage packing-geometry presentation without changing solver output or canonical placement semantics
+- Polished Personal workspace and result presentation
+- Polished Business workspace and result presentation
+- Compacted Business form density while preserving existing functionality
+- Improved result hierarchy, spacing, badges, rationale presentation, and 3D result framing
+- Added shared responsive/mobile refinements for Personal and Business without disturbing the accepted desktop layouts
+- Added dedicated PackingVisualization styling while preserving canonical verified placement rendering
+- Introduced the accepted Packmetry outline + solid carton brand mark
+- Added matching SVG favicon
+- Added shared Guides navigation and reusable GuideArticleLayout
+- Added /guides/ library page
+- Added three starter/sample guide articles:
+  - Choosing a box without wasting space
+  - Packing with boxes you already have
+  - DIM weight without the carrier guesswork
+- Added /contact/ with packmetry@gmail.com as the current direct contact path
+- Added /privacy/ describing the current browser-local data model, email contact boundary, hosting-data boundary, current analytics/advertising-tracker boundary, user controls, and future-policy update requirement
+- Added Contact and Privacy to footer navigation
+- Preserved the shared solver/core architecture and did not invent unsupported metrics or carrier behavior
+Guides content boundary
+- The three current guide articles are starter/sample content so the Guides surface is not empty
+- Future production guide articles should be researched and published one at a time
+- Production guide work should include current keyword/SERP research, search-intent analysis, semantic keyword/entity clustering, content-gap analysis, internal linking, factual verification, and complete on-page SEO
+- Keyword stuffing, thin content, and invented carrier-specific assumptions remain unacceptable
+Final validation
+- 75 test files passing
+- 1118 tests passing
+- typecheck: 0 errors, 0 warnings, 0 hints
+- production build passed
+- 9 generated pages:
+  - /
+  - /personal/
+  - /business/
+  - /guides/
+  - /guides/choosing-a-box/
+  - /guides/packing-with-existing-boxes/
+  - /guides/dimensional-weight/
+  - /contact/
+  - /privacy/
+- latest validated main commit: 3f02576a7aef7910c72869766aac3153d78bea92
+- GitHub Actions run #99: SUCCESS
+- no Phase 12.5 blockers remain
+Current dependency-aware stage
+Phase 12.5 complete.
+Next planned phase
+Phase 13 — SEO foundation.

@@ -1,14 +1,13 @@
 Packmetry
 Packmetry is a browser-first packing and cartonization decision workbench.
 Tell us what you are packing. We will figure out the boxes.
-
 Project authority
 Before changing product behavior, architecture, design direction, or implementation strategy, read:
 1. docs/authority/PACKMETRY_NEW_PROJECT_CHAT_BOOTSTRAP.md — highest repository project authority after an explicit current user instruction.
 2. docs/authority/CARTONLAB_ULTIMATE_PROJECT_SPECIFICATION.md — detailed legacy product specification; interpret CartonLab as Packmetry unless the bootstrap explicitly says otherwise.
 3. Accepted ADRs in docs/decisions/.
 4. The current approved task packet.
-The Packmetry bootstrap controls naming, workflow, design status, repository policy, and any override of the older CartonLab document.
+   The Packmetry bootstrap controls naming, workflow, design status, repository policy, and any override of the older CartonLab document.
 Important boundaries
 - Final public brand: Packmetry
 - Domain: Packmetry.com
@@ -30,14 +29,39 @@ For every meaningful task:
 5. Cline does not commit or push.
 6. ChatGPT reviews the receipt/diff.
 7. Only after approval does the user commit and push.
-See docs/process/AI_IMPLEMENTATION_WORKFLOW.md.
+   See docs/process/AI_IMPLEMENTATION_WORKFLOW.md.
 Current state
-Phase 12 complete: DIM / Weight Modules implemented and validated.
-Personal and Business entry experience:
-- Root homepage classifies visitors by intention
-- Home & Personal entry at /personal/
-- Business entry at /business/
-- Personal and Business continue to use one shared packing engine
+Phase 12.5 complete: Product UI & Visual Integration Sprint implemented and validated.
+Public product surfaces:
+- Polished root homepage at /
+- Personal packing workspace at /personal/
+- Business packing workspace at /business/
+- Guides library at /guides/
+- Three starter guide articles:
+  - /guides/choosing-a-box/
+  - /guides/packing-with-existing-boxes/
+  - /guides/dimensional-weight/
+- Contact page at /contact/
+- Privacy page at /privacy/
+- Shared Packmetry header/footer shell
+- Packmetry outline + solid carton brand mark and matching SVG favicon
+- Responsive desktop/mobile presentation across public pages and workspaces
+Personal experience:
+- Multiple named items and quantities
+- Optional item weight
+- Item duplication/removal
+- Metric / Imperial UI switching
+- Persisted unit preference
+- Need Boxes, Have Boxes, and Hybrid workflows
+- Keep Upright / Allow Rotation controls
+- Verified packing result
+- Canonical 3D packing visualization
+- Utilization / packed weight / empty space
+- Why this plan? rationale
+- Save / Share
+- Recent Personal plans
+- Recent Personal items
+- Browser-first / account-free operation
 Business UX core capabilities:
 - Multiple products
 - Product name and optional SKU
@@ -68,7 +92,7 @@ Business UX core capabilities:
 - Carton cost when known
 - Carton stock impact
 - Per-carton result detail
-- 3D packing visualization
+- Canonical 3D packing visualization
 Local persistence capabilities:
 - Personal Metric / Imperial unit preference stored locally
 - Personal recent items stored in IndexedDB
@@ -102,14 +126,43 @@ Phase 12 capabilities:
 - Business result surface shows Actual gross weight, DIM weight, and Estimated chargeable weight
 - Business persistence and JSON round-trip DIM settings and min-dim objective
 - Carrier billing rounding, service rules, rates, and shipping prices are NOT implemented
+Phase 12.5 capabilities:
+- Homepage visual hierarchy and product positioning polished
+- Interactive homepage packing-geometry presentation added without changing solver semantics
+- Personal workspace/result layout polished
+- Business workspace/result layout compacted and polished
+- Responsive mobile layouts refined without disturbing desktop behavior
+- Shared 3D packing visualization presentation polished
+- Result spacing, hierarchy, badges, and explanation sections refined
+- Shared Packmetry brand mark and favicon introduced
+- Guides foundation added with reusable article layout
+- Three starter guide articles published so the guide library is not empty
+- Contact page added with email-only contact path
+- Privacy page added describing the current browser-local product model and current tracking boundary
+- Shared navigation/footer expanded to Guides, Contact, and Privacy where appropriate
+- No solver/core rewrite and no unsupported metrics introduced
+Guides content policy:
+- The current three guide articles are starter/sample content.
+- Future production guide articles should be published one at a time after current keyword/SERP research.
+- Production articles should use strong search-intent matching, semantic keyword/entity coverage, content-gap analysis, internal linking, factual verification, and complete on-page SEO.
+- Keyword stuffing and invented carrier rules are not acceptable.
 Validation baseline:
-- 72 test files passing
-- 1098 tests passing
+- 75 test files passing
+- 1118 tests passing
 - typecheck: 0 errors, 0 warnings, 0 hints
 - Production build passing
-- /, /personal/, and /business/ generated successfully
-- GitHub Actions run #88: SUCCESS
-- Latest validated main commit: cf7fd442277a3ef5801cd054548ef0478cfb6ac8
+- 9 generated pages:
+  - /
+  - /personal/
+  - /business/
+  - /guides/
+  - /guides/choosing-a-box/
+  - /guides/packing-with-existing-boxes/
+  - /guides/dimensional-weight/
+  - /contact/
+  - /privacy/
+- GitHub Actions run #99: SUCCESS
+- Latest validated main commit: 3f02576a7aef7910c72869766aac3153d78bea92
 Intentional deferrals / later roadmap work:
 - Unsupported fragile, padding, spacing, and stackability controls remain unexposed until solver/verifier semantics support them
 - CSV import/export belongs to Phase 14
@@ -117,9 +170,9 @@ Intentional deferrals / later roadmap work:
 - Saved product catalog belongs to Phase 16
 - Analytics and carton-portfolio rationalization belong to Phase 17
 - Accounts/cloud belong to Phase 18
-- Integrations/API belong to Phase 19
+- Integrations/API belongs to Phase 19
 - Live carrier billing/rates/shipping-price calculation remains outside the completed Phase 12 scope
-No Phase 12 blockers remain.
+No Phase 12.5 blockers remain.
 Next planned product phase
-Phase 12.5 — Product UI & Visual Integration Sprint
-This focused sprint covers homepage, Personal, Business, result surfaces, 3D presentation, responsive/accessibility polish, and design consistency without rewriting the solver/core or inventing unsupported metrics.
+Phase 13 — SEO foundation.
+Phase 13 should build the technical SEO base for the polished public site and guide library without lowering content quality or turning the site into generic keyword-driven marketing.
