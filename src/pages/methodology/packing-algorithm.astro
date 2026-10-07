@@ -6,7 +6,7 @@ import '../../styles/methodology.css';
 
 <BaseLayout
   title="Packing Algorithm & Verification Methodology — Packmetry"
-  description="How Packmetry generates deterministic packing candidates, independently verifies geometry and constraints, ranks valid options and constructs the canonical plan shown in 3D."
+  description="How Packmetry approaches 3D bin packing: deterministic candidate generation, independent verification, objective ranking, canonical utilization metrics, DIM assumptions and the verified plan shown in 3D."
 >
   <main class="pm-methodology-article-page">
     <div class="pm-methodology-article-shell">
@@ -100,6 +100,84 @@ import '../../styles/methodology.css';
 
       <div class="pm-methodology-content">
         <article class="pm-methodology-prose">
+          <section>
+            <p class="pm-methodology-kicker">
+              What 3D bin packing means here
+            </p>
+
+            <h2>
+              Packmetry places rectangular item
+              instances inside rectangular cartons.
+            </h2>
+
+            <p>
+              In Packmetry, a 3D packing problem
+              asks whether item instances with
+              length, width and height can be placed
+              inside one or more carton interiors
+              without crossing carton boundaries or
+              overlapping one another.
+            </p>
+
+            <p>
+              Placements are axis-aligned. An item
+              may use only the orientations allowed
+              by its rotation policy. The physical
+              packing problem can also be limited by
+              known carton inventory and known gross
+              weight constraints.
+            </p>
+
+            <p>
+              A successful geometric arrangement is
+              therefore more than a volume check:
+              every placed item needs explicit
+              coordinates, dimensions and an allowed
+              orientation that survive independent
+              verification.
+            </p>
+          </section>
+
+          <section>
+            <p class="pm-methodology-kicker">
+              Why multiple valid arrangements exist
+            </p>
+
+            <h2>
+              The same packing problem can have
+              more than one valid arrangement.
+            </h2>
+
+            <p>
+              Different valid plans can result from
+              choices such as which carton type is
+              opened first, which available
+              orientation is accepted, or where a
+              valid placement is chosen inside an
+              already-open carton.
+            </p>
+
+            <p>
+              Packmetry does not attempt to enumerate
+              every mathematically possible
+              arrangement. The current baseline uses
+              a small deterministic search policy so
+              repeated runs remain reproducible and
+              browser cost stays bounded.
+            </p>
+
+            <div class="pm-methodology-callout">
+              <strong>Current search scope</strong>
+              <p>
+                The production baseline varies
+                carton-type order only. Item order
+                and rotation-order diversity are not
+                currently explored as separate
+                candidate strategies.
+              </p>
+            </div>
+          </section>
+
           <section>
             <p class="pm-methodology-kicker">
               Candidate generation
@@ -241,9 +319,9 @@ import '../../styles/methodology.css';
               Only independently verified
               candidates are eligible for ranking.
               Before an optimization objective is
-              applied, Packmetry first prefers the
-              candidates that place the greatest
-              number of requested item instances.
+              applied, Packmetry first maximizes
+              placed item instances and then
+              minimizes unplaced item instances.
             </p>
 
             <p>
@@ -258,12 +336,75 @@ import '../../styles/methodology.css';
             <p>
               Current product objectives can then
               compare verified candidates using
-              deterministic metrics such as carton
-              count, wasted internal volume, known
-              carton cost, known gross-weight data
-              or dimensional weight where the
-              required data is available.
+              deterministic lexicographic metrics
+              such as carton count, wasted internal
+              volume, utilization, known carton
+              cost, known gross-weight data or
+              dimensional weight where the required
+              data is available.
             </p>
+
+            <p>
+              Packmetry does not collapse different
+              units such as cartons, cubic
+              millimetres, currency and grams into
+              one arbitrary weighted score in the
+              current baseline selection policy.
+            </p>
+          </section>
+
+          <section>
+            <p class="pm-methodology-kicker">
+              Utilization
+            </p>
+
+            <h2>
+              Utilization is derived from verified
+              placed volume and internal carton
+              volume.
+            </h2>
+
+            <p>
+              For each used carton, Packmetry sums
+              the volume of its verified placements:
+              <strong>
+                item volume = Σ(length × width ×
+                height).
+              </strong>
+              Carton volume is calculated from the
+              carton&apos;s internal length, width
+              and height.
+            </p>
+
+            <p>
+              Empty volume is:
+              <strong>
+                carton volume - item volume.
+              </strong>
+              Carton utilization is:
+              <strong>
+                item volume / carton volume.
+              </strong>
+            </p>
+
+            <p>
+              At plan level, the same quantities are
+              summed across all used cartons before
+              overall utilization is calculated.
+              If a plan uses zero cartons, overall
+              utilization is defined as zero.
+            </p>
+
+            <div class="pm-methodology-callout">
+              <strong>What utilization does not prove</strong>
+              <p>
+                A favorable volume ratio cannot
+                prove that items geometrically fit.
+                Utilization is a metric derived
+                after verified placement; it is not
+                a replacement for 3D geometry.
+              </p>
+            </div>
           </section>
 
           <section>
@@ -325,20 +466,40 @@ import '../../styles/methodology.css';
 
           <section>
             <p class="pm-methodology-kicker">
-              DIM and carrier boundary
+              Dimensional weight
             </p>
 
             <h2>
-              Dimensional weight does not change
-              packing geometry.
+              DIM weight uses external package size
+              and an explicit unit-aware divisor.
             </h2>
 
             <p>
-              Physical packing uses carton internal
-              dimensions. When dimensional-weight
-              analysis is enabled, DIM calculations
-              use external package dimensions and
-              an explicit unit-aware divisor.
+              When dimensional-weight analysis is
+              enabled for a carton, Packmetry uses
+              external package dimensions rather
+              than the internal packing cavity.
+              Length, width and height are converted
+              into the divisor&apos;s length unit,
+              multiplied into package volume, and
+              divided by the explicit divisor.
+            </p>
+
+            <p>
+              The result is interpreted in the
+              divisor&apos;s mass unit and converted
+              to canonical grams. The core DIM
+              calculation does not apply
+              carrier-billing rounding.
+            </p>
+
+            <p>
+              When both actual gross weight and DIM
+              weight are known, the base estimated
+              chargeable weight is the greater of
+              the two. Missing actual weight or
+              missing DIM data remains unknown
+              rather than being replaced with zero.
             </p>
 
             <p>
@@ -349,18 +510,64 @@ import '../../styles/methodology.css';
               because a DIM divisor was supplied.
               Packmetry also does not turn that DIM
               result into live carrier pricing,
-              service-specific billing rounding,
-              zones or shipping-rate quotes.
+              service-specific billing rules, zones
+              or shipping-rate quotes.
             </p>
+          </section>
+
+          <section>
+            <p class="pm-methodology-kicker">
+              Assumptions &amp; current limits
+            </p>
+
+            <h2>
+              Packmetry keeps unknowns and
+              unsupported constraints explicit.
+            </h2>
+
+            <ul>
+              <li>
+                canonical packing dimensions are
+                represented in millimetres;
+              </li>
+              <li>
+                canonical mass is represented in
+                grams;
+              </li>
+              <li>
+                internal carton dimensions govern
+                packing geometry and utilization;
+              </li>
+              <li>
+                external carton dimensions govern
+                carton DIM calculations;
+              </li>
+              <li>
+                unknown item or carton tare weight
+                is not silently treated as zero;
+              </li>
+              <li>
+                deterministic ordering is part of
+                the current baseline behavior;
+              </li>
+              <li>
+                the current baseline does not
+                perform exhaustive search.
+              </li>
+            </ul>
 
             <div class="pm-methodology-callout">
               <strong>Current constraint boundary</strong>
               <p>
+                Rotation policy, boundaries,
+                overlap, known gross-weight limits
+                and inventory bounds are enforced by
+                the current solver/verifier path.
                 Fragile handling, padding, spacing
                 and stackability remain outside the
-                currently enforced solver/verifier
-                semantics where the product cannot
-                yet guarantee those behaviors.
+                currently enforced semantics where
+                Packmetry cannot yet guarantee those
+                behaviors.
               </p>
             </div>
           </section>
@@ -377,6 +584,10 @@ import '../../styles/methodology.css';
 
           <ul>
             <li>
+              axis-aligned 3D carton packing with
+              supported rotation policies;
+            </li>
+            <li>
               deterministic bounded candidate
               generation;
             </li>
@@ -385,12 +596,16 @@ import '../../styles/methodology.css';
               recommendation;
             </li>
             <li>
-              objective-aware ranking of verified
-              candidates;
+              coverage-first, objective-aware
+              ranking of verified candidates;
             </li>
             <li>
-              canonical result metrics and
-              placements;
+              canonical utilization, volume and
+              known-weight metrics;
+            </li>
+            <li>
+              DIM calculations with explicit unit
+              semantics when required data exists;
             </li>
             <li>
               3D rendering from canonical verified
