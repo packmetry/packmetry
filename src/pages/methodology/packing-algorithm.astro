@@ -1,0 +1,460 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/packmetry-workspace.css';
+import '../../styles/methodology.css';
+---
+
+<BaseLayout
+  title="Packing Algorithm & Verification Methodology — Packmetry"
+  description="How Packmetry generates deterministic packing candidates, independently verifies geometry and constraints, ranks valid options and constructs the canonical plan shown in 3D."
+>
+  <main class="pm-methodology-article-page">
+    <div class="pm-methodology-article-shell">
+      <header class="pm-methodology-article-hero">
+        <p class="pm-methodology-kicker">
+          Packing algorithm &amp; verification
+        </p>
+
+        <h1>
+          From solver candidate
+          to verified packing plan.
+        </h1>
+
+        <p>
+          Packmetry is built around a separation
+          of responsibilities: the solver proposes
+          arrangements, an independent verifier
+          checks them, objective logic ranks only
+          verified candidates, and the canonical
+          plan becomes the source of truth for
+          metrics and 3D presentation.
+        </p>
+      </header>
+
+      <section
+        class="pm-methodology-flow"
+        aria-label="Packmetry planning pipeline"
+      >
+        <div class="pm-methodology-flow-grid">
+          <article class="pm-methodology-flow-step">
+            <span>01</span>
+            <h2>Normalize inputs</h2>
+            <p>
+              Item, carton, unit, constraint and
+              objective data enter the shared
+              domain model.
+            </p>
+          </article>
+
+          <article class="pm-methodology-flow-step">
+            <span>02</span>
+            <h2>Generate candidates</h2>
+            <p>
+              The deterministic baseline solver
+              creates a small bounded set of
+              heuristic packing candidates.
+            </p>
+          </article>
+
+          <article class="pm-methodology-flow-step">
+            <span>03</span>
+            <h2>Verify independently</h2>
+            <p>
+              Every candidate is checked by a
+              separate verification boundary before
+              it is eligible for recommendation.
+            </p>
+          </article>
+
+          <article class="pm-methodology-flow-step">
+            <span>04</span>
+            <h2>Rank valid options</h2>
+            <p>
+              Packing coverage is protected first,
+              then the selected objective ranks
+              comparable verified candidates.
+            </p>
+          </article>
+
+          <article class="pm-methodology-flow-step">
+            <span>05</span>
+            <h2>Construct canonical plan</h2>
+            <p>
+              One selected verified candidate is
+              converted into the canonical
+              PackingPlan and canonical metrics.
+            </p>
+          </article>
+
+          <article class="pm-methodology-flow-step">
+            <span>06</span>
+            <h2>Present the result</h2>
+            <p>
+              Result summaries and the 3D view
+              consume the canonical verified plan
+              instead of rebuilding placement logic.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <div class="pm-methodology-content">
+        <article class="pm-methodology-prose">
+          <section>
+            <p class="pm-methodology-kicker">
+              Candidate generation
+            </p>
+
+            <h2>
+              The current baseline is deterministic,
+              bounded and heuristic.
+            </h2>
+
+            <p>
+              Packmetry&apos;s current production
+              solver is the deterministic
+              <strong>packmetry-baseline</strong>
+              solver. It processes item instances
+              in input order, tries already-open
+              carton instances before opening new
+              ones, and uses deterministic
+              axis-aligned candidate points and
+              allowed rotation order.
+            </p>
+
+            <p>
+              For the same normalized input, the
+              solver evaluates carton types using
+              up to three order strategies:
+            </p>
+
+            <ol>
+              <li>
+                carton types in the original input
+                order;
+              </li>
+              <li>
+                smallest internal carton volume
+                first;
+              </li>
+              <li>
+                largest internal carton volume
+                first.
+              </li>
+            </ol>
+
+            <p>
+              Exact duplicate candidate plans are
+              removed while preserving the first
+              occurrence. The resulting candidate
+              set therefore contains between one
+              and three candidates.
+            </p>
+
+            <div class="pm-methodology-callout">
+              <strong>Important limitation</strong>
+              <p>
+                This is a bounded heuristic search,
+                not exhaustive 3D bin-packing
+                enumeration. Packmetry describes
+                the result as a recommended or best
+                plan found, not a guaranteed global
+                mathematical optimum.
+              </p>
+            </div>
+          </section>
+
+          <section>
+            <p class="pm-methodology-kicker">
+              Independent verification
+            </p>
+
+            <h2>
+              Solver output is treated as an
+              untrusted claim.
+            </h2>
+
+            <p>
+              A candidate does not become trusted
+              merely because Packmetry generated it.
+              Each candidate passes through a
+              separate verifier before ranking or
+              canonical-plan construction.
+            </p>
+
+            <p>
+              The current verifier checks, among
+              other invariants:
+            </p>
+
+            <ul>
+              <li>
+                referenced item and carton IDs
+                exist;
+              </li>
+              <li>
+                item instance indexes are valid and
+                item instances are counted once;
+              </li>
+              <li>
+                placement dimensions match the
+                declared rotation and rotation
+                policy;
+              </li>
+              <li>
+                placements stay inside carton
+                internal boundaries;
+              </li>
+              <li>
+                placements do not overlap;
+              </li>
+              <li>
+                known gross-weight limits are not
+                exceeded;
+              </li>
+              <li>
+                carton inventory limits are not
+                overused.
+              </li>
+            </ul>
+
+            <p>
+              Verification failures remain
+              observable. The planning pipeline
+              does not silently repair an invalid
+              candidate and present the repaired
+              version as if the solver had produced
+              a valid result.
+            </p>
+          </section>
+
+          <section>
+            <p class="pm-methodology-kicker">
+              Recommendation logic
+            </p>
+
+            <h2>
+              Coverage comes before optimization.
+            </h2>
+
+            <p>
+              Only independently verified
+              candidates are eligible for ranking.
+              Before an optimization objective is
+              applied, Packmetry first prefers the
+              candidates that place the greatest
+              number of requested item instances.
+            </p>
+
+            <p>
+              This prevents an objective such as
+              fewer cartons from winning simply
+              because an incomplete candidate used
+              fewer boxes. Only candidates tied at
+              the best packing-coverage level move
+              on to objective-specific comparison.
+            </p>
+
+            <p>
+              Current product objectives can then
+              compare verified candidates using
+              deterministic metrics such as carton
+              count, wasted internal volume, known
+              carton cost, known gross-weight data
+              or dimensional weight where the
+              required data is available.
+            </p>
+          </section>
+
+          <section>
+            <p class="pm-methodology-kicker">
+              Canonical result
+            </p>
+
+            <h2>
+              The selected verified candidate is
+              converted into one canonical plan.
+            </h2>
+
+            <p>
+              Canonical plan construction derives
+              final carton contents, placements,
+              status and metrics from the selected
+              verified candidate. Canonical status
+              is derived from verified item
+              accounting rather than blindly copied
+              from a solver status field.
+            </p>
+
+            <p>
+              Utilization and empty-volume metrics
+              use carton internal dimensions,
+              because those dimensions describe the
+              usable packing cavity. Known physical
+              weight metrics remain separate and
+              unknown values are not silently
+              treated as zero.
+            </p>
+          </section>
+
+          <section>
+            <p class="pm-methodology-kicker">
+              3D presentation
+            </p>
+
+            <h2>
+              The visualization follows the
+              canonical plan.
+            </h2>
+
+            <p>
+              Packmetry&apos;s 3D view is a
+              comprehension layer, not another
+              packing engine. It receives canonical
+              verified placements and renders those
+              coordinates. It does not independently
+              invent a more attractive arrangement.
+            </p>
+
+            <p>
+              This keeps the textual result,
+              metrics and 3D arrangement attached
+              to the same source of truth.
+            </p>
+          </section>
+
+          <section>
+            <p class="pm-methodology-kicker">
+              DIM and carrier boundary
+            </p>
+
+            <h2>
+              Dimensional weight does not change
+              packing geometry.
+            </h2>
+
+            <p>
+              Physical packing uses carton internal
+              dimensions. When dimensional-weight
+              analysis is enabled, DIM calculations
+              use external package dimensions and
+              an explicit unit-aware divisor.
+            </p>
+
+            <p>
+              DIM settings can participate in
+              verified-candidate ranking and
+              canonical metrics, but the baseline
+              solver does not move items differently
+              because a DIM divisor was supplied.
+              Packmetry also does not turn that DIM
+              result into live carrier pricing,
+              service-specific billing rounding,
+              zones or shipping-rate quotes.
+            </p>
+
+            <div class="pm-methodology-callout">
+              <strong>Current constraint boundary</strong>
+              <p>
+                Fragile handling, padding, spacing
+                and stackability remain outside the
+                currently enforced solver/verifier
+                semantics where the product cannot
+                yet guarantee those behaviors.
+              </p>
+            </div>
+          </section>
+        </article>
+
+        <aside class="pm-methodology-aside">
+          <p class="pm-methodology-kicker">
+            Current baseline
+          </p>
+
+          <strong>
+            What Packmetry can truthfully claim
+          </strong>
+
+          <ul>
+            <li>
+              deterministic bounded candidate
+              generation;
+            </li>
+            <li>
+              independent verification before
+              recommendation;
+            </li>
+            <li>
+              objective-aware ranking of verified
+              candidates;
+            </li>
+            <li>
+              canonical result metrics and
+              placements;
+            </li>
+            <li>
+              3D rendering from canonical verified
+              placements;
+            </li>
+            <li>
+              no claim of guaranteed global
+              optimality.
+            </li>
+          </ul>
+
+          <div class="pm-methodology-links">
+            <a href="/personal/">
+              Try the Personal workspace →
+            </a>
+
+            <a href="/business/">
+              Open the Business workspace →
+            </a>
+
+            <a href="/tools/dimensional-weight-calculator/">
+              Use the DIM calculator →
+            </a>
+
+            <a href="/guides/dimensional-weight/">
+              Read the DIM guide →
+            </a>
+          </div>
+        </aside>
+      </div>
+
+      <section class="pm-methodology-cta">
+        <div>
+          <p class="pm-methodology-kicker">
+            Put the methodology to work
+          </p>
+
+          <h2>
+            Run a real packing problem through
+            the same verified pipeline.
+          </h2>
+
+          <p>
+            Personal keeps the workflow simple.
+            Business exposes more operational data
+            such as carton inventory, costs,
+            weights and DIM settings while using
+            the same core planning architecture.
+          </p>
+        </div>
+
+        <div class="pm-methodology-cta-actions">
+          <a href="/personal/">
+            Personal workspace
+          </a>
+
+          <a
+            class="pm-methodology-secondary-link"
+            href="/business/"
+          >
+            Business workspace
+          </a>
+        </div>
+      </section>
+    </div>
+  </main>
+</BaseLayout>

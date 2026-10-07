@@ -1,0 +1,73 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/packmetry-workspace.css';
+import '../../styles/methodology.css';
+---
+
+<BaseLayout
+  title="Packing Methodology — Packmetry"
+  description="See how Packmetry turns packing inputs into deterministic solver candidates, independently verifies them, ranks valid options and renders a canonical packing plan."
+>
+  <main class="pm-methodology-page">
+    <div class="pm-methodology-shell">
+      <header class="pm-methodology-hero">
+        <p class="pm-methodology-kicker">
+          Packmetry Methodology
+        </p>
+
+        <h1>
+          How Packmetry decides
+          what to recommend.
+        </h1>
+
+        <p>
+          Packmetry separates candidate generation,
+          independent verification, objective ranking
+          and final result construction so a solver
+          claim is never treated as a successful
+          packing plan simply because the solver
+          produced it.
+        </p>
+      </header>
+
+      <section
+        class="pm-methodology-library"
+        aria-labelledby="methodology-library-title"
+      >
+        <article class="pm-methodology-card">
+          <div>
+            <p class="pm-methodology-kicker">
+              Packing engine
+            </p>
+
+            <h2 id="methodology-library-title">
+              Packing algorithm and verification
+            </h2>
+
+            <p>
+              Follow the current deterministic
+              baseline from normalized inputs to
+              bounded candidate generation,
+              independent verification,
+              objective-aware ranking, canonical
+              plan construction and the final
+              3D view.
+            </p>
+          </div>
+
+          <a href="/methodology/packing-algorithm/">
+            Read methodology
+            <span aria-hidden="true">→</span>
+          </a>
+        </article>
+
+        <p class="pm-methodology-note">
+          Future methodology and benchmark pages
+          should document real Packmetry behavior
+          or measured evidence. They should not be
+          created as thin search-traffic pages.
+        </p>
+      </section>
+    </div>
+  </main>
+</BaseLayout>
