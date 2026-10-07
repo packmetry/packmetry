@@ -3,6 +3,7 @@ import react from '@astrojs/react';
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://packmetry.com',
   integrations: [react()],
   output: 'static',
   vite: {
