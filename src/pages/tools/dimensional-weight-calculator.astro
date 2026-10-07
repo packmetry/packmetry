@@ -1,0 +1,120 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DimensionalWeightCalculator from '../../components/DimensionalWeightCalculator';
+import '../../styles/packmetry-workspace.css';
+import '../../styles/dimensional-weight-tool.css';
+---
+
+<BaseLayout
+  title="Dimensional Weight Calculator — Packmetry"
+  description="Calculate dimensional weight from external package dimensions and your own unit-aware DIM divisor, with an optional actual-weight comparison."
+>
+  <main class="pm-dim-tool-page">
+    <div class="pm-dim-tool-shell">
+      <header class="pm-dim-tool-hero">
+        <p class="pm-tool-kicker">
+          Dimensional weight
+        </p>
+
+        <h1>
+          DIM weight without
+          a hidden carrier default.
+        </h1>
+
+        <p>
+          Use the package&apos;s external dimensions
+          and the divisor that applies to the
+          carrier, service, contract or workflow
+          you are evaluating. Packmetry keeps DIM
+          weight separate from physical packing
+          geometry and actual gross weight.
+        </p>
+      </header>
+
+      <DimensionalWeightCalculator client:load />
+
+      <div class="pm-dim-tool-copy">
+        <section>
+          <p class="pm-tool-kicker">
+            How it works
+          </p>
+
+          <h2>
+            External volume divided by your divisor.
+          </h2>
+
+          <p>
+            Packmetry converts the external package
+            dimensions into the divisor&apos;s length
+            unit, multiplies length × width × height,
+            divides by the explicit divisor, then
+            converts the result into the selected
+            mass unit.
+          </p>
+        </section>
+
+        <section>
+          <p class="pm-tool-kicker">
+            Important boundary
+          </p>
+
+          <h2>
+            DIM weight is not a shipping quote.
+          </h2>
+
+          <p>
+            This tool does not apply carrier billing
+            rounding, service-specific minimums,
+            zones, surcharges, negotiated rates or
+            live shipping prices. For the reasoning
+            behind that boundary, read the
+            {' '}
+            <a href="/guides/dimensional-weight/">
+              dimensional-weight guide
+            </a>.
+          </p>
+        </section>
+
+        <section>
+          <p class="pm-tool-kicker">
+            Why external dimensions
+          </p>
+
+          <h2>
+            DIM weight describes the outside package.
+          </h2>
+
+          <p>
+            Internal dimensions answer whether items
+            can fit inside a carton. Dimensional
+            weight describes the package&apos;s outside
+            volume, so Packmetry does not silently
+            substitute internal dimensions.
+          </p>
+        </section>
+
+        <section>
+          <p class="pm-tool-kicker">
+            Use it in a packing plan
+          </p>
+
+          <h2>
+            Compare DIM behavior across verified plans.
+          </h2>
+
+          <p>
+            The
+            {' '}
+            <a href="/business/">
+              Business workspace
+            </a>
+            {' '}
+            can use explicit DIM settings and external
+            carton dimensions while ranking verified
+            packing candidates.
+          </p>
+        </section>
+      </div>
+    </div>
+  </main>
+</BaseLayout>

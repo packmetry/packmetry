@@ -1,0 +1,71 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/packmetry-workspace.css';
+import '../../styles/dimensional-weight-tool.css';
+---
+
+<BaseLayout
+  title="Packing Tools — Packmetry"
+  description="Practical browser-based tools for dimensional weight, box sizing, packing geometry and other real packing decisions."
+>
+  <main class="pm-tools-page">
+    <div class="pm-tools-shell">
+      <header class="pm-tools-hero">
+        <p class="pm-tool-kicker">
+          Packmetry Tools
+        </p>
+
+        <h1>
+          Useful tools for
+          real packing decisions.
+        </h1>
+
+        <p>
+          Small calculators belong here only when
+          they connect to an actual packing decision
+          and use the same unit-safe rules as the
+          Packmetry workbench.
+        </p>
+      </header>
+
+      <section
+        class="pm-tools-list"
+        aria-labelledby="tools-list-title"
+      >
+        <article class="pm-tools-card">
+          <div>
+            <p class="pm-tool-kicker">
+              Weight &amp; dimensions
+            </p>
+
+            <h2 id="tools-list-title">
+              Dimensional weight calculator
+            </h2>
+
+            <p>
+              Calculate DIM weight from external
+              package dimensions and an explicit
+              divisor. Add actual gross weight to
+              compare the base chargeable-weight
+              estimate without assuming carrier
+              rates or billing rounding.
+            </p>
+          </div>
+
+          <a
+            href="/tools/dimensional-weight-calculator/"
+          >
+            Open calculator
+            <span aria-hidden="true">→</span>
+          </a>
+        </article>
+
+        <p class="pm-tools-note">
+          More tools will be added only when they
+          solve a real packing decision rather than
+          existing as thin keyword pages.
+        </p>
+      </section>
+    </div>
+  </main>
+</BaseLayout>

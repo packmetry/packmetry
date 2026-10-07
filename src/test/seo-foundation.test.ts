@@ -100,6 +100,8 @@ describe('technical SEO foundation', () => {
       "'/'",
       "'/personal/'",
       "'/business/'",
+      "'/tools/'",
+      "'/tools/dimensional-weight-calculator/'",
       "'/guides/'",
       "'/guides/choosing-a-box/'",
       "'/guides/packing-with-existing-boxes/'",
