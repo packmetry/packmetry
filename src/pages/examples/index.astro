@@ -1,0 +1,74 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/packmetry-workspace.css';
+import '../../styles/examples.css';
+---
+
+<BaseLayout
+  title="Packing Examples — Packmetry"
+  description="Worked Packmetry packing examples based on real benchmark scenarios, canonical metrics and the same verification boundaries used by the product."
+>
+  <main class="pm-examples-page">
+    <div class="pm-examples-shell">
+      <header class="pm-examples-hero">
+        <p class="pm-example-kicker">
+          Packmetry Examples
+        </p>
+
+        <h1>
+          Worked packing cases,
+          with the assumptions visible.
+        </h1>
+
+        <p>
+          These examples connect real Packmetry
+          benchmark scenarios to the measurements,
+          result metrics and trust boundaries behind
+          a packing decision. They are not templated
+          keyword pages or claims of universal
+          optimality.
+        </p>
+      </header>
+
+      <section
+        class="pm-examples-library"
+        aria-labelledby="examples-library-title"
+      >
+        <article class="pm-examples-card">
+          <div>
+            <p class="pm-example-kicker">
+              Mixed item sizes
+            </p>
+
+            <h2 id="examples-library-title">
+              One large item, five small items,
+              one carton
+            </h2>
+
+            <p>
+              Walk through the repository&apos;s
+              highly-different-item-sizes benchmark:
+              an 80 mm cube plus five 20 mm cubes
+              against a 100 mm cube carton, including
+              the locked expected outcome and the
+              canonical volume-utilization math.
+            </p>
+          </div>
+
+          <a href="/examples/mixed-item-packing-example/">
+            View worked example
+            <span aria-hidden="true">→</span>
+          </a>
+        </article>
+
+        <p class="pm-examples-note">
+          Future examples should come from real
+          benchmark cases, measured product output
+          or clearly sourced case studies. Packmetry
+          should not manufacture examples simply to
+          create more indexable pages.
+        </p>
+      </section>
+    </div>
+  </main>
+</BaseLayout>

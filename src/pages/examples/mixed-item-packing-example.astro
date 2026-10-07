@@ -1,0 +1,330 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/packmetry-workspace.css';
+import '../../styles/examples.css';
+---
+
+<BaseLayout
+  title="Mixed Item Packing Example — Packmetry"
+  description="A worked Packmetry benchmark example: one 80 mm cube and five 20 mm cubes packed into a 100 mm cube carton, with canonical utilization math and verification boundaries."
+>
+  <main class="pm-example-page">
+    <div class="pm-example-shell">
+      <header class="pm-example-hero">
+        <p class="pm-example-kicker">
+          Worked benchmark example
+        </p>
+
+        <h1>
+          One large item,
+          five small items,
+          one carton.
+        </h1>
+
+        <p>
+          This example uses Packmetry&apos;s locked
+          <strong>highly-different-item-sizes</strong>
+          benchmark case. It shows what the benchmark
+          expects, how canonical volume metrics are
+          derived, and what the result does — and
+          does not — prove.
+        </p>
+      </header>
+
+      <div class="pm-example-source">
+        <strong>Repository source</strong>
+
+        <p>
+          The benchmark case lives in
+          <code>src/test/benchmarks/cases.ts</code>.
+          Its expected outcome is feasible packing
+          with one carton, six placed item instances
+          and zero unplaced instances.
+        </p>
+      </div>
+
+      <section class="pm-example-inputs">
+        <div class="pm-example-section-heading">
+          <p class="pm-example-kicker">
+            Inputs
+          </p>
+
+          <h2>
+            A deliberately uneven mix of item sizes.
+          </h2>
+
+          <p>
+            The benchmark uses canonical millimetres,
+            unrestricted rotation and the benchmark
+            helper&apos;s fewest-cartons objective.
+            It does not provide item weights, carton
+            tare weight, external carton dimensions
+            or DIM settings.
+          </p>
+        </div>
+
+        <div class="pm-example-table-wrap">
+          <table class="pm-example-table">
+            <thead>
+              <tr>
+                <th>Input</th>
+                <th>Dimensions</th>
+                <th>Quantity</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr>
+                <td>
+                  <strong>Large item</strong>
+                </td>
+                <td>80 × 80 × 80 mm</td>
+                <td>1</td>
+                <td>Requested item</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <strong>Small item</strong>
+                </td>
+                <td>20 × 20 × 20 mm</td>
+                <td>5</td>
+                <td>Requested item</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <strong>Carton</strong>
+                </td>
+                <td>100 × 100 × 100 mm</td>
+                <td>As needed by the plan</td>
+                <td>Internal packing space</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="pm-example-result">
+        <div class="pm-example-section-heading">
+          <p class="pm-example-kicker">
+            Locked benchmark expectation
+          </p>
+
+          <h2>
+            All six item instances fit in one carton.
+          </h2>
+
+          <p>
+            The benchmark expectation records a
+            feasible result with one used carton,
+            six placed instances and no unplaced
+            items.
+          </p>
+        </div>
+
+        <div class="pm-example-result-grid">
+          <article>
+            <span>Status</span>
+            <strong>Feasible</strong>
+          </article>
+
+          <article>
+            <span>Cartons used</span>
+            <strong>1</strong>
+          </article>
+
+          <article>
+            <span>Items placed</span>
+            <strong>6</strong>
+          </article>
+
+          <article>
+            <span>Items unplaced</span>
+            <strong>0</strong>
+          </article>
+        </div>
+
+        <div class="pm-example-math">
+          <article>
+            <h3>Requested item volume</h3>
+
+            <p>
+              Large item:
+              <code>
+                80 × 80 × 80 = 512,000 mm³
+              </code>
+            </p>
+
+            <p>
+              Five small items:
+              <code>
+                5 × 20 × 20 × 20 = 40,000 mm³
+              </code>
+            </p>
+
+            <p>
+              Total:
+              <code>
+                552,000 mm³
+              </code>
+            </p>
+          </article>
+
+          <article>
+            <h3>Canonical carton metrics</h3>
+
+            <p>
+              Carton volume:
+              <code>
+                100 × 100 × 100 = 1,000,000 mm³
+              </code>
+            </p>
+
+            <p>
+              Empty volume:
+              <code>
+                1,000,000 - 552,000 = 448,000 mm³
+              </code>
+            </p>
+
+            <p>
+              Volume utilization:
+              <code>
+                552,000 / 1,000,000 = 55.2%
+              </code>
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="pm-example-explanation">
+        <div class="pm-example-section-heading">
+          <p class="pm-example-kicker">
+            What the example teaches
+          </p>
+
+          <h2>
+            Volume is useful, but geometry still
+            decides whether the plan is valid.
+          </h2>
+        </div>
+
+        <div class="pm-example-prose">
+          <section>
+            <h3>
+              55.2% utilization does not prove fit.
+            </h3>
+
+            <p>
+              The volume arithmetic tells us how
+              much internal carton volume is occupied
+              after a plan exists. It cannot prove
+              that a collection of three-dimensional
+              items can be placed without overlap
+              or boundary violations.
+            </p>
+          </section>
+
+          <section>
+            <h3>
+              The benchmark locks the outcome,
+              not a universal placement recipe.
+            </h3>
+
+            <p>
+              The case records the expected status,
+              carton count and placed/unplaced item
+              counts. Production planning still
+              relies on solver-generated placements
+              and the independent verifier rather
+              than treating volume arithmetic as a
+              substitute for placement geometry.
+            </p>
+          </section>
+
+          <section>
+            <h3>
+              No weight or DIM conclusion belongs
+              to this case.
+            </h3>
+
+            <p>
+              The benchmark does not supply item
+              weights, carton tare weight, external
+              carton dimensions or dimensional-weight
+              settings. Packmetry therefore should
+              not invent gross-weight, DIM-weight or
+              shipping-price conclusions for it.
+            </p>
+          </section>
+
+          <section>
+            <h3>
+              One carton is the benchmark result,
+              not a global-optimality proof.
+            </h3>
+
+            <p>
+              The current baseline is deterministic
+              and bounded. This example shows the
+              locked expected outcome for this test
+              case; it does not turn the baseline
+              heuristic into an exhaustive proof of
+              mathematical optimality.
+            </p>
+          </section>
+        </div>
+
+        <div class="pm-example-boundary">
+          <strong>Trust boundary</strong>
+
+          <p>
+            To understand how candidate generation,
+            independent verification, objective
+            ranking and canonical-plan construction
+            fit together, read the
+            <a href="/methodology/packing-algorithm/">
+              packing algorithm methodology
+            </a>.
+          </p>
+        </div>
+      </section>
+
+      <section class="pm-example-cta">
+        <div>
+          <p class="pm-example-kicker">
+            Try your own case
+          </p>
+
+          <h2>
+            Replace the benchmark dimensions with
+            the items and cartons you actually have.
+          </h2>
+
+          <p>
+            Personal is the simpler route for
+            everyday packing. Business adds carton
+            inventory, costs, weights and DIM
+            settings while using the same core
+            planning architecture.
+          </p>
+        </div>
+
+        <div class="pm-example-cta-actions">
+          <a href="/personal/">
+            Personal workspace
+          </a>
+
+          <a
+            class="pm-example-secondary-link"
+            href="/business/"
+          >
+            Business workspace
+          </a>
+        </div>
+      </section>
+    </div>
+  </main>
+</BaseLayout>

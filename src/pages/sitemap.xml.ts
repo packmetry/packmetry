@@ -8,6 +8,8 @@ const INDEXABLE_ROUTES = [
   '/tools/dimensional-weight-calculator/',
   '/methodology/',
   '/methodology/packing-algorithm/',
+  '/examples/',
+  '/examples/mixed-item-packing-example/',
   '/guides/',
   '/guides/choosing-a-box/',
   '/guides/packing-with-existing-boxes/',
