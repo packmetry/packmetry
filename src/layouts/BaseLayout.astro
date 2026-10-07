@@ -2,12 +2,14 @@
 interface Props {
   title?: string;
   description?: string;
+  ogType?: 'website' | 'article';
 }
 
 const {
   title = 'Packmetry',
   description =
     'A browser-first packing and cartonization workbench for finding practical, verified packing plans.',
+  ogType = 'website',
 } = Astro.props;
 
 const pathname = Astro.url.pathname;
@@ -64,7 +66,7 @@ function isCurrent(path: string) {
 
     <meta
       property="og:type"
-      content="website"
+      content={ogType}
     />
 
     <meta

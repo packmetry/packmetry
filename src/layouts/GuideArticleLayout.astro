@@ -8,6 +8,8 @@ interface Props {
   category: string;
   readTime: string;
   updated?: string;
+  publishedDate?: string;
+  modifiedDate?: string;
 }
 
 const {
@@ -16,13 +18,112 @@ const {
   category,
   readTime,
   updated = 'October 2026',
+  publishedDate,
+  modifiedDate,
 } = Astro.props;
+
+const siteUrl =
+  new URL(
+    '/',
+    Astro.site ?? 'https://packmetry.com'
+  ).href;
+
+const articlePath =
+  Astro.url.pathname === '/'
+    ? '/'
+    : `${Astro.url.pathname.replace(/\/+$/, '')}/`;
+
+const articleUrl =
+  new URL(
+    articlePath,
+    Astro.site ?? 'https://packmetry.com'
+  ).href;
+
+const guidesUrl =
+  new URL(
+    '/guides/',
+    Astro.site ?? 'https://packmetry.com'
+  ).href;
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Article',
+      '@id': `${articleUrl}#article`,
+      headline: title,
+      description,
+      url: articleUrl,
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': articleUrl,
+      },
+      articleSection: category,
+      inLanguage: 'en',
+      isAccessibleForFree: true,
+      author: {
+        '@type': 'Organization',
+        name: 'Packmetry',
+        url: siteUrl,
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'Packmetry',
+        url: siteUrl,
+      },
+      ...(publishedDate !== undefined
+        ? {
+            datePublished: publishedDate,
+          }
+        : {}),
+      ...(modifiedDate !== undefined
+        ? {
+            dateModified: modifiedDate,
+          }
+        : {}),
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: siteUrl,
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Guides',
+          item: guidesUrl,
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: title,
+        },
+      ],
+    },
+  ],
+};
+
+const structuredDataJson =
+  JSON.stringify(structuredData).replace(
+    /</g,
+    '\\u003c'
+  );
 ---
 
 <BaseLayout
   title={`${title} — Packmetry Guides`}
   description={description}
+  ogType="article"
 >
+  <script
+    type="application/ld+json"
+    set:html={structuredDataJson}
+  ></script>
+
   <main class="pm-guide-article">
     <header class="pm-guide-article-header">
       <a
