@@ -22,6 +22,47 @@ const canonicalUrl = new URL(
   Astro.site ?? 'https://packmetry.com'
 );
 
+const siteUrl =
+  new URL(
+    '/',
+    Astro.site ?? 'https://packmetry.com'
+  ).href;
+
+const isHomePage = pathname === '/';
+
+const homeStructuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${siteUrl}#organization`,
+      name: 'Packmetry',
+      url: siteUrl,
+      email: 'packmetry@gmail.com',
+      description:
+        'A browser-first packing and cartonization decision workbench.',
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${siteUrl}#website`,
+      url: siteUrl,
+      name: 'Packmetry',
+      description:
+        'Practical, verified packing decisions for personal shipments and business carton workflows.',
+      publisher: {
+        '@id': `${siteUrl}#organization`,
+      },
+      inLanguage: 'en',
+    },
+  ],
+};
+
+const homeStructuredDataJson =
+  JSON.stringify(homeStructuredData).replace(
+    /</g,
+    '\\u003c'
+  );
+
 function isCurrent(path: string) {
   if (path === '/') {
     return pathname === '/';
@@ -116,6 +157,15 @@ function isCurrent(path: string) {
     />
 
     <title>{title}</title>
+
+    {
+      isHomePage && (
+        <script
+          type="application/ld+json"
+          set:html={homeStructuredDataJson}
+        ></script>
+      )
+    }
   </head>
 
   <body>
