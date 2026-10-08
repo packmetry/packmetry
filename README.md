@@ -3,6 +3,35 @@ Packmetry is a browser-first packing and cartonization decision workbench.
 Tell us what you are packing. We will figure out the boxes.
 Project authority
 Before changing product behavior, architecture, design direction, or implementation strategy, read:
+
+## Current status — Phase 13 complete (2026-10-08)
+
+Phase 13 — SEO Tools & Content Framework is complete as a **foundational implementation milestone**. The older Phase 12.5 status, validation baseline, and "next planned phase" statements elsewhere in this README are retained as historical snapshots, not the current project state.
+
+### Public foundation
+
+- Technical SEO: page-specific canonical URLs, crawlable `robots.txt`, XML sitemap, Open Graph and Twitter metadata.
+- Structured data: homepage Organization/WebSite JSON-LD; Guide Article and breadcrumb JSON-LD. Publication/modified dates are not fabricated.
+- Four interactive supporting tools: `/tools/dimensional-weight-calculator/`, `/tools/box-size-calculator/`, `/tools/box-utilization-calculator/`, and `/tools/how-many-items-fit/`.
+- Guides: `/guides/` with three initial **starter** articles, not a claim of completed search-intent research for production guide expansion.
+- Examples: `/examples/` and a worked mixed-item example rooted in the repository's benchmark corpus; benchmark expectations are distinguished from exhaustive optimality proof.
+- Methodology: `/methodology/` and `/methodology/packing-algorithm/`, documenting candidate generation, independent verification, objective ranking, canonical results, utilization, DIM semantics, assumptions and limits.
+- Personal and Business still share the verified packing engine. Supporting calculators do not claim globally optimal plans, and volume-only or uniform-grid estimates are not misrepresented as independently verified packing arrangements.
+
+### Latest verified milestone checkpoint
+
+- **18 public HTML pages** built successfully.
+- Latest focused Slice 10 validation: **29 focused tests passed**, **typecheck 0 errors**, production build passed, diff check passed.
+- Latest confirmed GitHub `main`: `6298689ad7d4f461bf41d557030c6be9ad6120f8` (Slice 10).
+- The 29-test figure refers only to the latest focused validation, **not** the total repository test count; no Phase 13 full-suite rerun is claimed.
+
+### Scope boundaries and next phase
+
+This milestone covers the agreed SEO, supporting tools and useful content foundation. Additional researched production guide articles, standalone resources/about pages, extra calculators, and live indexing/performance evaluation may be addressed when there is a clear user or launch need. These are not automatically required just to populate a sitemap. The implemented SEO configuration is **not proof** of live deployment, search-engine indexing or rankings.
+
+**Next: Phase 14 — CSV import/export**, with explicitly versioned/validated input shapes, safe parsing, row-level errors and unit normalization, while preserving the existing browser-first local-data and verified-planning boundaries.
+
+
 1. docs/authority/PACKMETRY_NEW_PROJECT_CHAT_BOOTSTRAP.md — highest repository project authority after an explicit current user instruction.
 2. docs/authority/CARTONLAB_ULTIMATE_PROJECT_SPECIFICATION.md — detailed legacy product specification; interpret CartonLab as Packmetry unless the bootstrap explicitly says otherwise.
 3. Accepted ADRs in docs/decisions/.

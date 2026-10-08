@@ -1080,3 +1080,34 @@ Current dependency-aware stage
 Phase 12.5 complete.
 Next planned phase
 Phase 13 — SEO foundation.
+
+
+## 2026-10-08 — Phase 13 SEO Tools & Content Framework — milestone closeout
+
+### Implemented
+
+- Technical SEO foundation: canonical URLs, robots.txt, sitemap.xml, Open Graph and Twitter metadata.
+- Homepage Organization/WebSite JSON-LD and guide Article/BreadcrumbList JSON-LD without invented publishing dates.
+- Tools library with four browser-based calculators: DIM weight, single-item box size, box volume utilization, and identical-items uniform-grid capacity (`/tools/how-many-items-fit/`).
+- All supporting calculators reuse Packmetry's unit semantics, distinguish internal carton dimensions from external shipping dimensions, and explicitly state calculation boundaries. Volume-only and grid estimates do not claim verified 3D packing or global maximum capacity.
+- Methodology index and expanded packing-algorithm page covering heuristic candidates, independent verification, coverage-first ranking, canonical plans, utilization, DIM, assumptions and constraints.
+- Worked examples library and benchmark-backed mixed-item case; no invented supplier data, carrier prices or mathematical optimality claims.
+- Expanded shared footer links and public route sitemap as real destinations were added.
+
+### Validation and repository checkpoint
+
+- Final focused Slice 10 test run: 29 passing tests, typecheck 0 errors, build 18 pages, diff check passed.
+- Latest confirmed pushed and clean main commit before documentation closeout: `6298689ad7d4f461bf41d557030c6be9ad6120f8`.
+- These are the latest focused validation results; **no fresh Phase 13 full-suite pass or live search indexing verification is claimed**.
+- Earlier README and log Phase 12.5 state/test counts were historical and are superseded by this Phase 13 milestone record.
+
+### Preserved guardrails
+
+- Shared Personal/Business verified packing engine unchanged by SEO-tool additions.
+- No fake search performance, solver speed, guaranteed optimum, carrier rate or unsupported constraint claims.
+- No accounts, required backend, paid services or unrelated calculators introduced.
+- Additional content pages are to be driven by genuine usefulness and research, not by filling empty route categories.
+
+### Current stage and next work
+
+Phase 13 implementation foundation complete; proceed to **Phase 14 — CSV import/export** with validated file schemas, safe row-level error reporting and explicit dimension/weight unit normalization. Phase 15 batch processing remains a separate later phase.
