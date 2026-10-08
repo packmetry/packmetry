@@ -7,6 +7,7 @@ const INDEXABLE_ROUTES = [
   '/tools/',
   '/tools/dimensional-weight-calculator/',
   '/tools/box-size-calculator/',
+  '/tools/box-utilization-calculator/',
   '/methodology/',
   '/methodology/packing-algorithm/',
   '/examples/',

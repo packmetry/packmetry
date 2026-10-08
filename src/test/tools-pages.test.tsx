@@ -28,6 +28,14 @@ const boxSizeCalculatorSource = readFileSync(
   'utf8'
 );
 
+const utilizationCalculatorSource = readFileSync(
+  new URL(
+    '../pages/tools/box-utilization-calculator.astro',
+    import.meta.url
+  ),
+  'utf8'
+);
+
 const sitemapSource = readFileSync(
   new URL('../pages/sitemap.xml.ts', import.meta.url),
   'utf8'
@@ -35,6 +43,9 @@ const sitemapSource = readFileSync(
 
 const normalizedBoxSizeCalculatorSource =
   boxSizeCalculatorSource.replace(/\s+/g, ' ');
+
+const normalizedUtilizationCalculatorSource =
+  utilizationCalculatorSource.replace(/\s+/g, ' ');
 
 describe('Packmetry tools pages', () => {
   it('links the tools library from the shared footer', () => {
@@ -47,7 +58,7 @@ describe('Packmetry tools pages', () => {
     );
   });
 
-  it('publishes a useful tools library with both real calculators', () => {
+  it('publishes a useful tools library with three real calculators', () => {
     expect(toolsIndexSource).toContain(
       'Packmetry Tools'
     );
@@ -69,13 +80,21 @@ describe('Packmetry tools pages', () => {
     );
 
     expect(toolsIndexSource).toContain(
+      'Box utilization calculator'
+    );
+
+    expect(toolsIndexSource).toContain(
+      '/tools/box-utilization-calculator/'
+    );
+
+    expect(toolsIndexSource).toContain(
       'thin keyword pages'
     );
   });
 
   it('publishes the dimensional-weight calculator as a real interactive tool', () => {
     expect(dimCalculatorSource).toContain(
-      "import DimensionalWeightCalculator"
+      'import DimensionalWeightCalculator'
     );
 
     expect(dimCalculatorSource).toContain(
@@ -107,7 +126,7 @@ describe('Packmetry tools pages', () => {
 
   it('publishes the box-size calculator as a real interactive tool', () => {
     expect(boxSizeCalculatorSource).toContain(
-      "import BoxSizeCalculator"
+      'import BoxSizeCalculator'
     );
 
     expect(boxSizeCalculatorSource).toContain(
@@ -145,17 +164,51 @@ describe('Packmetry tools pages', () => {
     );
   });
 
+  it('publishes a real interactive box-utilization calculator', () => {
+    expect(utilizationCalculatorSource).toContain(
+      'import BoxUtilizationCalculator'
+    );
+
+    expect(utilizationCalculatorSource).toContain(
+      '<BoxUtilizationCalculator client:load />'
+    );
+
+    expect(utilizationCalculatorSource).toContain(
+      'Box Utilization Calculator — Packmetry'
+    );
+
+    expect(normalizedUtilizationCalculatorSource).toContain(
+      '50% volume utilization'
+    );
+  });
+
+  it('explains why volume calculations cannot certify packing fit', () => {
+    expect(normalizedUtilizationCalculatorSource).toContain(
+      'does not generate or verify a packing arrangement'
+    );
+
+    expect(normalizedUtilizationCalculatorSource).toContain(
+      'Enough volume does not guarantee a fit.'
+    );
+
+    for (const path of [
+      '/personal/',
+      '/business/',
+      '/methodology/packing-algorithm/',
+      '/tools/box-size-calculator/',
+    ]) {
+      expect(utilizationCalculatorSource).toContain(path);
+    }
+  });
+
   it('includes all current tools routes in the sitemap', () => {
-    expect(sitemapSource).toContain(
-      "'/tools/'"
-    );
-
-    expect(sitemapSource).toContain(
-      "'/tools/dimensional-weight-calculator/'"
-    );
-
-    expect(sitemapSource).toContain(
-      "'/tools/box-size-calculator/'"
-    );
+    for (const route of [
+      "'/tools/'",
+      "'/tools/dimensional-weight-calculator/'",
+      "'/tools/box-size-calculator/'",
+      "'/tools/box-utilization-calculator/'",
+    ]) {
+      expect(sitemapSource).toContain(route);
+    }
   });
 });

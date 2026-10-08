@@ -1,0 +1,327 @@
+/* Existing Packmetry tool typography is kept consistent across routes. */
+.pm-utilization-page .pm-tool-kicker {
+  margin: 0;
+  color: var(--pm-forest);
+  font-size: 0.7rem;
+  font-weight: 740;
+  letter-spacing: 0.085em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.pm-utilization-page {
+  background: #fbfcfb;
+  color: var(--pm-ink);
+}
+
+.pm-utilization-shell {
+  width: min(calc(100% - 40px), 1120px);
+  margin: 0 auto;
+}
+
+.pm-utilization-hero {
+  max-width: 840px;
+  padding: 72px 0 54px;
+}
+
+.pm-utilization-hero h1 {
+  margin: 15px 0 0;
+  color: var(--pm-ink-strong);
+  font-size: clamp(2.8rem, 5.5vw, 5rem);
+  font-weight: 680;
+  letter-spacing: -0.058em;
+  line-height: 0.98;
+}
+
+.pm-utilization-hero > p:last-child {
+  max-width: 740px;
+  margin: 24px 0 0;
+  color: var(--pm-ink-soft);
+  font-size: 1rem;
+  line-height: 1.68;
+}
+
+.pm-utilization-tool {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+  gap: 24px;
+  padding-bottom: 64px;
+}
+
+.pm-utilization-panel,
+.pm-utilization-result {
+  border: 1px solid var(--pm-line-strong);
+  border-radius: 14px;
+  background: var(--pm-surface);
+}
+
+.pm-utilization-panel {
+  padding: 28px;
+}
+
+.pm-utilization-result {
+  align-self: start;
+  padding: 26px;
+  background: #f4f7f6;
+}
+
+.pm-utilization-heading h2 {
+  margin: 8px 0 0;
+  color: var(--pm-ink-strong);
+  font-size: clamp(1.55rem, 2.5vw, 2.15rem);
+  font-weight: 680;
+  letter-spacing: -0.035em;
+}
+
+.pm-utilization-heading > p:last-child {
+  max-width: 650px;
+  margin: 12px 0 0;
+  color: var(--pm-ink-soft);
+  font-size: 0.87rem;
+  line-height: 1.62;
+}
+
+.pm-utilization-form {
+  display: grid;
+  gap: 0;
+  margin-top: 26px;
+}
+
+.pm-utilization-form fieldset {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--pm-line);
+  padding: 22px 0;
+}
+
+.pm-utilization-form legend {
+  padding: 0;
+  color: var(--pm-ink-strong);
+  font-size: 0.9rem;
+  font-weight: 720;
+}
+
+.pm-utilization-field-note {
+  max-width: 650px;
+  margin: 7px 0 14px;
+  color: var(--pm-ink-soft);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.pm-utilization-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pm-utilization-grid label {
+  display: grid;
+  gap: 5px;
+}
+
+.pm-utilization-grid label > span {
+  color: var(--pm-ink-soft);
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.pm-utilization-grid input,
+.pm-utilization-grid select {
+  width: 100%;
+  height: 42px;
+  border: 1px solid var(--pm-line-strong);
+  border-radius: 7px;
+  padding: 0 10px;
+  background: #ffffff;
+  color: var(--pm-ink);
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+.pm-utilization-submit {
+  min-height: 46px;
+  border: 1px solid var(--pm-navy);
+  border-radius: 8px;
+  padding: 9px 16px;
+  background: var(--pm-navy);
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 710;
+}
+
+.pm-utilization-empty,
+.pm-utilization-result-content {
+  margin-top: 19px;
+}
+
+.pm-utilization-empty strong {
+  color: var(--pm-ink-strong);
+  font-size: 1rem;
+}
+
+.pm-utilization-empty p,
+.pm-utilization-result-note {
+  margin: 9px 0 0;
+  color: var(--pm-ink-soft);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.pm-utilization-result-content {
+  display: grid;
+  gap: 18px;
+}
+
+.pm-utilization-primary > span {
+  display: block;
+  color: var(--pm-ink-soft);
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.pm-utilization-primary > strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--pm-ink-strong);
+  font-size: 2.15rem;
+  font-weight: 730;
+  letter-spacing: -0.04em;
+}
+
+.pm-utilization-meter {
+  height: 8px;
+  overflow: hidden;
+  margin-top: 12px;
+  border-radius: 99px;
+  background: #dce4e1;
+}
+
+.pm-utilization-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--pm-forest);
+}
+
+.pm-utilization-metrics {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.pm-utilization-metrics > div {
+  display: grid;
+  gap: 5px;
+  border-top: 1px solid #dce4e1;
+  padding: 13px 0;
+}
+
+.pm-utilization-metrics dt {
+  color: var(--pm-ink-soft);
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.pm-utilization-metrics dd {
+  margin: 0;
+  color: var(--pm-ink-strong);
+  font-size: 1.15rem;
+  font-weight: 710;
+}
+
+.pm-utilization-error {
+  margin-top: 18px;
+  border: 1px solid #e5c4bf;
+  border-radius: 8px;
+  padding: 12px 13px;
+  background: var(--pm-error-soft);
+  color: var(--pm-error);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.pm-utilization-copy {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 44px 72px;
+  border-top: 1px solid var(--pm-line);
+  padding: 56px 0 78px;
+}
+
+.pm-utilization-copy section {
+  max-width: 510px;
+}
+
+.pm-utilization-copy h2 {
+  margin: 9px 0 0;
+  color: var(--pm-ink-strong);
+  font-size: 1.45rem;
+  font-weight: 680;
+  letter-spacing: -0.03em;
+}
+
+.pm-utilization-copy p {
+  margin: 12px 0 0;
+  color: var(--pm-ink-soft);
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
+
+.pm-utilization-copy a {
+  color: var(--pm-forest);
+  font-weight: 680;
+}
+
+@media (max-width: 839px) {
+  .pm-utilization-tool,
+  .pm-utilization-copy {
+    grid-template-columns: 1fr;
+  }
+
+  .pm-utilization-result {
+    align-self: stretch;
+  }
+
+  .pm-utilization-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pm-utilization-copy {
+    gap: 32px;
+  }
+}
+
+@media (max-width: 639px) {
+  .pm-utilization-shell {
+    width: calc(100% - 32px);
+  }
+
+  .pm-utilization-hero {
+    padding: 48px 0 40px;
+  }
+
+  .pm-utilization-hero h1 {
+    font-size: clamp(2.6rem, 13vw, 3.9rem);
+  }
+
+  .pm-utilization-tool {
+    gap: 16px;
+    padding-bottom: 48px;
+  }
+
+  .pm-utilization-panel,
+  .pm-utilization-result {
+    padding: 22px;
+  }
+
+  .pm-utilization-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pm-utilization-copy {
+    padding: 46px 0 56px;
+  }
+}

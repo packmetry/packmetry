@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BoxUtilizationCalculator from '../../components/BoxUtilizationCalculator';
+import '../../styles/packmetry-workspace.css';
+import '../../styles/box-utilization-tool.css';
+---
+
+<BaseLayout
+  title="Box Utilization Calculator — Packmetry"
+  description="Compare identical item volume with a carton's internal volume, calculate utilization and remaining volume, and understand why volume alone does not prove packing fit."
+>
+  <main class="pm-utilization-page">
+    <div class="pm-utilization-shell">
+      <header class="pm-utilization-hero">
+        <p class="pm-tool-kicker">
+          Carton volume analysis
+        </p>
+
+        <h1>
+          See how much of the box's space
+          your items require.
+        </h1>
+
+        <p>
+          Calculate a volume-only utilization estimate
+          for identical rectangular items against one
+          carton's internal dimensions. This does not
+          generate or verify a packing arrangement.
+        </p>
+      </header>
+
+      <BoxUtilizationCalculator client:load />
+
+      <div class="pm-utilization-copy">
+        <section>
+          <p class="pm-tool-kicker">How it works</p>
+          <h2>Volume used ÷ internal carton volume.</h2>
+          <p>
+            Packmetry multiplies each item's length, width
+            and height, multiplies that volume by the item
+            quantity, and divides by internal carton volume.
+            Unallocated volume is carton volume minus
+            requested item volume when the difference is
+            nonnegative. Results use canonical unit
+            conversions rather than mixing units.
+          </p>
+        </section>
+
+        <section>
+          <p class="pm-tool-kicker">Worked example</p>
+          <h2>Six small items in a larger carton.</h2>
+          <p>
+            A 30 × 20 × 10 cm carton has 6,000 cm³ of
+            internal volume. Six items measuring
+            10 × 10 × 5 cm each request 3,000 cm³.
+            That gives <strong>50% volume utilization</strong>
+            and 3,000 cm³ of unallocated volume. These
+            numbers do not establish that all six items
+            can be placed without overlap.
+          </p>
+        </section>
+
+        <section>
+          <p class="pm-tool-kicker">Important boundary</p>
+          <h2>Enough volume does not guarantee a fit.</h2>
+          <p>
+            Items with a combined volume below 100% can
+            still fail to fit because of their dimensions,
+            orientations or other constraints. If requested
+            item volume exceeds 100%, all the items cannot
+            fit within that carton. This calculator does
+            not check rotations, positions, padding,
+            spacing or stackability.
+          </p>
+        </section>
+
+        <section>
+          <p class="pm-tool-kicker">Canonical results</p>
+          <h2>Verified utilization is a different result.</h2>
+          <p>
+            The <a href="/methodology/packing-algorithm/">
+              packing methodology
+            </a> explains how Packmetry measures actual
+            utilization from independently verified
+            placements. This standalone calculator instead
+            estimates requested volume before a packing
+            plan exists.
+          </p>
+        </section>
+
+        <section>
+          <p class="pm-tool-kicker">Next step</p>
+          <h2>Need a real packing arrangement?</h2>
+          <p>
+            Use the <a href="/personal/">Personal workspace</a>
+            to pack multiple items. For carton inventories,
+            costs and weight constraints, use the
+            <a href="/business/">Business workspace</a>.
+            If you only need the minimum internal dimensions
+            for one item, try the
+            <a href="/tools/box-size-calculator/">
+              box size calculator
+            </a>.
+          </p>
+        </section>
+      </div>
+    </div>
+  </main>
+</BaseLayout>
