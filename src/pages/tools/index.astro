@@ -2,11 +2,12 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import '../../styles/packmetry-workspace.css';
 import '../../styles/dimensional-weight-tool.css';
+import '../../styles/box-size-tool.css';
 ---
 
 <BaseLayout
   title="Packing Tools — Packmetry"
-  description="Practical browser-based tools for dimensional weight, box sizing, packing geometry and other real packing decisions."
+  description="Practical browser-based tools for dimensional weight, single-item box sizing, packing geometry and other real packing decisions."
 >
   <main class="pm-tools-page">
     <div class="pm-tools-shell">
@@ -54,6 +55,33 @@ import '../../styles/dimensional-weight-tool.css';
 
           <a
             href="/tools/dimensional-weight-calculator/"
+          >
+            Open calculator
+            <span aria-hidden="true">→</span>
+          </a>
+        </article>
+
+        <article class="pm-tools-card">
+          <div>
+            <p class="pm-tool-kicker">
+              Single-item geometry
+            </p>
+
+            <h2>
+              Box size calculator
+            </h2>
+
+            <p>
+              Find the minimum internal box profiles
+              needed for one rectangular item under
+              its allowed rotation policy, or check
+              whether an available box fits
+              geometrically.
+            </p>
+          </div>
+
+          <a
+            href="/tools/box-size-calculator/"
           >
             Open calculator
             <span aria-hidden="true">→</span>

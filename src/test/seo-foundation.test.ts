@@ -102,6 +102,7 @@ describe('technical SEO foundation', () => {
       "'/business/'",
       "'/tools/'",
       "'/tools/dimensional-weight-calculator/'",
+      "'/tools/box-size-calculator/'",
       "'/methodology/'",
       "'/methodology/packing-algorithm/'",
       "'/examples/'",

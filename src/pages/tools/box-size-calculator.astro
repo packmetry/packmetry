@@ -1,0 +1,151 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BoxSizeCalculator from '../../components/BoxSizeCalculator';
+import '../../styles/packmetry-workspace.css';
+import '../../styles/box-size-tool.css';
+---
+
+<BaseLayout
+  title="Box Size Calculator — Packmetry"
+  description="Find the minimum internal box dimensions needed for one rectangular item under a chosen rotation policy, or check whether an available box fits geometrically."
+>
+  <main class="pm-box-size-page">
+    <div class="pm-box-size-shell">
+      <header class="pm-box-size-hero">
+        <p class="pm-tool-kicker">
+          Single-item box sizing
+        </p>
+
+        <h1>
+          Find the internal box size
+          one item actually needs.
+        </h1>
+
+        <p>
+          Enter one rectangular item, choose how it
+          may rotate, and see the distinct minimum
+          internal box profiles that can contain it.
+          If you already have a box, you can check
+          that box&apos;s internal dimensions too.
+        </p>
+      </header>
+
+      <BoxSizeCalculator client:load />
+
+      <div class="pm-box-size-copy">
+        <section>
+          <p class="pm-tool-kicker">
+            What “minimum” means
+          </p>
+
+          <h2>
+            A geometric minimum, not a packaging
+            allowance recommendation.
+          </h2>
+
+          <p>
+            Each result profile matches one allowed
+            orientation of the item. The box needs
+            at least those internal dimensions for
+            that orientation. Packmetry does not add
+            a hidden padding, void-fill or
+            manufacturing-tolerance allowance.
+          </p>
+        </section>
+
+        <section>
+          <p class="pm-tool-kicker">
+            Rotation matters
+          </p>
+
+          <h2>
+            The same item can require different
+            axis dimensions.
+          </h2>
+
+          <p>
+            With unrestricted rotation, an item can
+            map its original length, width and height
+            to different box axes. Upright and
+            vertical-axis-only policies keep the
+            original height on the vertical axis;
+            fixed orientation keeps all three axes
+            as entered.
+          </p>
+        </section>
+
+        <section>
+          <p class="pm-tool-kicker">
+            Worked example
+          </p>
+
+          <h2>
+            120 × 80 × 40 mm, kept upright.
+          </h2>
+
+          <p class="pm-box-size-example">
+            The distinct minimum internal profiles
+            are 120 × 80 × 40 mm and
+            80 × 120 × 40 mm. The height remains
+            40 mm because the item stays upright.
+          </p>
+        </section>
+
+        <section>
+          <p class="pm-tool-kicker">
+            Single item only
+          </p>
+
+          <h2>
+            Multiple items need a packing plan.
+          </h2>
+
+          <p>
+            This calculator does not arrange several
+            items, choose among multiple cartons or
+            calculate protective spacing. For a real
+            multi-item problem, open the
+            {' '}
+            <a href="/personal/">
+              Personal workspace
+            </a>
+            {' '}
+            or use the
+            {' '}
+            <a href="/business/">
+              Business workspace
+            </a>
+            {' '}
+            for inventory, cost and weight inputs.
+          </p>
+        </section>
+
+        <section>
+          <p class="pm-tool-kicker">
+            Internal vs external dimensions
+          </p>
+
+          <h2>
+            Packing fit uses the inside of the box.
+          </h2>
+
+          <p>
+            This tool compares the item against
+            internal box dimensions because those
+            describe usable packing space. External
+            dimensions serve a different purpose,
+            including dimensional-weight analysis.
+            Use the
+            {' '}
+            <a href="/tools/dimensional-weight-calculator/">
+              dimensional-weight calculator
+            </a>
+            {' '}
+            when you need that shipping-volume
+            calculation.
+          </p>
+        </section>
+      </div>
+    </div>
+  </main>
+</BaseLayout>
