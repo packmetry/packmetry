@@ -33,24 +33,13 @@ describe('technical SEO foundation', () => {
   });
 
   it('publishes canonical URLs from the shared layout', () => {
-    expect(normalizedBaseLayout).toContain(
-      'rel="canonical"'
-    );
-
-    expect(normalizedBaseLayout).toContain(
-      'Astro.site'
-    );
-
-    expect(normalizedBaseLayout).toContain(
-      "'https://packmetry.com'"
-    );
+    expect(normalizedBaseLayout).toContain('rel="canonical"');
+    expect(normalizedBaseLayout).toContain('Astro.site');
+    expect(normalizedBaseLayout).toContain("'https://packmetry.com'");
   });
 
   it('publishes indexable robots metadata', () => {
-    expect(normalizedBaseLayout).toContain(
-      'name="robots"'
-    );
-
+    expect(normalizedBaseLayout).toContain('name="robots"');
     expect(normalizedBaseLayout).toContain(
       'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1'
     );
@@ -72,27 +61,14 @@ describe('technical SEO foundation', () => {
   });
 
   it('links the sitemap from the shared document head', () => {
-    expect(normalizedBaseLayout).toContain(
-      'rel="sitemap"'
-    );
-
-    expect(normalizedBaseLayout).toContain(
-      'href="/sitemap.xml"'
-    );
+    expect(normalizedBaseLayout).toContain('rel="sitemap"');
+    expect(normalizedBaseLayout).toContain('href="/sitemap.xml"');
   });
 
   it('allows crawling and points robots.txt at the sitemap', () => {
-    expect(robotsSource).toContain(
-      "'User-agent: *'"
-    );
-
-    expect(robotsSource).toContain(
-      "'Allow: /'"
-    );
-
-    expect(robotsSource).toContain(
-      "new URL('/sitemap.xml', baseUrl)"
-    );
+    expect(robotsSource).toContain("'User-agent: *'");
+    expect(robotsSource).toContain("'Allow: /'");
+    expect(robotsSource).toContain("new URL('/sitemap.xml', baseUrl)");
   });
 
   it('includes every current public HTML route in the sitemap', () => {
@@ -104,6 +80,7 @@ describe('technical SEO foundation', () => {
       "'/tools/dimensional-weight-calculator/'",
       "'/tools/box-size-calculator/'",
       "'/tools/box-utilization-calculator/'",
+      "'/tools/how-many-items-fit/'",
       "'/methodology/'",
       "'/methodology/packing-algorithm/'",
       "'/examples/'",
@@ -120,8 +97,6 @@ describe('technical SEO foundation', () => {
   });
 
   it('does not invent sitemap last-modified dates', () => {
-    expect(sitemapSource).not.toContain(
-      '<lastmod>'
-    );
+    expect(sitemapSource).not.toContain('<lastmod>');
   });
 });

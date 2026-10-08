@@ -1,0 +1,111 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import HowManyItemsFitCalculator from '../../components/HowManyItemsFitCalculator';
+import '../../styles/packmetry-workspace.css';
+import '../../styles/box-utilization-tool.css';
+---
+
+<BaseLayout
+  title="How Many Items Fit in a Box? Grid Calculator — Packmetry"
+  description="Estimate how many identical rectangular items fit in one box using a uniform 3D grid and permitted rotations. See the limits of a grid estimate."
+>
+  <main class="pm-utilization-page">
+    <div class="pm-utilization-shell">
+      <header class="pm-utilization-hero">
+        <p class="pm-tool-kicker">Identical-item grid planning</p>
+
+        <h1>
+          How many identical items
+          fit in your box?
+        </h1>
+
+        <p>
+          Enter one item and the carton&apos;s internal dimensions.
+          Packmetry evaluates uniform, axis-aligned grids for each
+          allowed item orientation and shows the best grid count found.
+          This is not a claim of global maximum packing capacity.
+        </p>
+      </header>
+
+      <HowManyItemsFitCalculator client:load />
+
+      <div class="pm-utilization-copy">
+        <section>
+          <p class="pm-tool-kicker">Method</p>
+          <h2>Count whole items along each carton axis.</h2>
+          <p>
+            For one allowed orientation, grid capacity is
+            floor(internal length / item length) ×
+            floor(internal width / item width) ×
+            floor(internal height / item height).
+            The calculator compares the permitted orientations and
+            keeps the largest uniform-grid count.
+          </p>
+        </section>
+
+        <section>
+          <p class="pm-tool-kicker">Worked example</p>
+          <h2>20 × 20 × 20 cm box, 5 × 5 × 5 cm items.</h2>
+          <p>
+            Four items line up along each of the three axes:
+            4 × 4 × 4 = <strong>64 items</strong> in a uniform grid.
+            Each item fits wholly inside the specified internal cavity.
+            This simple equal-cube example yields 100% grid-volume
+            utilization before packing allowances.
+          </p>
+        </section>
+
+        <section>
+          <p class="pm-tool-kicker">What the answer means</p>
+          <h2>Grid fit is not guaranteed maximum fit.</h2>
+          <p>
+            The count describes a constructible pattern with the same
+            item orientation throughout the grid. Other arrangements,
+            including mixed orientations, may fit more items. A
+            requested quantity above this grid count therefore does
+            not prove the quantity is physically impossible to pack.
+          </p>
+        </section>
+
+        <section>
+          <p class="pm-tool-kicker">Limitations</p>
+          <h2>No invisible clearance or handling promises.</h2>
+          <p>
+            Geometry uses internal carton dimensions only. The
+            calculator does not add padding or spacing allowances,
+            model fragility, stackability, weight limits or carton
+            inventory. Use actual internal dimensions after any
+            protective clearance needed for your product.
+          </p>
+        </section>
+
+        <section>
+          <p class="pm-tool-kicker">Compare estimates</p>
+          <h2>Volume-only estimates answer a different question.</h2>
+          <p>
+            The <a href="/tools/box-utilization-calculator/">
+              box utilization calculator
+            </a> compares requested item volume with carton volume,
+            but cannot establish a layout. This tool evaluates an
+            actual uniform grid, though it still does not run the
+            independent packing verifier.
+          </p>
+        </section>
+
+        <section>
+          <p class="pm-tool-kicker">Full packing plan</p>
+          <h2>Need more than a single uniform grid?</h2>
+          <p>
+            Run the <a href="/personal/">Personal workspace</a>
+            or <a href="/business/">Business workspace</a> to
+            generate packing candidates and verify real item
+            placements. Read the
+            <a href="/methodology/packing-algorithm/">
+              packing methodology
+            </a> to understand the solver and its limitations.
+          </p>
+        </section>
+      </div>
+    </div>
+  </main>
+</BaseLayout>
