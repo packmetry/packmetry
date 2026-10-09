@@ -202,5 +202,32 @@ describe('Business products CSV import', () => {
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error('Expected failed import.');
     expect(result.error.line).toBe(3);
+      });
+  it('rejects formula-prefixed product names and SKUs', () => {
+    for (const unsafe of [
+      '=1+1',
+      '+1+1',
+      '-10',
+      '@SUM(1)',
+      '\t=2+2',
+    ]) {
+      expectError(
+        `${HEADER}\n${line([
+          unsafe, '', '1', '2', '3', 'mm',
+          '1', '', '', '',
+        ])}`,
+        'invalid-row',
+        2
+      );
+
+      expectError(
+        `${HEADER}\n${line([
+          'Safe product', unsafe, '1', '2', '3',
+          'mm', '1', '', '', '',
+        ])}`,
+        'invalid-row',
+        2
+      );
+    }
   });
-});
+  });

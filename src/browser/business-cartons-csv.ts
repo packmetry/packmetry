@@ -180,6 +180,15 @@ function parseCarton(
   if (name === '' && cartonCode === '') {
     return invalidRow(line, 'provide a carton name or carton_code.');
   }
+if (
+  /^[=+\-@]/u.test(name) ||
+  /^[=+\-@]/u.test(cartonCode)
+) {
+  return invalidRow(
+    line,
+    'name or carton_code starts with a spreadsheet formula character.'
+  );
+}
 
   const lengthUnit = get('length_unit').trim().toLowerCase();
   if (!isLengthUnit(lengthUnit)) {

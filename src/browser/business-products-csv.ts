@@ -227,6 +227,15 @@ function parseProduct(
   if (name === '' && sku === '') {
     return failRow(record.line, 'provide a product name or SKU.');
   }
+  if (
+  /^[=+\-@]/u.test(name) ||
+  /^[=+\-@]/u.test(sku)
+) {
+  return failRow(
+    record.line,
+    'name or SKU starts with a spreadsheet formula character.'
+  );
+}
 
   const lengthUnitValue = get('length_unit').trim().toLowerCase();
   if (!isLengthUnit(lengthUnitValue)) {

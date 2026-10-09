@@ -154,5 +154,33 @@ describe('Business cartons CSV import', () => {
 
   it('rejects the whole file if any later row fails', () => {
     invalid(`${HEADER}\n${row()}\n${row(['B', '', '0', '2', '3', 'cm', '1', '', '', '', '', '', '', ''])}`, 'invalid-row', 3);
+      });
+  it('rejects formula-prefixed carton names and codes', () => {
+    for (const unsafe of [
+      '=1+1',
+      '+1+1',
+      '-10',
+      '@SUM(1)',
+      '\t=2+2',
+    ]) {
+      invalid(
+        `${HEADER}\n${row([
+          unsafe, '', '1', '2', '3', 'mm', '1',
+          '', '', '', '', '', '', '',
+        ])}`,
+        'invalid-row',
+        2
+      );
+
+      invalid(
+        `${HEADER}\n${row([
+          'Safe carton', unsafe, '1', '2',
+          '3', 'mm', '1',
+          '', '', '', '', '', '', '',
+        ])}`,
+        'invalid-row',
+        2
+      );
+    }
   });
-});
+  });
