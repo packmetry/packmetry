@@ -3,6 +3,7 @@ import { useEffect, useState, type ChangeEvent, type SyntheticEvent } from 'reac
 import PackingVisualization from './PackingVisualization.js';
 import PlanAlternatives from './PlanAlternatives.js';
 import ProductCsvTools from './ProductCsvTools.js';
+import CartonCsvTools from './CartonCsvTools.js';
 import ResultSummary, {
   formatPackedWeight,
 } from './ResultSummary.js';
@@ -2971,6 +2972,32 @@ export default function BusinessWorkspace({
             >
               + Add another carton
             </button>
+
+            <CartonCsvTools
+              cartons={cartons}
+              onImport={importedCartons => {
+                setCartons(importedCartons);
+                // Import can invalidate the DIM objective when external sizes are missing.
+                if (
+                  objective === 'min-dim-weight' &&
+                  !isBusinessMinDimWeightObjectiveAvailable(
+                    importedCartons,
+                    dimensionalWeightValues
+                  )
+                ) {
+                  setObjective('balanced');
+                }
+                setPlan(null);
+                setRecommendedPlan(null);
+                setAlternatives([]);
+                setInventoryUsage(null);
+                setError(null);
+                setCartonLibraryMessage(null);
+                setProjectMessage(
+                  'Cartons imported from CSV. Save project to keep changes locally.'
+                );
+              }}
+            />
 
             <SavedBusinessCartonLibrary
               cartons={
