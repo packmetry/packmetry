@@ -1111,3 +1111,44 @@ Phase 13 — SEO foundation.
 ### Current stage and next work
 
 Phase 13 implementation foundation complete; proceed to **Phase 14 — CSV import/export** with validated file schemas, safe row-level error reporting and explicit dimension/weight unit normalization. Phase 15 batch processing remains a separate later phase.
+
+## 2026-10-09 — Phase 14 CSV Import/Export — milestone closeout
+
+### Completed
+
+- Slice 1: Validated Business products CSV import.
+- Slice 2: Business products CSV export with import-compatible schema.
+- Slice 3: Business workspace product CSV import/export controls.
+- Slice 4: Validated Business carton inventory CSV import.
+- Slice 5: Business carton CSV export with import-compatible schema.
+- Slice 6: Business workspace carton CSV import/export controls.
+- Slice 7: Spreadsheet-formula identifier safety validation and regression tests.
+
+### Data and safety boundaries
+
+- Product and carton CSV schemas are separate and require explicit units.
+- Internal dimensions normalize to millimeters and weights to grams.
+- Optional unknown measurements are not replaced with invented defaults.
+- Invalid rows reject the entire CSV import; partial imports are not applied.
+- Successful imports replace the relevant current workspace rows and invalidate previous packing results.
+- Saved projects and the saved carton library are not automatically modified by CSV import.
+- Existing Business project JSON backup remains separate from CSV interchange.
+- No solver, verifier, or canonical packing-plan behavior was rewritten.
+- CSV processing remains browser-local with bounded input file size.
+- Batch order execution and background processing remain Phase 15 responsibilities.
+
+### Validation and repository checkpoint
+
+- Seven focused slices completed with successful targeted validation.
+- Latest Phase 14 implementation validation: focused tests passed, typecheck 0 errors, production build 18 pages, diff check passed.
+- Latest pushed implementation commit: `d054cbc18e95052da4b5aecc59c5b187a3a323e3`.
+- The reported results are focused validation checkpoints, not a fresh full test-suite run.
+- Fourteen unrelated temporary files were safely moved outside the repository, leaving a clean Git working tree.
+
+### Current dependency-aware stage
+
+Phase 14 implementation complete. Phase 14 documentation closeout is the remaining administrative checkpoint.
+
+### Next planned phase
+
+Phase 15 — Batch Processing: multiple orders, Web Workers, progress and cancellation controls, browser resource limits, and verified per-order packing results.

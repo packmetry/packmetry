@@ -6,6 +6,34 @@ Before changing product behavior, architecture, design direction, or implementat
 
 ## Current status — Phase 13 complete (2026-10-08)
 
+## Current status — Phase 14 complete (2026-10-09)
+
+Phase 14 — CSV Import/Export is complete as a foundational Business workspace milestone. Previous phase summaries below are retained as historical checkpoints.
+
+### Implemented CSV workflows
+
+- Business product CSV import/export using a validated 10-column schema.
+- Business carton inventory CSV import/export using a validated 14-column schema.
+- Explicit length and weight units, normalized to canonical millimeters and grams.
+- Quoted fields, escaped quotes, multiline values, UTF-8 BOM, and reordered headers supported.
+- Missing optional values remain unknown; zero stock and zero carton cost retain their distinct meanings.
+- Row-level validation rejects malformed or invalid CSV files without partially changing workspace data.
+- Spreadsheet-formula-prefixed product names, SKUs, carton names, and carton codes are rejected.
+- Business workspace provides separate product and carton CSV controls.
+- Successful imports replace only the relevant workspace rows and clear stale packing results.
+- CSV imports do not automatically save projects, overwrite the saved carton library, or change the solver.
+- Browser-local CSV file reading has a 2 MB input limit.
+
+### Validation checkpoint
+
+- Seven focused implementation and safeguard slices completed and pushed.
+- Focused tests passed, typecheck passed with 0 errors, production builds generated 18 pages, and diff checks passed.
+- Latest confirmed implementation commit: `d054cbc18e95052da4b5aecc59c5b187a3a323e3`.
+- No new full-suite validation or live browser end-to-end certification is claimed by this milestone record.
+
+### Next phase
+
+**Phase 15 — Batch Processing:** multiple orders, Web Workers, progress reporting, cancellation, and explicit browser processing limits.
 Phase 13 — SEO Tools & Content Framework is complete as a **foundational implementation milestone**. The older Phase 12.5 status, validation baseline, and "next planned phase" statements elsewhere in this README are retained as historical snapshots, not the current project state.
 
 ### Public foundation
